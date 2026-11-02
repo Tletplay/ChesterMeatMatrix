@@ -1,0 +1,113 @@
+﻿@using ChesterMeatMatrix.Models
+@model IEnumerable<ChesterMeatMatrix.Models.StockCountItem>
+@{
+    ViewBag.Title = "Count Sheet";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var stockTake = ViewBag.StockTake as StockTake;
+}
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: #0A2540;">📋 Count Sheet</h2>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Print</button>
+            <a href="@Url.Action("Details", new { id = stockTake?.StockTakeId })" class="btn btn-outline-secondary">← Back</a>
+        </div>
+    </div>
+
+    <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+        <h3>@(stockTake?.Name ?? "N/A")</h3>
+        <p><strong>Session:</strong> @(stockTake?.SessionNumber ?? "N/A") | <strong>Location:</strong> @(stockTake?.Location ?? "N/A")</p>
+        <p><strong>Date:</strong> @(stockTake?.StartDate.ToString("dd MMM yyyy") ?? "N/A")</p>
+        <hr />
+        <p style="color: #64748B;">Total Items to Count: <strong>@(Model?.Count() ?? 0)</strong></p>
+    </div>
+
+    <div style="background: white; border-radius: 12px; overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #F0F4F8;">
+                    <th style="padding: 12px; text-align: left;">#</th>
+                    <th style="padding: 12px; text-align: left;">Product Code</th>
+                    <th style="padding: 12px; text-align: left;">Product Name</th>
+                    <th style="padding: 12px; text-align: center;">System Quantity</th>
+                    <th style="padding: 12px; text-align: center;">Physical Count</th>
+                    <th style="padding: 12px; text-align: center;">Variance</th>
+                    <th style="padding: 12px; text-align: left;">Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    int count = 1;
+                    foreach (var item in Model)
+                    {
+                        string statusBg = item.Status == StockCountStatus.Pending ? "#FEF3C7" :
+                                          item.Status == StockCountStatus.Counted ? "#DBEAFE" :
+                                          item.Status == StockCountStatus.Variance ? "#FEE2E2" :
+                                          "#D1FAE5";
+
+                        string statusColor = item.Status == StockCountStatus.Pending ? "#92400E" :
+                                             item.Status == StockCountStatus.Counted ? "#1E40AF" :
+                                             item.Status == StockCountStatus.Variance ? "#991B1B" :
+                                             "#065F46";
+
+                        <tr>
+                            <td style="padding: 12px; border-bottom: 1px solid #E8E8E8; text-align: center;">@count</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #E8E8E8;">@(item.Product?.ProductCode ?? "N/A")</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #E8E8E8;">
+                                <strong>@(item.Product?.Name ?? "Unknown Product")</strong>
+                            </td>
+                            <td style="padding: 12px; border-bottom: 1px solid #E8E8E8; text-align: center;">@item.SystemQuantity</td>
+                            <td style="padding: 12px; border-bottom: 1px solid #E8E8E8; text-align: center;">
+                                @(item.PhysicalCount.HasValue ? item.PhysicalCount.Value.ToString() : "__")
+                            </td>
+                            <td style="padding: 12px; border-bottom: 1px solid #E8E8E8; text-align: center;">
+                                @if (item.Variance != 0)
+                                {
+                                    <span style="color: @(item.Variance > 0 ? "#10B981" : "#DC2626"); font-weight: 600;">
+                                        @(item.Variance > 0 ? "+" : "")@item.Variance
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="color: #94A3B8;">0</span>
+                                }
+                            </td>
+                            <td style="padding: 12px; border-bottom: 1px solid #E8E8E8;">
+                                <span style="padding: 4px 12px; border-radius: 20px; font-size: 12px; background: @statusBg; color: @statusColor;">
+                                    @item.Status
+                                </span>
+                            </td>
+                        </tr>
+                        count++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 2rem; color: #64748B;">
+                            No items to count.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center; color: #94A3B8; font-size: 12px;">
+        Generated: @DateTime.Now.ToString("dd MMM yyyy HH:mm")
+    </div>
+</div>
+
+<style>
+    @@media print {
+        body {
+            background: white;
+        }
+
+        .btn, .btn-outline-secondary {
+            display: none;
+        }
+    }
+</style>

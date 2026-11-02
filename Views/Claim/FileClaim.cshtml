@@ -1,0 +1,176 @@
+﻿﻿@{
+    ViewBag.Title = "File a Claim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var order = ViewBag.Order as ChesterMeatMatrix.Models.Order;
+    var products = ViewBag.Products as List<ChesterMeatMatrix.Models.Product> ?? new List<ChesterMeatMatrix.Models.Product>();
+}
+
+<style>
+    .claim-container {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .claim-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #0a4c8c;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+    }
+
+        .form-control:focus, .form-select:focus {
+            outline: none;
+            border-color: #0a4c8c;
+        }
+
+    .photo-preview {
+        max-width: 200px;
+        margin-top: 10px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        display: none;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        width: 100%;
+        cursor: pointer;
+    }
+
+    .btn-back {
+        background: #64748b;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 40px;
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .order-info {
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<div class="claim-container">
+    <div class="claim-card">
+        <div class="card-header">
+            <h4><i class="fas fa-file-alt"></i> File a Claim</h4>
+            <p>Submit a claim for issues with your order</p>
+        </div>
+        <div class="card-body">
+            <div class="order-info">
+                <p><strong>Order #:</strong> @order?.OrderNumber</p>
+                <p><strong>Order Date:</strong> @order?.CreatedAt.ToString("dd MMM yyyy")</p>
+                <p><strong>Total Amount:</strong> R @order?.Total.ToString("N2")</p>
+            </div>
+
+            @using (Html.BeginForm("FileClaim", "Claim", FormMethod.Post, new { enctype = "multipart/form-data" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("orderId", order?.Id)
+
+                <div class="form-group">
+                    <label class="form-label">Claim Type *</label>
+                    <select name="claimType" class="form-select" required>
+                        <option value="">-- Select Claim Type --</option>
+                        <option value="Spoiled">Spoiled / Expired Product</option>
+                        <option value="Wrong Product">Wrong Product Delivered</option>
+                        <option value="Quantity Mismatch">Quantity Mismatch</option>
+                        <option value="Weight Issue">Weight Issue</option>
+                        <option value="Damaged">Damaged Packaging</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Product (Optional)</label>
+                    <select name="productId" class="form-select">
+                        <option value="">-- Select Specific Product (Optional) --</option>
+                        @foreach (var product in products)
+                        {
+                            <option value="@product.Id">@product.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description of Issue *</label>
+                    <textarea name="description" class="form-control" rows="4" required
+                              placeholder="Please describe the issue in detail..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Upload Photo (Optional)</label>
+                    <input type="file" id="photoInput" class="form-control" accept="image/*" />
+                    <input type="hidden" name="photoBase64" id="photoBase64" />
+                    <img id="photoPreview" class="photo-preview" />
+                    <small class="text-muted">Upload a photo of the issue for faster resolution</small>
+                </div>
+
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-paper-plane"></i> Submit Claim
+                </button>
+            }
+
+            <div class="text-center mt-3">
+                <a href="@Url.Action("OrderConfirmation", "Customer", new { id = order?.Id })" class="btn-back">← Back to Order</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('photoInput')?.addEventListener('change', function(e) {
+        var file = e.target.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById('photoBase64').value = e.target.result;
+                var preview = document.getElementById('photoPreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

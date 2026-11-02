@@ -1,0 +1,202 @@
+﻿@model IEnumerable<ChesterMeatMatrix.Models.Product>
+@{
+    ViewBag.Title = "Stock Levels - Warehouse";
+    Layout = "~/Views/Shared/_WarehouseLayout.cshtml";
+    var search = ViewBag.Search as string ?? "";
+    var currentStatus = ViewBag.CurrentStatus as string ?? "all";
+
+    // Cast ViewBag data to proper types
+    var productStockInfo = ViewBag.ProductStockInfo as System.Collections.Generic.List<dynamic> ?? new System.Collections.Generic.List<dynamic>();
+}
+
+<style>
+    .filter-bar {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #E0E8F0;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+        .data-table th {
+            background: #F0F4F8;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E8F0;
+        }
+
+    .stock-low {
+        color: #F59E0B;
+        font-weight: 700;
+    }
+
+    .stock-out {
+        color: #DC2626;
+        font-weight: 700;
+    }
+
+    .stock-good {
+        color: #10B981;
+        font-weight: 700;
+    }
+
+    .status-btn {
+        display: inline-block;
+        padding: 5px 15px;
+        border-radius: 20px;
+        margin: 0 2px;
+        text-decoration: none;
+        font-size: 12px;
+    }
+
+    .status-active {
+        background: #0A2540;
+        color: white;
+    }
+
+    .status-inactive {
+        background: #E0E8F0;
+        color: #0A2540;
+    }
+
+    .btn-view {
+        background: #2C6E9E;
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        text-decoration: none;
+    }
+
+        .btn-view:hover {
+            background: #1A4A7A;
+            color: white;
+        }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">Stock Levels</h2>
+        <a href="@Url.Action("Index", "Warehouse")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <div class="row">
+            <div class="col-md-8">
+                <a href="@Url.Action("StockLevels", new { status = "all", search = search })"
+                   class="status-btn @(currentStatus == "all" ? "status-active" : "status-inactive")">All</a>
+                <a href="@Url.Action("StockLevels", new { status = "instock", search = search })"
+                   class="status-btn @(currentStatus == "instock" ? "status-active" : "status-inactive")">In Stock</a>
+                <a href="@Url.Action("StockLevels", new { status = "low", search = search })"
+                   class="status-btn @(currentStatus == "low" ? "status-active" : "status-inactive")">Low Stock (&lt;10)</a>
+                <a href="@Url.Action("StockLevels", new { status = "out", search = search })"
+                   class="status-btn @(currentStatus == "out" ? "status-active" : "status-inactive")">Out of Stock</a>
+            </div>
+            <div class="col-md-4">
+                @using (Html.BeginForm("StockLevels", "Warehouse", FormMethod.Get))
+                {
+                    <div class="input-group">
+                        <input type="hidden" name="status" value="@currentStatus" />
+                        <input type="text" name="search" class="form-control" placeholder="Search product..." value="@search" />
+                        <button type="submit" class="btn btn-primary">Search</button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-4">
+            <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
+            <p>No products found.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Product Code</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Batches</th>
+                        <th>Total Stock</th>
+                        <th>Oldest Batch</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in Model)
+                    {
+                        // Find stock info for this product using a loop instead of LINQ on dynamic
+                        dynamic stockInfo = null;
+                        foreach (var si in productStockInfo)
+                        {
+                            if (si.Product.Id == product.Id)
+                            {
+                                stockInfo = si;
+                                break;
+                            }
+                        }
+
+                        int totalStock = 0;
+                        int batchCount = 0;
+                        string oldestBatchDate = "-";
+
+                        if (stockInfo != null)
+                        {
+                            totalStock = stockInfo.TotalStock;
+                            batchCount = stockInfo.BatchCount;
+                            if (stockInfo.OldestBatch != null)
+                            {
+                                oldestBatchDate = stockInfo.OldestBatch.ReceivedDate.ToString("dd MMM yyyy");
+                            }
+                        }
+
+                        var stockClass = totalStock == 0 ? "stock-out" : (totalStock < 10 ? "stock-low" : "stock-good");
+
+                        <tr>
+                            <td>
+                                @product.ProductCode
+                        </td>
+                        <td>
+                            @product.Name
+                    </td>
+                    <td>
+                        @product.Category
+                </td>
+                <td>@batchCount
+            </td>
+            <td>
+                <span class="@stockClass">@totalStock units</span>
+            </td>
+            <td>@oldestBatchDate
+        </td>
+        <td>
+            <a href="@Url.Action("ProductDetails", "Warehouse", new { id = product.Id })" class="btn-view">View Details</a>
+        </td>
+    </tr>
+}
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

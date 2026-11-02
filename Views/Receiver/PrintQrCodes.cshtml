@@ -1,0 +1,233 @@
+﻿﻿@model List<ChesterMeatMatrix.Models.BatchItemQrCode>
+@{
+    Layout = "~/Views/Shared/_ReceiverLayout.cshtml";
+    var batch = ViewBag.Batch as ChesterMeatMatrix.Models.StockBatch;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>QR Codes - @(batch?.BatchNumber ?? "Batch")</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            padding: 20px;
+            background: white;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #0a4c8c;
+            padding-bottom: 10px;
+        }
+
+            .header h2 {
+                color: #0a4c8c;
+                margin: 0;
+            }
+
+            .header p {
+                margin: 5px 0;
+                font-size: 12px;
+                color: #64748b;
+            }
+
+        .batch-qr {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 2px dashed #0a4c8c;
+            border-radius: 10px;
+            background: #f8fafc;
+        }
+
+            .batch-qr img {
+                width: 150px;
+                height: 150px;
+            }
+
+            .batch-qr h3 {
+                margin-top: 10px;
+                font-size: 12px;
+                color: #0a4c8c;
+                word-break: break-all;
+            }
+
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .qr-item {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            page-break-inside: avoid;
+            background: white;
+        }
+
+            .qr-item img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .qr-item .code {
+                font-size: 9px;
+                margin-top: 5px;
+                word-break: break-all;
+                color: #475569;
+            }
+
+            .qr-item .weight {
+                font-size: 10px;
+                color: #0a4c8c;
+                font-weight: 600;
+                margin-top: 3px;
+            }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 10px;
+            color: #94a3b8;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 15px;
+        }
+
+        .btn-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 1000;
+        }
+
+            .btn-print:hover {
+                background: linear-gradient(135deg, #0e6cb0 0%, #0a4c8c 100%);
+            }
+
+        .btn-back {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: #64748b;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            text-decoration: none;
+            z-index: 1000;
+        }
+
+            .btn-back:hover {
+                background: #475569;
+            }
+
+        @@media print {
+            .btn-print, .btn-back {
+                display: none;
+            }
+
+            body {
+                padding: 0;
+            }
+
+            .qr-grid {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 10px;
+            }
+
+            .qr-item {
+                border: 1px solid #ccc;
+            }
+        }
+
+        @@media (max-width: 800px) {
+            .qr-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <a href="@Url.Action("Index", "Receiver")" class="btn-back">← Back to Dashboard</a>
+    <button class="btn-print" onclick="window.print()">🖨️ Print QR Codes</button>
+
+    <div class="header">
+        <h2>CHESTER MEAT MATRIX</h2>
+        <h3>BATCH QR CODES</h3>
+        @if (batch != null)
+        {
+            <p>
+                <strong>Batch Number:</strong> @batch.BatchNumber<br />
+                <strong>Product:</strong> @(batch.Product?.Name ?? "N/A")<br />
+                <strong>Quantity:</strong> @batch.Quantity units<br />
+                <strong>Unit Weight:</strong> @batch.UnitWeightKg kg<br />
+                <strong>Received Date:</strong> @batch.ReceivedDate.ToString("yyyy-MM-dd HH:mm")
+            </p>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(ViewBag.BatchQrCode as string))
+    {
+        <div class="batch-qr">
+            <img src="@ViewBag.BatchQrCode" alt="Batch QR Code" />
+            <h3>@(batch?.BatchNumber ?? "")</h3>
+            <p style="font-size: 11px; margin-top: 5px;">Scan this QR code for batch information</p>
+        </div>
+    }
+
+    <h3 style="margin-bottom: 15px; color: #0a4c8c;">📦 Individual Item QR Codes (@(Model?.Count ?? 0) items)</h3>
+
+    <div class="qr-grid">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var item in Model)
+            {
+                <div class="qr-item">
+                    <img src="@item.QrCodeData" alt="@item.ItemCode" />
+                    <div class="code">@item.ItemCode</div>
+                    <div class="weight">@item.UnitWeightKg kg</div>
+                </div>
+            }
+        }
+        else
+        {
+            <div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #94a3b8;">
+                No item QR codes available.
+            </div>
+        }
+    </div>
+
+    <div class="footer">
+        Generated: @DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") | Chester Meat Matrix<br />
+        Total Items: @(Model?.Count ?? 0)
+    </div>
+
+    <script>
+        setTimeout(function() {
+            if (confirm('Open print dialog to print these QR codes?')) {
+                window.print();
+            }
+        }, 500);
+    </script>
+</body>
+</html>

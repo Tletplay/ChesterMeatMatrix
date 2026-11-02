@@ -1,0 +1,135 @@
+﻿@model IEnumerable<ChesterMeatMatrix.Models.Route>
+@{
+    ViewBag.Title = "Completed Deliveries - Driver";
+    Layout = "~/Views/Shared/_DriverLayout.cshtml";
+    var fromDate = ViewBag.FromDate as string ?? "";
+    var toDate = ViewBag.ToDate as string ?? "";
+}
+
+<style>
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #E0E8F0;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+        .data-table th {
+            background: #F0F4F8;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid #E0E8F0;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E8F0;
+        }
+
+    .signature-thumb {
+        max-width: 80px;
+        max-height: 40px;
+        border: 1px solid #E0E8F0;
+        border-radius: 4px;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 50px;
+        color: #6B7280;
+    }
+
+        .empty-state span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">Completed Deliveries</h2>
+        <a href="@Url.Action("Index", "Driver")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-card">
+        @using (Html.BeginForm("CompletedDeliveries", "Driver", FormMethod.Get))
+        {
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label class="form-label">📅 From Date</label>
+                    <input type="date" name="fromDate" class="form-control" value="@fromDate" />
+                </div>
+                <div class="col-md-5">
+                    <label class="form-label">📅 To Date</label>
+                    <input type="date" name="toDate" class="form-control" value="@toDate" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <span>📦</span>
+            <p>No completed deliveries found.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Route Name</th>
+                        <th>Destination</th>
+                        <th>Completed Date</th>
+                        <th>Orders</th>
+                        <th>Total Amount</th>
+                        <th>Signature</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var route in Model)
+                    {
+                        var orderCount = route.OrderIds?.Count ?? 0;
+                        var totalAmount = route.TotalAmount;
+                        <tr>
+                            <td><strong>@route.Name</strong></td>
+                            <td>@route.Destination</td>
+                            <td>@(route.SignatureDate?.ToString("dd MMM yyyy HH:mm") ?? "-")</td>
+                            <td>@orderCount orders</td>
+                            <td>R @totalAmount.ToString("N2")</td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(route.SignatureData))
+                                {
+                                    <img src="@route.SignatureData" class="signature-thumb" alt="Signature" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No signature</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

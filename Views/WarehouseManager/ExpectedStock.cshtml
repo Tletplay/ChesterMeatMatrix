@@ -1,0 +1,478 @@
+﻿﻿@model List<ChesterMeatMatrix.Models.ExpectedStock>
+@{
+    ViewBag.Title = "Expected Stock";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var currentStatus = ViewBag.Status as string;
+    var fromDate = ViewBag.FromDate as string;
+    var toDate = ViewBag.ToDate as string;
+    var statusOptions = ViewBag.StatusOptions as string[] ?? new[] { "Pending", "InTransit", "PartiallyReceived", "Received", "Cancelled" };
+}
+
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .container-custom {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+        .header-bar h1 {
+            color: #0a4c8c;
+            font-weight: 700;
+            margin: 0;
+        }
+
+    .btn-back {
+        background: #64748b;
+        padding: 8px 24px;
+        border-radius: 40px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+        .btn-back:hover {
+            background: #475569;
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #0e6cb0 0%, #0a4c8c 100%);
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+    .filter-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(10, 76, 140, 0.08);
+    }
+
+    .filter-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .filter-group {
+        flex: 1;
+        min-width: 180px;
+    }
+
+        .filter-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0a4c8c;
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .filter-group input, .filter-group select {
+            width: 100%;
+            padding: 0.6rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+        }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        border: none;
+        padding: 0.6rem 1.8rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-filter:hover {
+            transform: translateY(-2px);
+        }
+
+    .stock-table {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(10, 76, 140, 0.08);
+    }
+
+        .stock-table th {
+            background: #0a4c8c;
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stock-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .stock-table tr:hover {
+            background: #f8fafc;
+        }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .status-intransit {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .status-partiallyreceived {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-received {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .status-cancelled {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .progress-bar {
+        width: 80px;
+        height: 6px;
+        background: #e2e8f0;
+        border-radius: 20px;
+        overflow: hidden;
+        display: inline-block;
+        margin-left: 0.5rem;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #10b981;
+        border-radius: 20px;
+    }
+
+    .action-links a {
+        color: #0a4c8c;
+        text-decoration: none;
+        margin-right: 0.75rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+        .action-links a:hover {
+            text-decoration: underline;
+        }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 550px;
+        width: 90%;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+        .modal-header h3 {
+            color: #0a4c8c;
+            margin: 0;
+        }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #64748b;
+        cursor: pointer;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0a4c8c;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+        }
+</style>
+
+<div class="container-custom">
+    <div class="header-bar">
+        <h1>📦 Expected Stock Management</h1>
+        <div style="display: flex; gap: 1rem;">
+            <a href="#" onclick="openManualModal(); return false;" class="btn-primary">➕ Add Expected Stock</a>
+            <a href="@Url.Action("Dashboard")" class="btn-back">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div style="background: #d1fae5; color: #065f46; padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid #10b981;">
+            ✅ @TempData["Success"]
+        </div>
+    }
+
+    <!-- Filter Section -->
+    <div class="filter-card">
+        <form method="get" action="@Url.Action("ExpectedStock")" class="filter-form">
+            <div class="filter-group">
+                <label>Status</label>
+                <select name="status">
+                    <option value="">All Statuses</option>
+                    @foreach (var status in statusOptions)
+                    {
+                        string selected = (status == currentStatus) ? "selected" : "";
+                        <option value="@status" @selected>@status</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>From Date</label>
+                <input type="date" name="fromDate" value="@fromDate" />
+            </div>
+            <div class="filter-group">
+                <label>To Date</label>
+                <input type="date" name="toDate" value="@toDate" />
+            </div>
+            <div class="filter-group">
+                <button type="submit" class="btn-filter">🔍 Filter</button>
+                <a href="@Url.Action("ExpectedStock")" style="margin-left: 0.5rem; color: #64748b;">Clear</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Expected Stock Table -->
+    <div class="stock-table">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>PO Number</th>
+                    <th>Product</th>
+                    <th>Expected</th>
+                    <th>Progress</th>
+                    <th>Delivery Date</th>
+                    <th>Supplier</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var expected in Model)
+                    {
+                        var progressPercent = expected.ExpectedQuantity > 0
+                            ? (int)((double)expected.QuantityReceived / expected.ExpectedQuantity * 100)
+                            : 0;
+                        string productName = expected.Product != null ? expected.Product.Name : "Unknown";
+                        var daysUntil = (expected.ExpectedDeliveryDate - DateTime.Today).Days;
+
+                        <tr>
+                            <td><strong>@expected.PurchaseOrderNumber</strong></td>
+                            <td>
+                                @productName
+                                <br />
+                                <small style="color: #64748b;">@expected.ExpectedUnitWeightKg kg/unit</small>
+                            </td>
+                            <td>@expected.ExpectedQuantity units</td>
+                            <td>
+                                @expected.QuantityReceived / @expected.ExpectedQuantity
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: @progressPercent%;"></div>
+                                </div>
+                            </td>
+                            <td>
+                                @expected.ExpectedDeliveryDate.ToString("dd MMM yyyy")
+                                @if (daysUntil < 0)
+                                {
+                                    <br /><small style="color: #ef4444;">Overdue by @Math.Abs(daysUntil) days</small>
+                                }
+                                else if (daysUntil <= 3)
+                                {
+                                    <br /><small style="color: #f59e0b;">In @daysUntil days</small>
+                                }
+                            </td>
+                            <td>@expected.SupplierReference</td>
+                            <td>
+                                <span class="status-badge @GetStatusClass(expected.Status)">@expected.Status</span>
+                            </td>
+                            <td class="action-links">
+                                <a href="@Url.Action("ExpectedStockDetails", new { id = expected.ExpectedStockId })">View</a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 3rem; color: #64748b;">
+                            No expected stock records found.
+                            <br /><br />
+                            <a href="#" onclick="openManualModal(); return false;" class="btn-primary">Add Expected Stock</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Manual Add Modal -->
+<div class="modal-overlay" id="manualModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>➕ Add Expected Stock</h3>
+            <button type="button" class="modal-close" onclick="closeManualModal()">✕</button>
+        </div>
+        <form method="post" action="@Url.Action("CreateManualExpectedStock")">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label>Product</label>
+                <select name="productId" required>
+                    <option value="">Select Product</option>
+                    @{
+                        var products = ViewBag.Products as List<ChesterMeatMatrix.Models.Product>;
+                        if (products != null)
+                        {
+                            foreach (var product in products)
+                            {
+                                <option value="@product.Id">@product.Name</option>
+                            }
+                        }
+                    }
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Expected Quantity</label>
+                <input type="number" name="expectedQuantity" required min="1" />
+            </div>
+            <div class="form-group">
+                <label>Unit Weight (kg)</label>
+                <input type="number" name="expectedUnitWeightKg" value="1.0" min="0.01" step="0.01" />
+            </div>
+            <div class="form-group">
+                <label>Expected Delivery Date</label>
+                <input type="date" name="expectedDeliveryDate" required value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" />
+            </div>
+            <div class="form-group">
+                <label>Supplier Reference</label>
+                <input type="text" name="supplierReference" placeholder="e.g., PO-12345" />
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea name="notes" rows="2"></textarea>
+            </div>
+            <input type="hidden" name="batchSize" value="25" />
+            <input type="hidden" name="batchCount" value="1" />
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn-primary" style="flex: 1;">Add Stock</button>
+                <button type="button" onclick="closeManualModal()" class="btn-back" style="flex: 1;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openManualModal() {
+        document.getElementById('manualModal').style.display = 'flex';
+    }
+
+    function closeManualModal() {
+        document.getElementById('manualModal').style.display = 'none';
+    }
+
+    window.onclick = function (event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.style.display = 'none';
+        }
+    }
+</script>
+
+@functions {
+    string GetStatusClass(string status)
+    {
+        if (string.IsNullOrEmpty(status)) return "";
+        if (status == "Pending") return "status-pending";
+        if (status == "InTransit") return "status-intransit";
+        if (status == "PartiallyReceived") return "status-partiallyreceived";
+        if (status == "Received") return "status-received";
+        if (status == "Cancelled") return "status-cancelled";
+        return "";
+    }
+}

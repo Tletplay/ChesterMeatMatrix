@@ -1,0 +1,164 @@
+﻿﻿@model ChesterMeatMatrix.Models.Claim
+@{
+    ViewBag.Title = "Claim Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .details-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .details-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .info-row {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #0a4c8c;
+        width: 150px;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-approved, .status-credited {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .claim-photo {
+        max-width: 300px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        margin-top: 0.5rem;
+    }
+
+    .btn-back {
+        background: #64748b;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 40px;
+        color: white;
+        text-decoration: none;
+        display: inline-block;
+    }
+</style>
+
+<div class="details-container">
+    <div class="details-card">
+        <div class="card-header">
+            <h4><i class="fas fa-file-alt"></i> Claim #@Model.ClaimNumber</h4>
+        </div>
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">Status:</span>
+                <span class="status-@Model.Status.ToLower()">@Model.Status</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Order Number:</span>
+                <span>@Model.Order?.OrderNumber</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Claim Date:</span>
+                <span>@Model.ClaimDate.ToString("dd MMM yyyy HH:mm")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Claim Type:</span>
+                <span>@Model.ClaimType</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Product:</span>
+                <span>@(Model.Product?.Name ?? "All Products")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Description:</span>
+                <p style="margin-top: 0.5rem;">@Model.Description</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+            {
+                <div class="info-row">
+                    <span class="info-label">Photo Evidence:</span>
+                    <div>
+                        <img src="@Model.PhotoUrl" class="claim-photo" />
+                    </div>
+                </div>
+            }
+
+            @if (Model.ReviewedDate.HasValue)
+            {
+                <div class="info-row">
+                    <span class="info-label">Reviewed Date:</span>
+                    <span>@Model.ReviewedDate.Value.ToString("dd MMM yyyy HH:mm")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Reviewed By:</span>
+                    <span>@Model.ReviewedBy</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Resolution Notes:</span>
+                    <p style="margin-top: 0.5rem;">@Model.ResolutionNotes</p>
+                </div>
+            }
+
+            @if (Model.CreditAmount > 0)
+            {
+                <div class="info-row">
+                    <span class="info-label">Credit Amount:</span>
+                    <span class="fw-bold" style="color: #10b981;">R @Model.CreditAmount.ToString("N2")</span>
+                </div>
+            }
+
+            <div class="text-center mt-4">
+                <a href="@Url.Action("MyClaims", "Claim")" class="btn-back">← Back to My Claims</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

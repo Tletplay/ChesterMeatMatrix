@@ -1,0 +1,577 @@
+﻿@model IEnumerable<ChesterMeatMatrix.Models.Product>
+@{
+    ViewBag.Title = "Receiver Dashboard - Chester Meat Matrix";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Receiver Dashboard - Chester Meat Matrix</title>
+    <style>
+        /* Dashboard Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 35px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-header::before {
+            content: '📊';
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            font-size: 100px;
+            opacity: 0.08;
+            pointer-events: none;
+        }
+
+        .page-header h2 {
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .page-header p {
+            font-size: 16px;
+            opacity: 0.85;
+            margin-bottom: 25px;
+        }
+
+        /* Stats Row */
+        .stats-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 15px 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            min-width: 150px;
+        }
+
+        .stat-card .stat-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        /* Action Cards - Three Main Links */
+        .actions-section {
+            margin-bottom: 45px;
+        }
+
+        .actions-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #0A2540;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .actions-title::before {
+            content: '⚡';
+            font-size: 24px;
+        }
+
+        .action-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px 25px;
+            text-align: center;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.06);
+            border: 1px solid #E8F0F8;
+            display: block;
+        }
+
+        .action-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 35px rgba(10, 37, 64, 0.15);
+            border-color: #2C6E9E;
+        }
+
+        .action-icon {
+            font-size: 56px;
+            margin-bottom: 18px;
+            display: inline-block;
+        }
+
+        .action-card h3 {
+            color: #0A2540;
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .action-card p {
+            color: #6B7280;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .action-arrow {
+            margin-top: 18px;
+            font-size: 14px;
+            color: #2C6E9E;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .action-card:hover .action-arrow {
+            gap: 10px;
+        }
+
+        /* Recent Pallets Section */
+        .recent-section {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #F8FAFE;
+            padding: 20px 25px;
+            border-bottom: 2px solid #E8F0F8;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .section-header h3 {
+            color: #0A2540;
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge-count {
+            background: #2C6E9E;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .view-all-link {
+            color: #2C6E9E;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.3s;
+        }
+
+        .view-all-link:hover {
+            color: #0A2540;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        /* Table Styles */
+        .pallets-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .pallets-table thead {
+            background: #F0F4F9;
+        }
+
+        .pallets-table th {
+            padding: 15px 18px;
+            text-align: left;
+            font-weight: 700;
+            color: #0A2540;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #E0E8F0;
+        }
+
+        .pallets-table td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #E8F0F8;
+            color: #2D3748;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .pallets-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .pallets-table tbody tr:hover {
+            background: #F8FAFE;
+        }
+
+        /* Badges */
+        .pallet-code-badge {
+            font-family: 'Courier New', monospace;
+            background: #0A2540;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .quantity-badge {
+            background: #E8F0F8;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+            color: #0A2540;
+            font-size: 13px;
+            display: inline-block;
+        }
+
+        .location-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .location-freezer {
+            background: #E8FCE8;
+            color: #2E7D32;
+        }
+
+        .location-warehouse {
+            background: #E3F2FD;
+            color: #1565C0;
+        }
+
+        .location-default {
+            background: #F0F4F9;
+            color: #4A5568;
+        }
+
+        /* Action Buttons in Table */
+        .table-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-sm {
+            padding: 5px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .btn-details {
+            background: #E8F0F8;
+            color: #0A2540;
+        }
+
+        .btn-details:hover {
+            background: #0A2540;
+            color: white;
+            text-decoration: none;
+        }
+
+        .btn-stock {
+            background: #E8FCE8;
+            color: #2E7D32;
+        }
+
+        .btn-stock:hover {
+            background: #2E7D32;
+            color: white;
+            text-decoration: none;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #A0AEC0;
+        }
+
+        .empty-state span {
+            font-size: 60px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        .empty-state h4 {
+            color: #4A5568;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .empty-state p {
+            color: #6B7280;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .dashboard-container {
+                padding: 15px;
+            }
+            
+            .page-header {
+                padding: 25px;
+            }
+            
+            .page-header h2 {
+                font-size: 28px;
+            }
+            
+            .stat-card .stat-value {
+                font-size: 24px;
+            }
+            
+            .action-cards {
+                gap: 15px;
+            }
+            
+            .action-card {
+                padding: 20px;
+            }
+            
+            .action-icon {
+                font-size: 44px;
+            }
+            
+            .action-card h3 {
+                font-size: 18px;
+            }
+            
+            .pallets-table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .pallets-table th,
+            .pallets-table td {
+                white-space: nowrap;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .stats-row {
+                flex-direction: column;
+            }
+            
+            .stat-card {
+                text-align: center;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2>Receiver Dashboard</h2>
+            <p>Manage incoming meat products, track pallets, and monitor warehouse inventory</p>
+            <div class="stats-row">
+                <div class="stat-card">
+                    <div class="stat-label">Total Pallets</div>
+                    <div class="stat-value">@(Model != null ? Model.Count() : 0)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Items</div>
+                    <div class="stat-value">@(Model != null ? Model.Sum(p => p.Quantity) : 0)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Locations</div>
+                    <div class="stat-value">@(Model != null ? Model.Select(p => p.Location).Distinct().Count() : 0)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Three Main Action Cards -->
+        <div class="actions-section">
+            <div class="actions-title">Quick Actions</div>
+            <div class="action-cards">
+                <!-- Receive New Items -->
+                <a href="@Url.Action("Create", "Receiver")" class="action-card">
+                    <div class="action-icon">📥</div>
+                    <h3>Receive New Items</h3>
+                    <p>Add new meat products to your inventory. Create pallets and assign locations.</p>
+                    <div class="action-arrow">
+                        Receive Items →
+                    </div>
+                </a>
+
+                <!-- View Pallets -->
+                <a href="@Url.Action("Index", "Receiver")" class="action-card">
+                    <div class="action-icon">📦</div>
+                    <h3>View Pallets</h3>
+                    <p>Browse all received pallets, check quantities, and manage stock levels.</p>
+                    <div class="action-arrow">
+                        View All Pallets →
+                    </div>
+                </a>
+
+                <!-- Warehouse Stock -->
+                <a href="@Url.Action("Stock", "Receiver")" class="action-card">
+                    <div class="action-icon">🏭</div>
+                    <h3>Warehouse Stock</h3>
+                    <p>View detailed inventory by location, track serial numbers and product codes.</p>
+                    <div class="action-arrow">
+                        Manage Stock →
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Pallets Section -->
+        <div class="recent-section">
+            <div class="section-header">
+                <h3>
+                    <span>📋</span> Recent Pallets
+                    <span class="badge-count">@(Model != null ? Model.Count() : 0) pallets</span>
+                </h3>
+                <a href="@Url.Action("Index", "Receiver")" class="view-all-link">
+                    View All Pallets →
+                </a>
+            </div>
+
+            @if (Model != null && Model.Any())
+            {
+                <table class="pallets-table">
+                    <thead>
+                        <tr>
+                            <th>📦 Pallet Code</th>
+                            <th>🏷️ Product Name</th>
+                            <th>🔢 Quantity</th>
+                            <th>📍 Location</th>
+                            <th>⏰ Received</th>
+                            <th>⚡ Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.Take(5))
+                        {
+                            <tr>
+                                <td>
+                                    <span class="pallet-code-badge">@p.PalletCode</span>
+                                </td>
+                                <td>
+                                    <strong>@p.Name</strong>
+                                </td>
+                                <td>
+                                    <span class="quantity-badge">@p.Quantity units</span>
+                                </td>
+                                <td>
+                                    @{
+                                        string locationClass = "location-default";
+                                        string locationIcon = "📍";
+                                        if (p.Location != null && p.Location.Contains("Freezer"))
+                                        {
+                                            locationClass = "location-freezer";
+                                            locationIcon = "❄️";
+                                        }
+                                        else if (p.Location != null && (p.Location.Contains("Warehouse") || p.Location.Contains("Floor")))
+                                        {
+                                            locationClass = "location-warehouse";
+                                            locationIcon = "🏭";
+                                        }
+                                    }
+                                    <span class="location-badge @locationClass">
+                                        @locationIcon @p.Location
+                                    </span>
+                                 </td>
+                                <td>
+                                    <span style="font-size: 12px; color: #6B7280;">
+                                        @p.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                                    </span>
+                                 </td>
+                                <td>
+                                    <div class="table-actions">
+                                        <a href="@Url.Action("Details", "Receiver", new { palletCode = p.PalletCode })" 
+                                           class="btn-sm btn-details">
+                                            📄 Details
+                                        </a>
+                                        <a href="@Url.Action("Stock", "Receiver", new { q = p.PalletCode })" 
+                                           class="btn-sm btn-stock">
+                                            📦 Stock
+                                        </a>
+                                    </div>
+                                 </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <span>📦</span>
+                    <h4>No Pallets Yet</h4>
+                    <p>Click "Receive New Items" to add your first pallet to the system.</p>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>

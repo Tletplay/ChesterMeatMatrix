@@ -1,0 +1,203 @@
+﻿﻿@model ChesterMeatMatrix.Models.EnterpriseCart
+@{
+    ViewBag.Title = "Enterprise Cart";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var availableStock = ViewBag.AvailableStock as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var total = Model?.Items?.Sum(i => i.UnitPrice * i.Quantity) ?? 0;
+}
+
+<style>
+    .cart-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .cart-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .cart-header {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+
+    .cart-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .cart-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #0a4c8c;
+        }
+
+        .cart-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+    .qty-input {
+        width: 70px;
+        padding: 0.3rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    .btn-update, .btn-remove {
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-update {
+        background: #0a4c8c;
+        color: white;
+    }
+
+    .btn-remove {
+        background: #dc2626;
+        color: white;
+    }
+
+    .cart-footer {
+        padding: 1.5rem;
+        background: #f8fafc;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .total-amount {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0a4c8c;
+    }
+
+    .btn-checkout {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-continue {
+        background: #64748b;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .empty-cart {
+        text-align: center;
+        padding: 3rem;
+        color: #64748b;
+    }
+</style>
+
+<div class="cart-container">
+    <div class="cart-card">
+        <div class="cart-header">
+            <h3><i class="fas fa-shopping-cart"></i> Enterprise Shopping Cart</h3>
+            <p>Monthly billing - Orders added to your account</p>
+        </div>
+
+        @if (Model?.Items == null || !Model.Items.Any())
+        {
+            <div class="empty-cart">
+                <i class="fas fa-shopping-cart fa-3x mb-3 d-block"></i>
+                <p>Your cart is empty.</p>
+                <a href="@Url.Action("Products", "Customer")" class="btn-continue">Continue Shopping →</a>
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x: auto;">
+                <table class="cart-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Unit Price</th>
+                            <th>Quantity</th>
+                            <th>Available</th>
+                            <th>Subtotal</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            var available = availableStock.ContainsKey(item.ProductId) ? availableStock[item.ProductId] : 0;
+                            <tr>
+                                <td><strong>@item.ProductName</strong></td>
+                                <td>R @item.UnitPrice.ToString("N2")</td>
+                                <td>
+                                    <form action="@Url.Action("UpdateCartItem", "EnterpriseCart")" method="post" style="display: flex; gap: 0.5rem; align-items: center;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@item.ProductId" />
+                                        <input type="number" name="quantity" value="@item.Quantity" min="1" max="@available" class="qty-input" />
+                                        <button type="submit" class="btn-update">Update</button>
+                                    </form>
+                                </td>
+                                <td>
+                                    @if (available <= 0)
+                                    {
+                                        <span class="text-danger">Out of stock</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@available units</span>
+                                    }
+                                </td>
+                                <td><strong>R @((item.UnitPrice * item.Quantity).ToString("N2"))</strong></td>
+                                <td>
+                                    <form action="@Url.Action("RemoveFromCart", "EnterpriseCart")" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@item.ProductId" />
+                                        <button type="submit" class="btn-remove">Remove</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="cart-footer">
+                <div>
+                    <a href="@Url.Action("Products", "Customer")" class="btn-continue">← Continue Shopping</a>
+                </div>
+                <div>
+                    <strong>Total: </strong>
+                    <span class="total-amount">R @total.ToString("N2")</span>
+                </div>
+                <div>
+                    <a href="@Url.Action("Checkout", "EnterpriseCart")" class="btn-checkout">Proceed to Checkout →</a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

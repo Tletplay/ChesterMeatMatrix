@@ -1,0 +1,191 @@
+﻿@model IEnumerable<ChesterMeatMatrix.Models.Route>
+@using ChesterMeatMatrix.Data
+@{
+    ViewBag.Title = "Routes";
+    Layout = "~/Views/Shared/_RouterLayout.cshtml";
+    var role = Session["Role"] as string;
+}
+
+<h2>Delivery Routes</h2>
+
+@if(TempData["Message"] != null){ <div style="padding:8px;background:#e6ffed;border:1px solid #b6f2c4;margin-bottom:8px;">@TempData["Message"]</div> }
+
+@using System.Linq
+
+@{
+    // Consider an order "routed" if it is attached to any route that is not Pending
+    var unassignedOrders = InMemoryDatabase.Orders.Where(o => !InMemoryDatabase.Routes.Any(r => r.OrderIds.Contains(o.Id) && !string.Equals(r.Status, "Pending", System.StringComparison.OrdinalIgnoreCase))).ToList();
+}
+
+<h3>Unassigned Orders</h3>
+@using (Html.BeginForm("CreateRouteFromOrders", "Router", FormMethod.Post, new { id = "createRouteForm" }))
+{
+    @Html.AntiForgeryToken()
+    <div style="background:#fff;padding:12px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:12px;">
+        @if(!unassignedOrders.Any())
+        {
+            <div>No unassigned orders available.</div>
+        }
+        else
+        {
+            <div style="margin-bottom:8px;font-weight:bold;">Select orders to create a route</div>
+            <div style="max-height:200px;overflow:auto;margin-bottom:8px;">
+                @foreach(var o in unassignedOrders)
+                {
+                    var cust = o.Customer;
+                    <div style="padding:4px 0;">
+                        <label>
+                            <input type="checkbox" name="selectedOrderIds" value="@o.Id" class="order-checkbox" data-enterprise="@(cust!=null && cust.IsEnterprise ? "true" : "false")" data-company="@(cust!=null?cust.Name:"")" />
+                            &nbsp; @o.OrderNumber - @(cust!=null?cust.Name:"(Unknown)") @(cust!=null && cust.IsEnterprise?"(Enterprise)":"")
+                        </label>
+                    </div>
+                }
+            </div>
+
+
+            <div style="margin-bottom:8px;">
+                <label>Destination (leave empty to use enterprise company name when applicable): </label>
+                <input type="text" name="destination" id="destinationInput" style="width:300px;" />
+            </div>
+
+            <div>
+                <button type="submit" class="btn-chester-primary">Create Route from Selected Orders</button>
+            </div>
+        }
+
+<div style="margin-top:10px;">
+    <a href="#" onclick="return routeSelectedOrdersQuick();" class="action-btn">?? Route selected order(s)</a>
+</div>
+    </div>
+}
+
+@{
+    var drivers = InMemoryDatabase.Users.Where(u => u.Role == "Driver").ToList();
+    var vehicles = InMemoryDatabase.Vehicles.ToList();
+}
+
+@using (Html.BeginForm("BulkAssign","Router",FormMethod.Post))
+{
+    @Html.AntiForgeryToken()
+    <table style="width:100%;border-collapse:collapse;">
+        <thead>
+            <tr style="background:#f0f4f8;text-align:left;">
+                <th style="padding:8px;border-bottom:1px solid #e6eef8;width:34px;"><input type="checkbox" id="checkAll" title="Select all" /></th>
+                <th style="padding:8px;border-bottom:1px solid #e6eef8;">Route</th>
+                <th style="padding:8px;border-bottom:1px solid #e6eef8;">Destination</th>
+                <th style="padding:8px;border-bottom:1px solid #e6eef8;">Date</th>
+                <th style="padding:8px;border-bottom:1px solid #e6eef8;">Items</th>
+
+                <th style="padding:8px;border-bottom:1px solid #e6eef8;">Status</th>
+                <th style="padding:8px;border-bottom:1px solid #e6eef8;">Assigned</th>
+               
+            </tr>
+        </thead>
+    <tbody>
+    @foreach(var r in Model)
+    {
+        var driver = InMemoryDatabase.Users.FirstOrDefault(u => u.Id == r.AssignedDriverId);
+        var vehicle = InMemoryDatabase.Vehicles.FirstOrDefault(v => v.Id == r.AssignedVehicleId);
+        // if the route has orders and the customer is enterprise, show company name as destination
+        var order = InMemoryDatabase.Orders.FirstOrDefault(o => r.OrderIds.Contains(o.Id));
+        var destinationDisplay = r.Destination;
+        if(order != null && order.Customer != null && order.Customer.IsEnterprise)
+        {
+            destinationDisplay = order.Customer.Name;
+        }
+
+        <tr>
+            <td style="padding:8px;border-bottom:1px solid #eef6ff;"><input type="checkbox" name="selectedRouteIds" value="@r.Id" class="route-checkbox" /></td>
+            <td style="padding:8px;border-bottom:1px solid #eef6ff;">@r.Name</td>
+            <td style="padding:8px;border-bottom:1px solid #eef6ff;">@destinationDisplay</td>
+            @* Allow entering date on Router Index. Value prefilled if set. *@
+            <td style="padding:8px;border-bottom:1px solid #eef6eff;"><input type="date" name="routeDate_@r.Id" value="@(r.Date>System.DateTime.MinValue? r.Date.ToString("yyyy-MM-dd") : "")" /></td>
+            <td style="padding:8px;border-bottom:1px solid #eef6ff;">@r.ItemsCount</td>
+            <td style="padding:8px;border-bottom:1px solid #eef6ff;">@r.TotalMassKg</td>
+            <td style="padding:8px;border-bottom:1px solid #eef6ff;">@r.Status</td>
+            <td style="padding:8px;border-bottom:1px solid #eef6ff;">@((driver!=null?driver.FullName:"-") + (vehicle!=null?" / "+vehicle.Registration:""))</td>
+            <td style="padding:8px;border-bottom:1px solid #eef6ff;">&nbsp;</td>
+
+        </tr>
+    }
+    </tbody>
+</table>
+    <div style="margin-top:12px;padding:8px 0;">
+        <label style="margin-right:8px;">Driver:</label>
+        <select name="driverId">
+            <option value="">-- Select driver --</option>
+            @foreach(var d in drivers){
+                <option value="@d.Id">@d.FullName (@d.Username)</option>
+            }
+        </select>
+
+        <label style="margin:0 8px;">Vehicle:</label>
+        <select name="vehicleId">
+            <option value="">-- Select vehicle --</option>
+            @foreach(var v in vehicles){
+                <option value="@v.Id">@v.Registration - @v.Model</option>
+            }
+        </select>
+
+        <button type="submit" class="btn-chester-primary" style="margin-left:12px;">Assign selected routes</button>
+    </div>
+}
+
+<script>
+    (function(){
+        var checkAll = document.getElementById('checkAll');
+        if(!checkAll) return;
+        checkAll.addEventListener('change', function(){
+            var boxes = document.querySelectorAll('.route-checkbox');
+            for(var i=0;i<boxes.length;i++) boxes[i].checked = checkAll.checked;
+        });
+    })();
+</script>
+
+<script>
+    (function(){
+        function updateDestinationAutoFill(){
+            var boxes = document.querySelectorAll('.order-checkbox');
+            var selected = [];
+            for(var i=0;i<boxes.length;i++) if(boxes[i].checked) selected.push(boxes[i]);
+            var destInput = document.getElementById('destinationInput');
+            if(!destInput) return;
+
+            if(selected.length === 0){ destInput.readOnly = false; return; }
+
+            // if all selected are enterprise and share same company, autofill and readonly
+            var allEnterprise = true;
+            var company = null;
+            for(var j=0;j<selected.length;j++){
+                var ent = selected[j].getAttribute('data-enterprise') === 'true';
+                var comp = selected[j].getAttribute('data-company') || '';
+                if(!ent) { allEnterprise = false; break; }
+                if(company === null) company = comp;
+                else if(company !== comp) { allEnterprise = false; break; }
+            }
+
+            if(allEnterprise && company){ destInput.value = company; destInput.readOnly = true; }
+            else { destInput.readOnly = false; }
+        }
+
+        var orderBoxes = document.querySelectorAll('.order-checkbox');
+        for(var i=0;i<orderBoxes.length;i++){
+            orderBoxes[i].addEventListener('change', updateDestinationAutoFill);
+        }
+        // initial run
+        updateDestinationAutoFill();
+    })();
+</script>
+
+<script>
+    function routeSelectedOrdersQuick(){
+        var boxes = document.querySelectorAll('.order-checkbox');
+        var any = false;
+        for(var i=0;i<boxes.length;i++){ if(boxes[i].checked){ any = true; break; } }
+        if(!any){ alert('Please select at least one order to route.'); return false; }
+        var f = document.getElementById('createRouteForm');
+        if(!f) return false;
+        f.submit();
+        return false;
+    }
+</script>

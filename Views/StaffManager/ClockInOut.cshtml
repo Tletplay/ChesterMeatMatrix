@@ -1,0 +1,576 @@
+﻿@using ChesterMeatMatrix.Models
+@{
+    ViewBag.Title = "Clock In / Out";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+    var isClockedIn = ViewBag.IsClockedIn as bool? ?? false;
+    var isClockedOut = ViewBag.IsClockedOut as bool? ?? false;
+}
+
+@section SidebarMenu {
+    <!-- Empty sidebar for staff views -->
+}
+
+<div class="container-fluid px-4 py-4" style="max-width: 650px; margin: 0 auto;">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold" style="color: #0A2540; display: flex; align-items: center; gap: 0.75rem; margin: 0;">
+                <i data-lucide="clock" style="color: #C1272D; width: 28px; height: 28px;"></i>
+                Clock In / Out
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Manage shift attendance</p>
+        </div>
+        <a href="@Url.Action("Index", "Dashboard")" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #64748B; text-decoration: none; font-size: 0.875rem; transition: color 0.2s;" onmouseover="this.style.color='#C1272D'" onmouseout="this.style.color='#64748B'">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+            Back
+        </a>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: 100%; pointer-events: none;"></div>
+
+    <!-- Live Attendance Card -->
+    <div style="background: white; border-radius: 16px; border: 1px solid #E8E8E8; padding: 2.25rem 2rem; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+
+        @if (!isClockedIn)
+        {
+            <!-- NOT CLOCKED IN STATE -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: #FEF2F2; color: #DC2626; padding: 0.35rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #DC2626;"></span>
+                    Not Clocked In
+                </div>
+                <div style="color: #64748B; font-size: 0.875rem; font-weight: 500; margin-bottom: 1.75rem;">
+                    @DateTime.Now.ToString("dddd, dd MMMM yyyy")
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; width: 100%; max-width: 320px;">
+                    <button id="clockInBtn" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.85rem 1.5rem; background: #C1272D; color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(193,39,45,0.2);" onmouseover="this.style.background='#A11E23'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#C1272D'; this.style.transform='none';">
+                        <i data-lucide="log-in" style="width: 18px; height: 18px;"></i>
+                        Clock In
+                    </button>
+                    <button id="faceClockInBtn" style="width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; background: #F8FAFC; color: #0A2540; border: 1px solid #E2E8F0; border-radius: 12px; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#F1F5F9';" onmouseout="this.style.background='#F8FAFC';">
+                        <i data-lucide="camera" style="width: 18px; height: 18px; color: #64748B;"></i>
+                        Clock In with Face
+                    </button>
+                </div>
+            </div>
+        }
+        else if (!isClockedOut)
+        {
+            var todayAt = ViewBag.TodayAttendance as Attendance;
+            var clockInTime = todayAt?.ClockInTime ?? DateTime.Now;
+
+            <!-- CLOCKED IN STATE -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: #ECFDF5; color: #059669; padding: 0.35rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 700; margin-bottom: 0.75rem;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981; animation: pulse 2s infinite;"></span>
+                    Clocked In
+                </div>
+
+                <div style="font-size: 2.75rem; font-weight: 800; color: #0A2540; font-variant-numeric: tabular-nums; letter-spacing: -1px; margin-bottom: 0.25rem;" id="liveTimer">00h 00m 00s</div>
+                <div style="color: #64748B; font-size: 0.85rem; margin-bottom: 1.75rem;">Clocked in at @clockInTime.ToString("HH:mm")</div>
+
+                <button id="clockOutBtn" style="width: 100%; max-width: 320px; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.85rem 1.5rem; background: #DC2626; color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(220,38,38,0.2);" onmouseover="this.style.background='#B91C1C'; this.style.transform='translateY(-1px)';" onmouseout="this.style.background='#DC2626'; this.style.transform='none';">
+                    <i data-lucide="log-out" style="width: 18px; height: 18px;"></i>
+                    Clock Out
+                </button>
+            </div>
+        }
+        else
+        {
+            var todayAt = ViewBag.TodayAttendance as Attendance;
+
+            <!-- CLOCKED OUT COMPLETION STATE -->
+            <div style="display: flex; flex-direction: column; align-items: center;">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: #ECFDF5; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem;">
+                    <i data-lucide="check-circle-2" style="width: 30px; height: 30px; color: #059669;"></i>
+                </div>
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: #0A2540; margin: 0 0 0.25rem 0;">Shift Completed</h2>
+                <p style="color: #64748B; font-size: 0.875rem; margin: 0 0 1.25rem 0;">Great job today! Your time has been logged.</p>
+
+                @if (todayAt != null && todayAt.ClockInTime.HasValue && todayAt.ClockOutTime.HasValue)
+                {
+                    <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 12px; padding: 1rem 1.5rem; width: 100%; max-width: 340px; text-align: center;">
+                        <div style="font-size: 0.75rem; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Today's Hours</div>
+                        <div style="font-size: 1.75rem; font-weight: 800; color: #0A2540; margin: 0.25rem 0;">@todayAt.TotalHours.ToString("F2") hrs</div>
+                        <div style="font-size: 0.8rem; color: #64748B;">
+                            Clocked in @todayAt.ClockInTime.Value.ToString("HH:mm") → Clocked out @todayAt.ClockOutTime.Value.ToString("HH:mm")
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Today's Record Overview -->
+        <div style="background: #F8FAFE; border-radius: 12px; padding: 1rem 1.25rem; margin-top: 2rem; text-align: left; border: 1px solid #E8E8E8;">
+            <div style="font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+                <span style="display: flex; align-items: center; gap: 0.35rem;">
+                    <i data-lucide="history" style="width: 14px; height: 14px; color: #C1272D;"></i>
+                    Shift Summary
+                </span>
+                <span style="color: #94A3B8; font-weight: 600;">@DateTime.Today.ToString("dd MMM yyyy")</span>
+            </div>
+            @{
+                var todayAtt = ViewBag.TodayAttendance as Attendance;
+            }
+            @if (todayAtt != null)
+            {
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; text-align: center;">
+                    <div style="background: white; padding: 0.625rem; border-radius: 8px; border: 1px solid #E2E8F0;">
+                        <div style="font-size: 0.65rem; color: #64748B; text-transform: uppercase; font-weight: 600;">Clock In</div>
+                        <div style="font-weight: 700; color: #0A2540; font-size: 0.9rem; margin-top: 2px;">@(todayAtt.ClockInTime?.ToString("HH:mm") ?? "-")</div>
+                    </div>
+                    <div style="background: white; padding: 0.625rem; border-radius: 8px; border: 1px solid #E2E8F0;">
+                        <div style="font-size: 0.65rem; color: #64748B; text-transform: uppercase; font-weight: 600;">Clock Out</div>
+                        <div style="font-weight: 700; color: #0A2540; font-size: 0.9rem; margin-top: 2px;">@(todayAtt.ClockOutTime?.ToString("HH:mm") ?? "-")</div>
+                    </div>
+                    <div style="background: white; padding: 0.625rem; border-radius: 8px; border: 1px solid #E2E8F0;">
+                        <div style="font-size: 0.65rem; color: #64748B; text-transform: uppercase; font-weight: 600;">Status</div>
+                        <div style="margin-top: 2px;">
+                            <span style="display: inline-block; padding: 0.1rem 0.5rem; border-radius: 20px; font-size: 0.7rem; font-weight: 700;
+                                @(todayAtt.Status == AttendanceStatus.Present ? "background:#D1FAE5; color:#065F46;" :
+                                  todayAtt.Status == AttendanceStatus.Late ? "background:#FEF3C7; color:#92400E;" :
+                                  todayAtt.Status == AttendanceStatus.Absent ? "background:#FEE2E2; color:#991B1B;" :
+                                  todayAtt.Status == AttendanceStatus.Leave ? "background:#DBEAFE; color:#1E40AF;" :
+                                  "background:#F1F5F9; color:#64748B;")">
+                                @todayAtt.Status
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div style="color: #94A3B8; font-size: 0.85rem; text-align: center; padding: 0.5rem 0;">No attendance activity recorded today.</div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- ===== ID VERIFICATION MODAL ===== -->
+<div id="idModal" style="display: none; position: fixed; inset: 0; background: rgba(10,37,64,0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: white; border-radius: 16px; padding: 2rem; max-width: 380px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: modalIn 0.2s ease; text-align: center;">
+        <div style="display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: #F1F5F9; border-radius: 50%; margin: 0 auto 0.75rem;">
+            <i data-lucide="shield-check" style="width: 24px; height: 24px; color: #0A2540;"></i>
+        </div>
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #0A2540; margin: 0;">Employee Verification</h3>
+        <p style="color: #64748B; font-size: 0.85rem; margin: 0.25rem 0 1.25rem 0;">Enter your employee ID to proceed</p>
+
+        <div style="margin-bottom: 1.25rem;">
+            <input type="text" id="employeeIdInput" placeholder="Enter ID (e.g., 222408030)" maxlength="20" autofocus style="width: 100%; padding: 0.75rem 1rem; border: 2px solid #E2E8F0; border-radius: 10px; font-size: 1.05rem; text-align: center; letter-spacing: 1px; font-weight: 600; transition: all 0.2s; font-family: inherit;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)'" onblur="this.style.borderColor='#E2E8F0'; this.style.boxShadow='none'" />
+            <div id="modalError" style="color: #DC2626; font-size: 0.8rem; margin-top: 0.5rem; display: none;">Invalid ID. Please try again.</div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+            <button id="modalCancelBtn" style="flex: 1; padding: 0.625rem 1rem; background: #F1F5F9; color: #0A2540; border: none; border-radius: 10px; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#E2E8F0'" onmouseout="this.style.background='#F1F5F9'">Cancel</button>
+            <button id="modalConfirmBtn" style="flex: 1.5; padding: 0.625rem 1rem; background: #C1272D; color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; transition: all 0.2s;" onmouseover="this.style.background='#A11E23'" onmouseout="this.style.background='#C1272D'">
+                Verify & Clock In →
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== FACE RECOGNITION MODAL ===== -->
+<div id="faceModal" style="display: none; position: fixed; inset: 0; background: rgba(10,37,64,0.4); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: white; border-radius: 16px; padding: 1.75rem; max-width: 420px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: modalIn 0.2s ease; text-align: center;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; color: #0A2540; margin: 0;">Face Verification</h3>
+        <p id="faceSubText" style="color: #64748B; font-size: 0.85rem; margin: 0.25rem 0 1rem 0;">Position your face inside the frame</p>
+
+        <div style="position: relative; background: #000; border-radius: 12px; overflow: hidden; margin: 0 auto 1rem; width: 100%; max-width: 320px; height: 240px; display: flex; align-items: center; justify-content: center;">
+            <video id="faceVideo" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+            <canvas id="faceCanvas" style="display: none;"></canvas>
+
+            <!-- Scanning Line Overlay -->
+            <div id="scanLine" style="display: none; position: absolute; left: 0; right: 0; height: 2px; background: #10B981; box-shadow: 0 0 8px #10B981; animation: scan 1.5s ease-in-out infinite;"></div>
+
+            <div id="countdownOverlay" style="display: none; position: absolute; inset: 0; background: rgba(10,37,64,0.6); align-items: center; justify-content: center;">
+                <span id="countdownNumber" style="font-size: 64px; font-weight: 800; color: white;">3</span>
+            </div>
+        </div>
+
+        <div id="faceStatus" style="display: none; padding: 0.5rem; border-radius: 8px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1rem;">
+            Processing...
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; justify-content: center;">
+            <button id="faceCancelBtn" style="flex: 1; padding: 0.625rem 1rem; background: #F1F5F9; color: #0A2540; border: none; border-radius: 10px; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#E2E8F0'" onmouseout="this.style.background='#F1F5F9'">Cancel</button>
+            <button id="faceScanBtn" style="flex: 1.5; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1rem; background: #0A2540; color: white; border: none; border-radius: 10px; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#1E3A8A'" onmouseout="this.style.background='#0A2540'">
+                Start Scanning
+            </button>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script>
+    lucide.createIcons();
+
+    function showToast(message, type = 'success', title = '', duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const icons = { success: 'check-circle-2', error: 'alert-circle', warning: 'alert-triangle', info: 'info' };
+        const colors = {
+            success: { accent: '#10B981', badgeBg: '#ECFDF5', text: '#065F46' },
+            error: { accent: '#C1272D', badgeBg: '#FEF2F2', text: '#991B1B' },
+            warning: { accent: '#D97706', badgeBg: '#FFFBEB', text: '#92400E' },
+            info: { accent: '#0A2540', badgeBg: '#EFF6FF', text: '#1E40AF' }
+        };
+        const c = colors[type] || colors.success;
+
+        toast.style.cssText = `background:#FFFFFF;border:1px solid #E8E8E8;border-left:4px solid ${c.accent};border-radius:10px;padding:0.85rem 1rem;display:flex;align-items:flex-start;gap:0.75rem;animation:toastIn 0.3s ease;box-shadow:0 8px 24px rgba(10,37,64,0.12);pointer-events:auto;max-width:380px;width:100%;`;
+        toast.innerHTML = `
+            <span style="display:flex; align-items:center; justify-content:center; width: 28px; height: 28px; border-radius: 50%; background: ${c.badgeBg}; flex-shrink: 0;">
+                <i data-lucide="${icons[type] || 'check-circle-2'}" style="color: ${c.accent}; width: 16px; height: 16px;"></i>
+            </span>
+            <div style="flex: 1; min-width: 0;">
+                ${title ? `<div style="font-weight: 700; color: #0A2540; font-size: 0.85rem;">${title}</div>` : ''}
+                <div style="color: ${c.text}; font-size: 0.8rem; line-height: 1.4; ${title ? 'margin-top: 0.1rem;' : ''}">${message}</div>
+            </div>`;
+        container.appendChild(toast);
+        lucide.createIcons();
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    }
+
+    // LIVE TIMER LOGIC
+    @if (isClockedIn && !isClockedOut)
+    {
+        var todayAt = ViewBag.TodayAttendance as Attendance;
+        var clockInTime = todayAtt?.ClockInTime ?? DateTime.Now;
+        <text>
+            (function() {
+                var startTime = new Date('@clockInTime.ToString("yyyy-MM-ddTHH:mm:ss")');
+                var timerEl = document.getElementById('liveTimer');
+                if (!timerEl) return;
+                function updateTimer() {
+                    var now = new Date();
+                    var diff = Math.floor((now - startTime) / 1000);
+                    var hours = String(Math.floor(diff / 3600)).padStart(2, '0');
+                    var minutes = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+                    var seconds = String(diff % 60).padStart(2, '0');
+                    timerEl.textContent = hours + 'h ' + minutes + 'm ' + seconds + 's';
+                }
+                updateTimer();
+                setInterval(updateTimer, 1000);
+            })();
+        </text>
+    }
+
+    var token = '';
+    var tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+    if (tokenInput) { token = tokenInput.value; }
+
+    var pendingAction = null;
+    var video = null;
+    var stream = null;
+
+    var hasFaceRegistered = @Html.Raw(ViewBag.HasFaceRegistered == true ? "true" : "false");
+    var modelsLoaded = false;
+    var MODEL_URL = 'https://cdn.jsdelivr.net/gh/justadudewhohacks/face-api.js@master/weights';
+
+    function loadFaceModels() {
+        if (modelsLoaded) return Promise.resolve();
+        return Promise.all([
+            faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+            faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+            faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]).then(function () { modelsLoaded = true; });
+    }
+
+    $(document).ready(function () {
+        loadFaceModels().catch(err => console.error(err));
+    });
+
+    function showIdModal(action) {
+        pendingAction = action;
+        document.getElementById('idModal').style.display = 'flex';
+        document.getElementById('employeeIdInput').value = '';
+        document.getElementById('employeeIdInput').style.borderColor = '#E2E8F0';
+        document.getElementById('modalError').style.display = 'none';
+
+        var confirmBtn = document.getElementById('modalConfirmBtn');
+        if(action === 'clockOut') {
+            confirmBtn.textContent = 'Verify & Clock Out →';
+        } else {
+            confirmBtn.textContent = 'Verify & Clock In →';
+        }
+
+        setTimeout(function() { document.getElementById('employeeIdInput').focus(); }, 100);
+        lucide.createIcons();
+    }
+
+    function closeIdModal() {
+        document.getElementById('idModal').style.display = 'none';
+        pendingAction = null;
+        resetIdButton();
+    }
+
+    function resetIdButton() {
+        document.getElementById('modalConfirmBtn').disabled = false;
+        document.getElementById('modalConfirmBtn').textContent = pendingAction === 'clockOut' ? 'Verify & Clock Out →' : 'Verify & Clock In →';
+    }
+
+    function processId() {
+        var employeeId = document.getElementById('employeeIdInput').value.trim();
+        if (!employeeId) {
+            document.getElementById('employeeIdInput').style.borderColor = '#DC2626';
+            document.getElementById('modalError').textContent = 'Please enter your ID.';
+            document.getElementById('modalError').style.display = 'block';
+            return;
+        }
+        if (employeeId !== '222408030') {
+            document.getElementById('employeeIdInput').style.borderColor = '#DC2626';
+            document.getElementById('modalError').textContent = 'Invalid ID. Please enter: 222408030';
+            document.getElementById('modalError').style.display = 'block';
+            return;
+        }
+        document.getElementById('modalConfirmBtn').disabled = true;
+        document.getElementById('modalConfirmBtn').textContent = 'Verifying...';
+        if (pendingAction === 'clockIn') { clockInRequest(); }
+        else if (pendingAction === 'clockOut') { clockOutRequest(); }
+    }
+
+    function showFaceModal() {
+        document.getElementById('faceModal').style.display = 'flex';
+        document.getElementById('faceStatus').style.display = 'block';
+        document.getElementById('faceStatus').style.background = '#EFF6FF';
+        document.getElementById('faceStatus').style.color = '#1E40AF';
+        document.getElementById('faceStatus').textContent = modelsLoaded ? 'Camera active' : 'Loading face verification...';
+        document.getElementById('faceSubText').textContent = 'Position your face inside the frame';
+        document.getElementById('faceScanBtn').disabled = !modelsLoaded;
+        document.getElementById('faceScanBtn').textContent = 'Start Scanning';
+        lucide.createIcons();
+        startCamera();
+    }
+
+    function closeFaceModal() {
+        document.getElementById('faceModal').style.display = 'none';
+        stopCamera();
+        document.getElementById('faceStatus').style.display = 'none';
+        document.getElementById('scanLine').style.display = 'none';
+        document.getElementById('countdownOverlay').style.display = 'none';
+        clearInterval(window.countdownInterval);
+    }
+
+    function startCamera() {
+        video = document.getElementById('faceVideo');
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 } })
+            .then(function(s) {
+                stream = s;
+                video.srcObject = s;
+                video.onloadedmetadata = function() {
+                    video.play();
+                };
+            })
+            .catch(function(err) {
+                document.getElementById('faceStatus').style.background = '#FEF2F2';
+                document.getElementById('faceStatus').style.color = '#991B1B';
+                document.getElementById('faceStatus').textContent = 'Camera access denied';
+            });
+    }
+
+    function stopCamera() {
+        if (stream) { stream.getTracks().forEach(track => track.stop()); stream = null; }
+        if (video) { video.pause(); video.srcObject = null; }
+    }
+
+    function startCountdown() {
+        var countdown = 3;
+        var overlay = document.getElementById('countdownOverlay');
+        var number = document.getElementById('countdownNumber');
+
+        document.getElementById('faceScanBtn').disabled = true;
+        document.getElementById('scanLine').style.display = 'block';
+
+        overlay.style.display = 'flex';
+        number.textContent = countdown;
+
+        window.countdownInterval = setInterval(function() {
+            countdown--;
+            if (countdown > 0) {
+                number.textContent = countdown;
+            } else {
+                clearInterval(window.countdownInterval);
+                overlay.style.display = 'none';
+                captureFace();
+            }
+        }, 800);
+    }
+
+    async function captureFace() {
+        var videoEl = document.getElementById('faceVideo');
+        document.getElementById('faceStatus').textContent = 'Scanning...';
+
+        try {
+            var result = await faceapi
+                .detectSingleFace(videoEl, new faceapi.TinyFaceDetectorOptions())
+                .withFaceLandmarks()
+                .withFaceDescriptor();
+
+            if (!result) {
+                document.getElementById('scanLine').style.display = 'none';
+                document.getElementById('faceStatus').style.background = '#FEF2F2';
+                document.getElementById('faceStatus').style.color = '#991B1B';
+                document.getElementById('faceStatus').textContent = 'No face detected. Please try again.';
+                document.getElementById('faceScanBtn').disabled = false;
+                return;
+            }
+
+            var descriptorString = Array.from(result.descriptor).join(',');
+            var actionUrl = hasFaceRegistered
+                ? '@Url.Action("ClockInWithFace", "StaffManager")'
+                : '@Url.Action("RegisterFace", "StaffManager")';
+
+            document.getElementById('faceStatus').style.background = '#ECFDF5';
+            document.getElementById('faceStatus').style.color = '#065F46';
+            document.getElementById('faceStatus').textContent = '✓ Identity Verified. Clocking you in...';
+
+            $.ajax({
+                url: actionUrl,
+                type: 'POST',
+                data: { faceDescriptor: descriptorString, __RequestVerificationToken: token },
+                success: function(response) {
+                    if (response.success) {
+                        setTimeout(function() { location.reload(); }, 1000);
+                    } else {
+                        document.getElementById('scanLine').style.display = 'none';
+                        document.getElementById('faceStatus').style.background = '#FEF2F2';
+                        document.getElementById('faceStatus').style.color = '#991B1B';
+                        document.getElementById('faceStatus').textContent = response.message;
+                        document.getElementById('faceScanBtn').disabled = false;
+                    }
+                }
+            });
+        } catch (err) {
+            document.getElementById('scanLine').style.display = 'none';
+            document.getElementById('faceStatus').style.background = '#FEF2F2';
+            document.getElementById('faceStatus').style.color = '#991B1B';
+            document.getElementById('faceStatus').textContent = 'Error during face scan.';
+            document.getElementById('faceScanBtn').disabled = false;
+        }
+    }
+
+    function clockInRequest() {
+        $.ajax({
+            url: '@Url.Action("ClockIn", "StaffManager")',
+            type: 'POST',
+            data: { __RequestVerificationToken: token },
+            success: function(response) {
+                if (response.success) {
+                    showToast(response.message, 'success', 'Clocked In');
+                    setTimeout(function() { location.reload(); }, 1000);
+                } else {
+                    showToast(response.message, 'error', 'Clock In Failed');
+                    resetIdButton();
+                }
+            },
+            error: function() {
+                showToast('Error clocking in', 'error', 'Clock In Failed');
+                resetIdButton();
+            }
+        });
+    }
+
+    function clockOutRequest() {
+        $.ajax({
+            url: '@Url.Action("ClockOut", "StaffManager")',
+            type: 'POST',
+            data: { __RequestVerificationToken: token },
+            success: function(response) {
+                if (response.success) {
+                    showToast(response.message, 'success', 'Clocked Out');
+                    setTimeout(function() { location.reload(); }, 1000);
+                } else {
+                    showToast(response.message, 'error', 'Clock Out Failed');
+                    resetIdButton();
+                }
+            },
+            error: function() {
+                showToast('Error clocking out', 'error', 'Clock Out Failed');
+                resetIdButton();
+            }
+        });
+    }
+
+    var clockInBtn = document.getElementById('clockInBtn');
+    if(clockInBtn) clockInBtn.addEventListener('click', function() { showIdModal('clockIn'); });
+
+    var faceClockInBtn = document.getElementById('faceClockInBtn');
+    if(faceClockInBtn) faceClockInBtn.addEventListener('click', function() { showFaceModal(); });
+
+    var clockOutBtn = document.getElementById('clockOutBtn');
+    if(clockOutBtn) clockOutBtn.addEventListener('click', function() { showIdModal('clockOut'); });
+
+    document.getElementById('modalConfirmBtn').addEventListener('click', processId);
+    document.getElementById('modalCancelBtn').addEventListener('click', closeIdModal);
+
+    document.getElementById('faceScanBtn').addEventListener('click', startCountdown);
+    document.getElementById('faceCancelBtn').addEventListener('click', closeFaceModal);
+
+    document.getElementById('idModal').addEventListener('click', function(e) { if (e.target === this) closeIdModal(); });
+    document.getElementById('faceModal').addEventListener('click', function(e) { if (e.target === this) closeFaceModal(); });
+
+    document.getElementById('employeeIdInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { processId(); }
+        if (e.key === 'Escape') { closeIdModal(); }
+    });
+</script>
+
+<style>
+    @@keyframes toastIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.96);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+
+    @@keyframes scan {
+        0% {
+            top: 0%;
+        }
+
+        50% {
+            top: 100%;
+        }
+
+        100% {
+            top: 0%;
+        }
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.4;
+        }
+    }
+</style>

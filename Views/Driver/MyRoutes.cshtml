@@ -1,0 +1,236 @@
+﻿@using ChesterMeatMatrix.Data
+@using ChesterMeatMatrix.Models﻿
+@model IEnumerable<ChesterMeatMatrix.Models.Route>
+@{
+    ViewBag.Title = "My Routes - Driver";
+    Layout = "~/Views/Shared/_DriverLayout.cshtml";
+}
+
+<style>
+    .route-card {
+        background: white;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        border: 1px solid #E0E8F0;
+        transition: transform 0.2s;
+    }
+
+        .route-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+    .route-header {
+        background: #F8FBFE;
+        padding: 15px 20px;
+        border-bottom: 1px solid #E0E8F0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .route-body {
+        padding: 20px;
+    }
+
+    .status-Assigned, .status-SentToDriver {
+        background: #FEF3C7;
+        color: #D97706;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-InProgress {
+        background: #DBEAFE;
+        color: #2563EB;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-Completed, .status-ReadyForSignature {
+        background: #D1FAE5;
+        color: #059669;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .btn-start, .btn-continue, .btn-details {
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-start {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+    }
+
+    .btn-continue {
+        background: linear-gradient(135deg, #F59E0B, #D97706);
+        color: white;
+    }
+
+    .btn-details {
+        background: #2C6E9E;
+        color: white;
+    }
+
+        .btn-start:hover, .btn-continue:hover, .btn-details:hover {
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+    .route-stats {
+        display: flex;
+        gap: 20px;
+        margin-top: 10px;
+        font-size: 13px;
+        color: #64748B;
+    }
+
+    .progress-bar {
+        height: 6px;
+        background: #E2E8F0;
+        border-radius: 3px;
+        margin-top: 10px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: #10B981;
+        border-radius: 3px;
+        transition: width 0.3s;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">My Delivery Routes</h2>
+        <a href="@Url.Action("Index", "Driver")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">✅ @TempData["Success"]</div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-4">
+            <i class="fas fa-truck fa-2x mb-2 d-block"></i>
+            <p>No routes assigned to you yet.</p>
+            <p class="small">Routes will appear here once the router assigns them.</p>
+        </div>
+    }
+    else
+    {
+        foreach (var route in Model)
+        {
+            var orderIds = route.OrderIds?.Where(oid =>
+                InMemoryDatabase.Orders.FirstOrDefault(o => o.Id == oid)?.Status != OrderStatusEnum.Cancelled).ToList() ?? new List<int>();
+            var orderCount = orderIds.Count;
+            var deliveredCount = 0;
+
+            foreach (var orderId in orderIds)
+            {
+                var order = InMemoryDatabase.Orders.FirstOrDefault(o => o.Id == orderId);
+                if (order != null && order.Status == OrderStatusEnum.Delivered)
+                {
+                    deliveredCount++;
+                }
+            }
+
+            var progressPercent = orderCount > 0 ? (deliveredCount * 100 / orderCount) : 0;
+            var canStart = route.Status == "Assigned" || route.Status == "SentToDriver";
+            var canContinue = route.Status == "InProgress";
+
+            <div class="route-card" id="route-@route.Id">
+                <div class="route-header">
+                    <div>
+                        <strong>@route.Name</strong>
+                        <span class="ms-2 status-@route.Status">@route.Status</span>
+                    </div>
+                    <div>
+                        <small>📅 @(route.Date > DateTime.MinValue ? route.Date.ToString("dd MMM yyyy") : "Date TBD")</small>
+                    </div>
+                </div>
+                <div class="route-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <p><strong>📍 Destination:</strong> @route.Destination</p>
+                            <p><strong>📦 Progress:</strong> @deliveredCount / @orderCount stops completed</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: @progressPercent%"></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 text-end">
+                            <a href="@Url.Action("RouteStops", "Driver", new { routeId = route.Id })" class="btn-details">
+                                <i class="fas fa-list"></i> View Stops
+                            </a>
+
+                            @if (canStart)
+                            {
+                                <button class="btn-start ms-2" onclick="startDelivery(@route.Id)">
+                                    <i class="fas fa-play"></i> Start Delivery
+                                </button>
+                            }
+                            else if (canContinue)
+                            {
+                                <a href="@Url.Action("RouteStops", "Driver", new { routeId = route.Id })" class="btn-continue ms-2">
+                                    <i class="fas fa-forward"></i> Continue
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    var token = $('input[name="__RequestVerificationToken"]').val();
+
+    function startDelivery(routeId) {
+        if (confirm('Start this delivery route?')) {
+            $.ajax({
+                url: '@Url.Action("StartDelivery", "Driver")',
+                type: 'POST',
+                data: {
+                    routeId: routeId,
+                    __RequestVerificationToken: token
+                },
+                success: function(response) {
+                    if (response.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr) {
+                    alert('Error starting delivery: ' + xhr.statusText);
+                }
+            });
+        }
+    }
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

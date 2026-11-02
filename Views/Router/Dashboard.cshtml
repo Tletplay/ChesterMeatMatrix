@@ -1,0 +1,106 @@
+﻿﻿@model ChesterMeatMatrix.Models.RouterDashboardViewModel
+@{
+    ViewBag.Title = "Router Dashboard - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_RouterLayout.cshtml";
+}
+
+<style>
+    .router-dashboard { max-width: 1400px; margin: 0 auto; }
+    .router-welcome {
+        background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .router-welcome::after { content: "🚚"; position: absolute; bottom: 0.5rem; right: 1.5rem; font-size: 5rem; opacity: 0.08; pointer-events: none; }
+    .router-welcome h2 { color: white; margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .router-welcome h2 i { font-size: 1.75rem; color: #F59E0B; }
+    .router-welcome p { color: rgba(255,255,255,0.85); margin: 0; font-size: 0.85rem; }
+    .router-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @@media (min-width: 768px) { .router-stats { grid-template-columns: repeat(3, 1fr); } }
+    @@media (min-width: 1024px) { .router-stats { grid-template-columns: repeat(6, 1fr); } }
+    .router-stat-card { background: white; border-radius: 16px; padding: 1rem; text-align: center; border: 1px solid #EDF2F7; transition: all 0.2s; }
+    .router-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(10,37,64,0.1); }
+    .router-stat-number { font-size: 1.8rem; font-weight: 800; color: #0A2540; }
+    .router-stat-label { font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase; }
+    .router-stat-sub { font-size: 0.65rem; color: #9CA3AF; margin-top: 0.25rem; }
+    .router-actions { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    @@media (min-width: 768px) { .router-actions { grid-template-columns: repeat(2, 1fr); } }
+    .router-action-card { background: white; border-radius: 20px; border: 1px solid #EDF2F7; overflow: hidden; transition: all 0.2s; }
+    .router-action-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(10,37,64,0.1); }
+    .router-action-header { padding: 1.25rem 1.5rem; background: #F8FAFE; border-bottom: 1px solid #EDF2F7; display: flex; align-items: center; gap: 0.75rem; }
+    .router-action-header i { font-size: 1.5rem; color: #C1272D; }
+    .router-action-header h3 { margin: 0; font-size: 1.1rem; font-weight: 700; color: #0A2540; }
+    .router-action-body { padding: 1.25rem 1.5rem; }
+    .router-action-body p { margin: 0 0 1rem 0; font-size: 0.85rem; color: #718096; }
+    .router-action-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: #C1272D; color: white; padding: 0.6rem 1.25rem; border-radius: 40px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+    .router-action-btn:hover { background: #A11E23; transform: translateY(-2px); color: white; text-decoration: none; }
+</style>
+
+<div class="router-dashboard">
+    <div class="router-welcome">
+        <h2><i class="fas fa-route"></i> Welcome, @Session["FullName"]!</h2>
+        <p>Router Dashboard - Manage delivery routes and assignments</p>
+    </div>
+
+    <div class="router-stats">
+        <div class="router-stat-card">
+            <div class="router-stat-number">@(Model?.PendingCount ?? 0)</div>
+            <div class="router-stat-label">Pending Orders</div>
+            <div class="router-stat-sub">Ready for routing</div>
+        </div>
+        <div class="router-stat-card">
+            <div class="router-stat-number">@(Model?.ActiveCount ?? 0)</div>
+            <div class="router-stat-label">Active Routes</div>
+            <div class="router-stat-sub">In progress</div>
+        </div>
+        <div class="router-stat-card">
+            <div class="router-stat-number">@(Model?.DurbanPendingCount ?? 0)</div>
+            <div class="router-stat-label">Durban Area</div>
+            <div class="router-stat-sub">Inside delivery zone</div>
+        </div>
+        <div class="router-stat-card">
+            <div class="router-stat-number">@(Model?.OutsidePendingCount ?? 0)</div>
+            <div class="router-stat-label">Outside Durban</div>
+            <div class="router-stat-sub">Separate routing</div>
+        </div>
+        <div class="router-stat-card">
+            <div class="router-stat-number">@((Model?.PendingWeightKg ?? 0).ToString("N0")) kg</div>
+            <div class="router-stat-label">Total Weight</div>
+            <div class="router-stat-sub">Pending orders</div>
+        </div>
+        <div class="router-stat-card">
+            <div class="router-stat-number">@(Model?.AvailableDrivers ?? 0) / @(Model?.AvailableTrucks ?? 0)</div>
+            <div class="router-stat-label">Drivers / Trucks</div>
+            <div class="router-stat-sub">Available</div>
+        </div>
+    </div>
+
+    <div class="router-actions">
+        <div class="router-action-card">
+            <div class="router-action-header">
+                <i class="fas fa-clock"></i>
+                <h3>Pending Orders</h3>
+            </div>
+            <div class="router-action-body">
+                <p>Review orders, group by delivery area, and create optimized routes.</p>
+                <a href="@Url.Action("PendingOrders", "Router")" class="router-action-btn">View Pending Orders <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+        <div class="router-action-card">
+            <div class="router-action-header">
+                <i class="fas fa-truck"></i>
+                <h3>Active Deliveries</h3>
+            </div>
+            <div class="router-action-body">
+                <p>Monitor active routes and send completed routes to drivers.</p>
+                <a href="@Url.Action("ActiveDeliveries", "Router")" class="router-action-btn">View Active Routes <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

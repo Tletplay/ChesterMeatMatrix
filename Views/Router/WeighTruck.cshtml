@@ -1,0 +1,161 @@
+﻿﻿@model ChesterMeatMatrix.Models.Route
+@{
+    ViewBag.Title = "Weigh Truck";
+    Layout = "~/Views/Shared/_RouterLayout.cshtml";
+    var totalOrderWeight = ViewBag.TotalOrderWeight as decimal? ?? 0;
+    var vehicle = ViewBag.Vehicle as ChesterMeatMatrix.Models.Vehicle;
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .weigh-container {
+        max-width: 600px;
+        margin: 2rem auto;
+    }
+
+    .weigh-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .weight-info {
+        background: #F8FAFE;
+        border-radius: 12px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+
+    .weight-expected {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0A2540;
+    }
+
+    .weight-input {
+        font-size: 1.5rem;
+        padding: 0.75rem;
+        text-align: center;
+        width: 100%;
+        border: 2px solid #E0E8F0;
+        border-radius: 12px;
+    }
+
+    .warning-box {
+        background: #FEF3C7;
+        border-left: 4px solid #F59E0B;
+        padding: 1rem;
+        margin: 1rem 0;
+        display: none;
+    }
+
+    .success-box {
+        background: #D1FAE5;
+        border-left: 4px solid #10B981;
+        padding: 1rem;
+        margin: 1rem 0;
+        display: none;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        color: white;
+        border: none;
+        padding: 0.75rem 1.5rem;
+        border-radius: 40px;
+        font-weight: 600;
+        width: 100%;
+        cursor: pointer;
+    }
+</style>
+
+<div class="weigh-container">
+    <div class="weigh-card">
+        <h2 style="color: #0A2540;">⚖️ Weigh Truck</h2>
+        <p>Route: <strong>@Model.Name</strong></p>
+
+        <div class="weight-info">
+            <div style="text-align: center;">
+                <span style="color: #64748B;">Expected Load Weight (from orders)</span>
+                <div class="weight-expected">@totalOrderWeight.ToString("F2") kg</div>
+            </div>
+        </div>
+
+        @if (vehicle != null)
+        {
+            <div class="weight-info">
+                <p><strong>Vehicle:</strong> @vehicle.Registration - @vehicle.Model</p>
+                <p><strong>Max Capacity:</strong> @vehicle.MaxLoadCapacityKg.ToString("F2") kg</p>
+            </div>
+        }
+
+        <div class="form-group">
+            <label>Actual Load Weight (kg)</label>
+            <input type="number" id="actualWeight" class="weight-input" step="0.01" placeholder="Enter weight from weighbridge" />
+        </div>
+
+        <div id="warningBox" class="warning-box"></div>
+        <div id="successBox" class="success-box"></div>
+
+        <button id="submitWeight" class="btn-submit">✅ Confirm Truck Weight</button>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function getToken() {
+        return $('input[name="__RequestVerificationToken"]').val();
+    }
+
+    $('#submitWeight').click(function() {
+        var weight = parseFloat($('#actualWeight').val());
+        var routeId = @Model.Id;
+
+        if (isNaN(weight) || weight <= 0) {
+            alert('Please enter a valid weight');
+            return;
+        }
+
+        var btn = $(this);
+        btn.prop('disabled', true).text('Processing...');
+
+        $.ajax({
+            url: '@Url.Action("SubmitTruckWeight", "Router")',
+            type: 'POST',
+            data: {
+                routeId: routeId,
+                actualLoadWeightKg: weight,
+                __RequestVerificationToken: getToken()
+            },
+            success: function(response) {
+                if (response.success) {
+                    if (response.isWithinTolerance) {
+                        $('#successBox').show().html('✅ ' + response.message);
+                        $('#warningBox').hide();
+                        setTimeout(function() {
+                            window.location.href = '@Url.Action("ActiveDeliveries", "Router")';
+                        }, 2000);
+                    } else {
+                        $('#warningBox').show().html(
+                            '⚠ ' + response.message + '<br/><br/>' +
+                            'Expected: ' + response.expectedWeight.toFixed(2) + ' kg<br/>' +
+                            'Actual: ' + response.actualWeight.toFixed(2) + ' kg<br/>' +
+                            'Difference: ' + response.percentageDifference + '%'
+                        );
+                        $('#successBox').hide();
+                        btn.prop('disabled', false).text('✅ Confirm Truck Weight');
+                    }
+                } else {
+                    alert('Error: ' + response.message);
+                    btn.prop('disabled', false).text('✅ Confirm Truck Weight');
+                }
+            },
+            error: function() {
+                alert('Error submitting weight');
+                btn.prop('disabled', false).text('✅ Confirm Truck Weight');
+            }
+        });
+    });
+</script>

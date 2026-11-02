@@ -1,0 +1,157 @@
+﻿﻿@using ChesterMeatMatrix.Models
+@model ChesterMeatMatrix.Models.Performance
+@{
+    ViewBag.Title = "Performance Review";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+}
+
+<style>
+    .review-container { max-width: 820px; margin: 0 auto; }
+    .review-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .review-title { font-size: 1.25rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem; margin: 0; }
+    .review-title i { color: #C1272D; }
+    .review-back { color: #718096; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .review-back:hover { color: #C1272D; }
+    .review-alert { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid #10B981; background: #D1FAE5; color: #065F46; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+    .review-card { background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #EDF2F7; }
+    .review-staff-name { font-size: 1.1rem; font-weight: 700; color: #0A2540; margin-bottom: 0.1rem; }
+    .review-staff-role { color: #9CA3AF; font-size: 0.8rem; margin-bottom: 1rem; }
+
+    /* Metrics - compact grid */
+    .review-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem; margin: 1rem 0; }
+    @@media (max-width: 500px) { .review-metrics { grid-template-columns: repeat(2, 1fr); } }
+    .review-metric { background: #F9FAFB; padding: 0.6rem 0.75rem; border-radius: 8px; text-align: center; }
+    .review-metric-value { font-size: 1.1rem; font-weight: 700; color: #0A2540; }
+    .review-metric-label { font-size: 0.55rem; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 0.1rem; }
+    .review-metric-value-green { color: #10B981; }
+    .review-metric-value-gold { color: #F59E0B; }
+    .review-metric-value-red { color: #EF4444; }
+
+    /* Overall Score */
+    .review-overall { background: #F9FAFB; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; }
+    .review-overall-score { font-size: 1.5rem; font-weight: 800; }
+    .review-overall-score-high { color: #10B981; }
+    .review-overall-score-medium { color: #F59E0B; }
+    .review-overall-score-low { color: #EF4444; }
+    .review-overall-badge { padding: 0.15rem 0.75rem; border-radius: 12px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+    .review-overall-badge-excellent { background: #D1FAE5; color: #065F46; }
+    .review-overall-badge-good { background: #DBEAFE; color: #1E40AF; }
+    .review-overall-badge-satisfactory { background: #FEF3C7; color: #92400E; }
+    .review-overall-badge-needs { background: #FEE2E2; color: #991B1B; }
+
+    /* Form */
+    .review-form-group { margin-bottom: 1rem; }
+    .review-form-label { display: block; font-size: 0.7rem; font-weight: 600; color: #4A5568; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.25rem; }
+    .review-form-control { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 0.85rem; transition: border 0.15s; background: white; font-family: inherit; }
+    .review-form-control:focus { outline: none; border-color: #C1272D; box-shadow: 0 0 0 2px rgba(193,39,45,0.08); }
+    .review-form-select { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 0.85rem; background: white; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 10px; }
+    .review-form-select:focus { outline: none; border-color: #C1272D; }
+
+    .review-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+    .review-btn-save { padding: 0.5rem 1.5rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; border: none; cursor: pointer; transition: all 0.15s; background: #C1272D; color: white; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .review-btn-save:hover { background: #A11E23; }
+    .review-btn-cancel { padding: 0.5rem 1.5rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; border: none; cursor: pointer; transition: all 0.15s; background: #F3F4F6; color: #6B7280; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .review-btn-cancel:hover { background: #E5E7EB; color: #4B5563; text-decoration: none; }
+
+    @@media (max-width: 600px) {
+        .review-card { padding: 1rem; }
+        .review-overall { flex-direction: column; text-align: center; }
+        .review-actions { flex-direction: column; }
+        .review-btn-save, .review-btn-cancel { width: 100%; justify-content: center; }
+    }
+</style>
+
+<div class="review-container">
+    <div class="review-header">
+        <h2 class="review-title"><i class="fas fa-pen"></i> Review</h2>
+        <a href="@Url.Action("PerformanceDashboard")" class="review-back"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="review-alert"><i class="fas fa-check-circle"></i> @TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="review-alert" style="border-left-color:#EF4444; background:#FEE2E2; color:#991B1B;"><i class="fas fa-exclamation-circle"></i> @TempData["Error"]</div>
+    }
+
+    <div class="review-card">
+        <div class="review-staff-name">@(Model.Staff?.FullName ?? "Unknown")</div>
+        <div class="review-staff-role">@(Model.Staff?.Role ?? "N/A") · @Model.ReviewPeriod</div>
+
+        <!-- Metrics -->
+        <div class="review-metrics">
+            <div class="review-metric">
+                <div class="review-metric-value">@Model.TasksCompleted</div>
+                <div class="review-metric-label">Tasks</div>
+            </div>
+            <div class="review-metric">
+                <div class="review-metric-value @(Model.AccuracyRate >= 80 ? "review-metric-value-green" : Model.AccuracyRate >= 60 ? "review-metric-value-gold" : "review-metric-value-red")">@Model.AccuracyRate%</div>
+                <div class="review-metric-label">Accuracy</div>
+            </div>
+            <div class="review-metric">
+                <div class="review-metric-value">@Model.Efficiency.ToString("F1")</div>
+                <div class="review-metric-label">Efficiency</div>
+            </div>
+            <div class="review-metric">
+                <div class="review-metric-value @(Model.Punctuality >= 80 ? "review-metric-value-green" : Model.Punctuality >= 60 ? "review-metric-value-gold" : "review-metric-value-red")">@Model.Punctuality%</div>
+                <div class="review-metric-label">Punctuality</div>
+            </div>
+        </div>
+
+        <!-- Overall -->
+        <div class="review-overall">
+            <div>
+                <div style="font-size:0.7rem; color:#9CA3AF; text-transform:uppercase; letter-spacing:0.3px;">Overall Score</div>
+                <div class="review-overall-score @(Model.OverallScore >= 80 ? "review-overall-score-high" : Model.OverallScore >= 60 ? "review-overall-score-medium" : "review-overall-score-low")">@Model.OverallScore%</div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:0.7rem; color:#9CA3AF; text-transform:uppercase; letter-spacing:0.3px;">Rating</div>
+                <span class="review-overall-badge @(Model.OverallRating == PerformanceRating.Excellent ? "review-overall-badge-excellent" :
+                                                   Model.OverallRating == PerformanceRating.Good ? "review-overall-badge-good" :
+                                                   Model.OverallRating == PerformanceRating.Satisfactory ? "review-overall-badge-satisfactory" :
+                                                   "review-overall-badge-needs")">@Model.OverallRating</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Form -->
+                                        <form method="post" action="@Url.Action("SavePerformanceReview")">
+                                            @Html.AntiForgeryToken()
+                                            @Html.Hidden("performanceId", Model.PerformanceId)
+
+                                            <div class="review-form-group">
+                                                <label class="review-form-label">Strengths</label>
+                                                <textarea name="strengths" class="review-form-control" rows="2">@Model.Strengths</textarea>
+                                            </div>
+
+                                            <div class="review-form-group">
+                                                <label class="review-form-label">Areas for Improvement</label>
+                                                <textarea name="areasForImprovement" class="review-form-control" rows="2">@Model.AreasForImprovement</textarea>
+                                            </div>
+
+                                            <div class="review-form-group">
+                                                <label class="review-form-label">Manager Comments</label>
+                                                <textarea name="managerComments" class="review-form-control" rows="2">@Model.ManagerComments</textarea>
+                                            </div>
+
+                                            <div class="review-form-group">
+                                                <label class="review-form-label">Overall Rating</label>
+                                                <select name="overallRating" class="review-form-select">
+                                                    <option value="Excellent" @(Model.OverallRating == PerformanceRating.Excellent ? "selected" : "")>Excellent</option>
+                                                    <option value="Good" @(Model.OverallRating == PerformanceRating.Good ? "selected" : "")>Good</option>
+                                                    <option value="Satisfactory" @(Model.OverallRating == PerformanceRating.Satisfactory ? "selected" : "")>Satisfactory</option>
+                                                    <option value="NeedsImprovement" @(Model.OverallRating == PerformanceRating.NeedsImprovement ? "selected" : "")>Needs Improvement</option>
+                                                    <option value="Poor" @(Model.OverallRating == PerformanceRating.Poor ? "selected" : "")>Poor</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="review-actions">
+                                                <button type="submit" class="review-btn-save"><i class="fas fa-save"></i> Save</button>
+                                                <a href="@Url.Action("PerformanceDashboard")" class="review-btn-cancel"><i class="fas fa-times"></i> Cancel</a>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

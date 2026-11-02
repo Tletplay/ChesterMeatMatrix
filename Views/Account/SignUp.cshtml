@@ -1,0 +1,286 @@
+﻿@{
+    Layout = null;
+    ViewBag.Title = "Sign Up - Chester Meat Matrix";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Chester Meat Matrix - Customer Sign Up</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+    <style>
+        /* SignUp page specific styles */
+        .signup-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-medium) 100%);
+            padding: 40px 20px;
+        }
+
+        .signup-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            width: 100%;
+            max-width: 650px;
+            padding: 40px;
+        }
+
+        .signup-logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .signup-logo span {
+                font-size: 48px;
+                background: var(--navy-dark);
+                width: 80px;
+                height: 80px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 50%;
+            }
+
+        .signup-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .signup-title h2 {
+                color: var(--navy-dark);
+                font-size: 28px;
+                font-weight: 800;
+                margin-bottom: 5px;
+            }
+
+            .signup-title p {
+                color: var(--text-secondary);
+                font-size: 13px;
+            }
+
+        .radio-group {
+            background: var(--off-white);
+            border-radius: var(--radius-md);
+            padding: 15px;
+            margin: 15px 0;
+            border: 1px solid var(--gray-light);
+        }
+
+            .radio-group label {
+                display: inline-block;
+                margin-right: 20px;
+                cursor: pointer;
+                font-weight: 600;
+                text-transform: none;
+                font-size: 13px;
+            }
+
+            .radio-group input[type="radio"] {
+                width: auto;
+                margin-right: 6px;
+            }
+
+        .enterprise-section {
+            background: var(--off-white);
+            padding: 15px;
+            border-radius: var(--radius-md);
+            margin-top: 15px;
+            border: 1px solid var(--gray-light);
+        }
+
+        .validation-summary {
+            background: #FEF3F2;
+            border-left: 4px solid var(--red-primary);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-top: 20px;
+        }
+
+            .validation-summary ul {
+                margin: 0;
+                padding-left: 20px;
+            }
+
+            .validation-summary li {
+                color: var(--red-primary);
+                font-size: 12px;
+            }
+
+        @@media (max-width: 768px) {
+            .signup-card {
+                padding: 30px;
+            }
+
+            .signup-title h2 {
+                font-size: 24px;
+            }
+
+            .radio-group label {
+                display: block;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body class="signup-page">
+    <div class="signup-card">
+        <div class="signup-logo">
+            <span>🔪🥩</span>
+        </div>
+
+        <div class="signup-title">
+            <h2>CUSTOMER SIGN UP</h2>
+            <p>JOIN THE CHESTER MEAT MATRIX</p>
+        </div>
+
+        @using (Html.BeginForm("SignUp", "Account", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Username / Email</label>
+                <input type="text" name="username" class="form-control" value="@ViewBag.Username" placeholder="Enter your email address" required />
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Create a password" required />
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-check-circle"></i> Confirm Password</label>
+                <input type="password" name="confirmPassword" class="form-control" placeholder="Confirm your password" required />
+            </div>
+
+            <div class="radio-group">
+                <label><i class="fas fa-building"></i> Customer Type</label>
+                <div>
+                    <label>
+                        <input type="radio" name="customerType" value="standard" checked />
+                        🛒 Standard (Online - Card/EFT only)
+                    </label>
+                    <label>
+                        <input type="radio" name="customerType" value="instore" />
+                        🏪 Instore (Cash on Delivery available)
+                    </label>
+                    <label>
+                        <input type="radio" name="customerType" value="enterprise" />
+                        🏢 Enterprise (Monthly Invoice - B2B)
+                    </label>
+                </div>
+            </div>
+
+            <div id="instoreFields">
+                <div class="form-group">
+                    <label><i class="fas fa-user-circle"></i> Full Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="John Doe" />
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Phone Number</label>
+                    <input type="text" name="phone" class="form-control" placeholder="+27 12 345 6789" />
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-location-dot"></i> Address</label>
+                    <input type="text" name="address" class="form-control" placeholder="Your street address (optional)" />
+                </div>
+            </div>
+
+            <div id="enterpriseAddress" style="display:none;" class="enterprise-section">
+                <div style="margin-bottom: 12px;"><strong><i class="fas fa-building"></i> Enterprise Address (required)</strong></div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Company Name</label>
+                    <input type="text" id="companyName" name="companyName" class="form-control" placeholder="Company (Pty) Ltd" />
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Street</label>
+                    <input type="text" id="street" name="street" class="form-control" placeholder="45 Umbilo Road" />
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Suburb</label>
+                    <input type="text" id="suburb" name="suburb" class="form-control" placeholder="Umbilo Industrial Area" />
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>City</label>
+                    <input type="text" id="city" name="city" class="form-control" placeholder="Durban" />
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Province</label>
+                    <input type="text" id="province" name="province" class="form-control" placeholder="KwaZulu-Natal" />
+                </div>
+                <div class="form-group">
+                    <label>Postal Code</label>
+                    <input type="text" id="postalCode" name="postalCode" class="form-control" placeholder="4001" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">
+                <i class="fas fa-user-plus"></i> CREATE ACCOUNT
+            </button>
+        }
+
+        <div class="text-center" style="margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--gray-light);">
+            <p>🥩 Already have an account? <a href="@Url.Action("Login", "Account")">Sign in here</a> 🥩</p>
+        </div>
+
+        @Html.ValidationSummary(true, "", new { @class = "validation-summary" })
+    </div>
+
+    <script>
+        (function () {
+            var radios = document.getElementsByName('customerType');
+            var ent = document.getElementById('enterpriseAddress');
+            var inst = document.getElementById('instoreFields');
+
+            function update() {
+                var selectedValue = null;
+                for (var i = 0; i < radios.length; i++) {
+                    if (radios[i].checked) {
+                        selectedValue = radios[i].value;
+                        break;
+                    }
+                }
+
+                if (selectedValue === 'enterprise') {
+                    ent.style.display = 'block';
+                    inst.style.display = 'none';
+                    // Make enterprise fields required
+                    ['companyName', 'street', 'suburb', 'city', 'province', 'postalCode'].forEach(function (id) {
+                        var el = document.getElementById(id);
+                        if (el) el.required = true;
+                    });
+                    // Make instore fields not required
+                    ['name', 'phone', 'address'].forEach(function (name) {
+                        var el = document.querySelector('input[name="' + name + '"]');
+                        if (el) el.required = false;
+                    });
+                } else {
+                    ent.style.display = 'none';
+                    inst.style.display = 'block';
+                    // Make enterprise fields not required
+                    ['companyName', 'street', 'suburb', 'city', 'province', 'postalCode'].forEach(function (id) {
+                        var el = document.getElementById(id);
+                        if (el) el.required = false;
+                    });
+                    // Make instore fields required (name and phone)
+                    ['name', 'phone'].forEach(function (name) {
+                        var el = document.querySelector('input[name="' + name + '"]');
+                        if (el) el.required = true;
+                    });
+                }
+            }
+
+            for (var i = 0; i < radios.length; i++) {
+                radios[i].addEventListener('change', update);
+            }
+            update();
+        })();
+    </script>
+</body>
+</html>

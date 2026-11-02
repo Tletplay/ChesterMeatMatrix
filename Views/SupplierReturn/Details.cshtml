@@ -1,0 +1,101 @@
+﻿﻿@model ChesterMeatMatrix.Models.SupplierReturn
+@{
+    ViewBag.Title = "Supplier Return Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .details-container {
+        max-width: 800px;
+        margin: 2rem auto;
+    }
+
+    .details-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .info-row {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #0a4c8c;
+        width: 160px;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+    }
+
+    .status-approved {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+    }
+</style>
+
+<div class="details-container">
+    <div class="details-card">
+        <h2 style="color: #0a4c8c;">Supplier Return #@Model.ReturnNumber</h2>
+
+        <div class="info-row">
+            <span class="info-label">Status:</span>
+            <span class="status-@Model.Status.ToLower()">@Model.Status</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Product:</span>
+            <span>@Model.Product?.Name</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Quantity:</span>
+            <span>@Model.Quantity units</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Return Reason:</span>
+            <span>@Model.ReturnReason</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Supplier:</span>
+            <span>@(Model.SupplierName ?? "-")</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Return Date:</span>
+            <span>@Model.ReturnDate.ToString("dd MMM yyyy HH:mm")</span>
+        </div>
+
+        @if (Model.ApprovedDate.HasValue)
+        {
+            <div class="info-row">
+                <span class="info-label">Approved Date:</span>
+                <span>@Model.ApprovedDate.Value.ToString("dd MMM yyyy HH:mm")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Approved By:</span>
+                <span>@Model.ApprovedBy</span>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.SupplierReference))
+        {
+            <div class="info-row">
+                <span class="info-label">Supplier Reference:</span>
+                <span>@Model.SupplierReference</span>
+            </div>
+        }
+
+        <div class="text-center mt-4">
+            <a href="@Url.Action("Index")" class="btn btn-secondary">← Back to Returns</a>
+        </div>
+    </div>
+</div>

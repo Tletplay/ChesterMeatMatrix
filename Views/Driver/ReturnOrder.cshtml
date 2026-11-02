@@ -1,0 +1,153 @@
+﻿﻿@{
+    ViewBag.Title = "Return Order - Driver";
+    Layout = "~/Views/Shared/_DriverLayout.cshtml";
+    var order = ViewBag.Order as ChesterMeatMatrix.Models.Order;
+    var routeId = ViewBag.RouteId;
+    var orderId = ViewBag.OrderId;
+}
+
+<style>
+    .return-container {
+        max-width: 800px;
+        margin: 2rem auto;
+    }
+
+    .return-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #0A2540;
+        margin-bottom: 0.5rem;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #E0E8F0;
+        border-radius: 12px;
+    }
+
+    .btn-submit {
+        background: #DC2626;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background: #64748b;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 40px;
+        text-decoration: none;
+        display: inline-block;
+        margin-left: 10px;
+    }
+
+    .photo-preview {
+        max-width: 200px;
+        border-radius: 12px;
+        margin-top: 10px;
+        display: none;
+    }
+
+    .order-info {
+        background: #F8FBFE;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<div class="container return-container">
+    <div class="return-card">
+        <h2 style="color: #DC2626;"><i class="fas fa-undo-alt"></i> Return Order</h2>
+
+        @if (order == null)
+        {
+            <div class="alert alert-danger">Order not found.</div>
+        }
+        else
+        {
+            <div class="order-info">
+                <p><strong>Order #:</strong> @order.OrderNumber</p>
+                <p><strong>Customer:</strong> @(order.Customer?.Name ?? "N/A")</p>
+                <p><strong>Address:</strong> @(order.Customer?.Address ?? "N/A")</p>
+                <p><strong>Amount:</strong> R @order.Total.ToString("N2")</p>
+            </div>
+
+            using (Html.BeginForm("SubmitReturn", "Driver", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="routeId" value="@routeId" />
+                <input type="hidden" name="orderId" value="@orderId" />
+
+                <div class="form-group">
+                    <label class="form-label">Return Reason *</label>
+                    <select name="returnReason" class="form-select" required>
+                        <option value="">-- Select Reason --</option>
+                        <option value="CustomerRefused">Customer Refused Delivery</option>
+                        <option value="DamagedPackage">Package Damaged</option>
+                        <option value="WrongAddress">Wrong Address</option>
+                        <option value="CustomerNotAvailable">Customer Not Available</option>
+                        <option value="WrongProduct">Wrong Product Delivered</option>
+                        <option value="QualityIssue">Quality Issue (Spoiled/Expired)</option>
+                        <option value="WeightMismatch">Weight Mismatch</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Customer's Reason</label>
+                    <textarea name="customerReason" class="form-control" rows="3"
+                              placeholder="What did the customer say?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Take Photo (Evidence)</label>
+                    <input type="file" id="photoInput" class="form-control" accept="image/*" />
+                    <input type="hidden" name="driverPhotoBase64" id="photoBase64" />
+                    <img id="photoPreview" class="photo-preview" />
+                    <small class="text-muted">Take a photo of the returned items as evidence</small>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn-submit"><i class="fas fa-paper-plane"></i> Submit Return</button>
+                    <a href="@Url.Action("RouteStops", "Driver", new { routeId = routeId })" class="btn-cancel">Cancel</a>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<script>
+    document.getElementById('photoInput')?.addEventListener('change', function (e) {
+        var file = e.target.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('photoBase64').value = e.target.result;
+                var preview = document.getElementById('photoPreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

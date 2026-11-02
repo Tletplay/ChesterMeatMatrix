@@ -1,0 +1,422 @@
+﻿@{
+    ViewBag.Title = "System Reports - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        text-align: center;
+        border: 1px solid #E0E8F0;
+        transition: transform 0.2s;
+        height: 100%;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: #0A2540;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: #6B7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .stat-sub {
+        font-size: 11px;
+        color: #2C6E9E;
+        margin-top: 5px;
+    }
+
+    .chart-container {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #E0E8F0;
+    }
+
+        .chart-container h4 {
+            color: #0A2540;
+            margin-bottom: 20px;
+            font-weight: 600;
+            border-left: 4px solid #2C6E9E;
+            padding-left: 12px;
+        }
+
+    .filter-section {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #E0E8F0;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th {
+            background: #F0F4F8;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid #E0E8F0;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E8F0;
+        }
+
+        .data-table tr:hover {
+            background: #F8FBFE;
+        }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-Paid {
+        background: #D1FAE5;
+        color: #059669;
+    }
+
+    .status-Unpaid {
+        background: #FEF3C7;
+        color: #D97706;
+    }
+
+    canvas {
+        max-height: 300px;
+        width: 100%;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 50px;
+        color: #6B7280;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">System Reports & Analytics</h2>
+        <a href="@Url.Action("Dashboard", "Admin")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    <!-- Stats Row - Will be populated by JavaScript -->
+    <div class="row g-3 mb-4" id="statsRow">
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" id="totalOrders">-</div>
+                <div class="stat-label">Total Orders</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" id="totalRevenue">-</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" id="pendingOrders">-</div>
+                <div class="stat-label">Pending Orders</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card">
+                <div class="stat-value" id="deliveredOrders">-</div>
+                <div class="stat-label">Delivered Orders</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Stats Row -->
+    <div class="row g-3 mb-4" id="customerStatsRow">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCustomers">-</div>
+                <div class="stat-label">Total Customers</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-value" id="enterpriseCustomers">-</div>
+                <div class="stat-label">Enterprise Customers</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-value" id="standardCustomers">-</div>
+                <div class="stat-label">Standard/Instore</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h4><i class="fas fa-chart-pie"></i> Orders by Status</h4>
+                <canvas id="statusPieChart" height="250"></canvas>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="chart-container">
+                <h4><i class="fas fa-chart-line"></i> Orders by Month</h4>
+                <canvas id="ordersLineChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="chart-container">
+                <h4><i class="fas fa-chart-bar"></i> Sales by Month (R)</h4>
+                <canvas id="salesBarChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoice Filter Section -->
+    <div class="filter-section">
+        <h4><i class="fas fa-filter"></i> Invoice Reports</h4>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Payment Status</label>
+                <select id="statusFilter" class="form-control">
+                    <option value="">All Statuses</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Unpaid">Unpaid</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">From Date</label>
+                <input type="date" id="startDate" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To Date</label>
+                <input type="date" id="endDate" class="form-control" />
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button id="applyFilter" class="btn btn-primary w-100 me-2">Apply Filter</button>
+                <button id="resetFilter" class="btn btn-secondary w-100">Reset</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices Table -->
+    <div class="chart-container">
+        <h4><i class="fas fa-file-invoice"></i> Invoice List</h4>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="invoicesTableBody">
+                    <tr><td colspan="7" class="loading">Loading invoices...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    let statusPieChart, ordersLineChart, salesBarChart;
+
+    $(document).ready(function() {
+        loadDashboardData();
+        loadInvoices();
+
+        $('#applyFilter').click(function() {
+            loadInvoices();
+        });
+
+        $('#resetFilter').click(function() {
+            $('#statusFilter').val('');
+            $('#startDate').val('');
+            $('#endDate').val('');
+            loadInvoices();
+        });
+    });
+
+    function loadDashboardData() {
+        $.ajax({
+            url: '@Url.Action("GetDashboardData", "Reports")',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+
+                // Update stats cards
+                $('#totalOrders').text(data.totalOrders);
+                $('#totalRevenue').text('R ' + parseFloat(data.totalRevenue).toFixed(2));
+                $('#pendingOrders').text(data.pendingOrders);
+                $('#deliveredOrders').text(data.deliveredOrders);
+                $('#totalCustomers').text(data.totalCustomers);
+                $('#enterpriseCustomers').text(data.enterpriseCustomers);
+                $('#standardCustomers').text(data.standardCustomers + data.instoreCustomers);
+
+                // Destroy existing charts
+                if (statusPieChart) statusPieChart.destroy();
+                if (ordersLineChart) ordersLineChart.destroy();
+                if (salesBarChart) salesBarChart.destroy();
+
+                // Pie Chart - Orders by Status
+                var pieCtx = document.getElementById('statusPieChart').getContext('2d');
+                statusPieChart = new Chart(pieCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Pending', 'Confirmed', 'Processing', 'Out for Delivery', 'Delivered'],
+                        datasets: [{
+                            data: [
+                                data.pendingOrders,
+                                data.confirmedOrders,
+                                data.processingOrders,
+                                data.outForDeliveryOrders,
+                                data.deliveredOrders
+                            ],
+                            backgroundColor: ['#F59E0B', '#3B82F6', '#8B5CF6', '#06B6D4', '#10B981'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                // Line Chart - Orders by Month
+                var months = data.ordersByMonth.map(x => x.Month);
+                var orderCounts = data.ordersByMonth.map(x => x.Count);
+
+                var lineCtx = document.getElementById('ordersLineChart').getContext('2d');
+                ordersLineChart = new Chart(lineCtx, {
+                    type: 'line',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Number of Orders',
+                            data: orderCounts,
+                            borderColor: '#2C6E9E',
+                            backgroundColor: 'rgba(44, 110, 158, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Number of Orders' } },
+                            x: { title: { display: true, text: 'Month' } }
+                        }
+                    }
+                });
+
+                // Bar Chart - Sales by Month
+                var salesAmounts = data.salesByMonth.map(x => parseFloat(x.Total));
+
+                var barCtx = document.getElementById('salesBarChart').getContext('2d');
+                salesBarChart = new Chart(barCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: months,
+                        datasets: [{
+                            label: 'Sales (R)',
+                            data: salesAmounts,
+                            backgroundColor: 'rgba(44, 110, 158, 0.7)',
+                            borderColor: '#0A2540',
+                            borderWidth: 1,
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: { beginAtZero: true, title: { display: true, text: 'Amount (R)' } },
+                            x: { title: { display: true, text: 'Month' } }
+                        }
+                    }
+                });
+            },
+            error: function(xhr, status, error) {
+                console.log("Error loading dashboard data:", error);
+            }
+        });
+    }
+
+    function loadInvoices() {
+        var status = $('#statusFilter').val();
+        var startDate = $('#startDate').val();
+        var endDate = $('#endDate').val();
+
+        $.ajax({
+            url: '@Url.Action("GetInvoices", "Reports")',
+            type: 'GET',
+            data: { status: status, startDate: startDate, endDate: endDate },
+            dataType: 'json',
+            success: function(data) {
+                var tbody = $('#invoicesTableBody');
+                tbody.empty();
+
+                if (data.length === 0) {
+                    tbody.append('<tr><td colspan="7" class="text-center text-muted py-4">No invoices found</td></tr>');
+                } else {
+                    for (var i = 0; i < data.length; i++) {
+                        var inv = data[i];
+                        var statusClass = inv.Status === 'Paid' ? 'status-Paid' : 'status-Unpaid';
+                        var row = '<tr>' +
+                            '<td><strong>' + (inv.InvoiceNumber || '-') + '</strong></td>' +
+                            '<td>' + inv.OrderNumber + '</td>' +
+                            '<td>' + inv.CustomerName + '</td>' +
+                            '<td>' + new Date(inv.CreatedAt).toLocaleDateString() + '</td>' +
+                            '<td>R ' + parseFloat(inv.Total).toFixed(2) + '</td>' +
+                            '<td>' + (inv.PaymentMethodString || '-') + '</td>' +
+                            '<td><span class="status-badge ' + statusClass + '">' + inv.Status + '</span></td>' +
+                            '</tr>';
+                        tbody.append(row);
+                    }
+                }
+            },
+            error: function() {
+                $('#invoicesTableBody').html('<tr><td colspan="7" class="text-center text-danger py-4">Error loading invoices</td></tr>');
+            }
+        });
+    }
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

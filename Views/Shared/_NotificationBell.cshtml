@@ -1,0 +1,151 @@
+﻿@{
+    var driverId = Session["UserId"] as int?;
+    var unreadCount = 0;
+    var recentNotifications = new List<dynamic>();
+
+    if (driverId.HasValue && ViewContext.RouteData.Values["controller"].ToString() == "Driver")
+    {
+        unreadCount = ChesterMeatMatrix.Data.InMemoryDatabase.Notifications.Count(n => n.UserId == driverId.Value && !n.IsRead);
+        recentNotifications = ChesterMeatMatrix.Data.InMemoryDatabase.Notifications
+            .Where(n => n.UserId == driverId.Value)
+            .OrderByDescending(n => n.CreatedAt)
+            .Take(5)
+            .Select(n => new { n.Id, n.Title, n.Message, n.Type, CreatedAt = n.CreatedAt.ToString("dd MMM HH:mm") })
+            .ToList<dynamic>();
+    }
+}
+
+<style>
+    .notification-bell {
+        position: relative;
+        cursor: pointer;
+        margin-right: 15px;
+    }
+
+    .notification-count {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #C1272D;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 50%;
+        min-width: 18px;
+        text-align: center;
+    }
+
+    .notification-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 320px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        z-index: 1000;
+        margin-top: 10px;
+    }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+    .notification-header {
+        padding: 12px 15px;
+        border-bottom: 1px solid #E0E8F0;
+        font-weight: 700;
+        color: #0A2540;
+    }
+
+    .notification-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #E0E8F0;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+        .notification-item:hover {
+            background: #F8FAFE;
+        }
+
+        .notification-item.unread {
+            background: #FEF3C7;
+        }
+
+    .notification-title {
+        font-weight: 600;
+        font-size: 13px;
+        color: #0A2540;
+    }
+
+    .notification-message {
+        font-size: 11px;
+        color: #64748B;
+        margin-top: 4px;
+    }
+
+    .notification-time {
+        font-size: 10px;
+        color: #9CA3AF;
+        margin-top: 4px;
+    }
+
+    .notification-empty {
+        padding: 20px;
+        text-align: center;
+        color: #64748B;
+    }
+</style>
+
+<div class="notification-bell" id="notificationBell">
+    <i class="fas fa-bell" style="font-size: 1.2rem; color: #0A2540;"></i>
+    @if (unreadCount > 0)
+    {
+        <span class="notification-count">@unreadCount</span>
+    }
+
+    <div class="notification-dropdown" id="notificationDropdown">
+        <div class="notification-header">
+            Notifications
+        </div>
+        <div id="notificationList">
+            @if (recentNotifications.Any())
+            {
+                foreach (var n in recentNotifications)
+                {
+                    <div class="notification-item" data-id="@n.Id">
+                        <div class="notification-title">@n.Title</div>
+                        <div class="notification-message">@n.Message</div>
+                        <div class="notification-time">@n.CreatedAt</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="notification-empty">No notifications</div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    $('#notificationBell').click(function(e) {
+        e.stopPropagation();
+        $('#notificationDropdown').toggleClass('show');
+    });
+
+    $(document).click(function() {
+        $('#notificationDropdown').removeClass('show');
+    });
+
+    $('.notification-item').click(function() {
+        var id = $(this).data('id');
+        $.post('@Url.Action("MarkNotificationRead", "Router")', { notificationId: id })
+            .done(function() {
+                location.reload();
+            });
+    });
+</script>

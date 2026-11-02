@@ -1,0 +1,300 @@
+﻿@using ChesterMeatMatrix.Models
+@model IEnumerable<Attendance>
+@{
+    ViewBag.Title = "Attendance Management";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var targetDate = ViewBag.TargetDate as DateTime? ?? DateTime.Today;
+    var allStaff = ViewBag.AllStaff as List<User>;
+    var statusOptions = ViewBag.StatusOptions as string[];
+    var currentStatus = ViewBag.CurrentStatus as string;
+    var totalStaff = ViewBag.TotalStaff as int? ?? 0;
+    var totalPresent = ViewBag.TotalPresent as int? ?? 0;
+    var totalLate = ViewBag.TotalLate as int? ?? 0;
+    var totalAbsent = ViewBag.TotalAbsent as int? ?? 0;
+    var notClockedIn = totalStaff - (totalPresent + totalLate + totalAbsent);
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold" style="color: #0A2540; display: flex; align-items: center; gap: 0.75rem; margin: 0;">
+                <i data-lucide="clipboard-list" style="color: #C1272D; width: 28px; height: 28px;"></i>
+                Attendance Management
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Monitor and adjust daily staff shift activity</p>
+        </div>
+        <a href="@Url.Action("Dashboard", "StaffManager")" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #64748B; text-decoration: none; font-size: 0.875rem; transition: color 0.2s;" onmouseover="this.style.color='#C1272D'" onmouseout="this.style.color='#64748B'">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+            Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: 100%; pointer-events: none;"></div>
+
+    <!-- Overview Stats Cards -->
+    <div style="margin-bottom: 1.5rem;">
+        <div style="font-size: 0.75rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            Attendance Today <span style="background: #E2E8F0; color: #0A2540; padding: 0.1rem 0.5rem; border-radius: 12px; font-size: 0.7rem;">@totalStaff Staff</span>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+            <div style="background: white; padding: 1.25rem; border-radius: 12px; border: 1px solid #E8E8E8; border-left: 4px solid #10B981;">
+                <div style="font-size: 0.7rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Present</div>
+                <div style="font-size: 1.75rem; font-weight: 800; color: #0A2540; margin-top: 0.25rem;">@String.Format("{0:D2}", totalPresent)</div>
+            </div>
+            <div style="background: white; padding: 1.25rem; border-radius: 12px; border: 1px solid #E8E8E8; border-left: 4px solid #F59E0B;">
+                <div style="font-size: 0.7rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Late</div>
+                <div style="font-size: 1.75rem; font-weight: 800; color: #0A2540; margin-top: 0.25rem;">@String.Format("{0:D2}", totalLate)</div>
+            </div>
+            <div style="background: white; padding: 1.25rem; border-radius: 12px; border: 1px solid #E8E8E8; border-left: 4px solid #DC2626;">
+                <div style="font-size: 0.7rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Absent</div>
+                <div style="font-size: 1.75rem; font-weight: 800; color: #0A2540; margin-top: 0.25rem;">@String.Format("{0:D2}", totalAbsent)</div>
+            </div>
+            <div style="background: white; padding: 1.25rem; border-radius: 12px; border: 1px solid #E8E8E8; border-left: 4px solid #94A3B8;">
+                <div style="font-size: 0.7rem; color: #64748B; font-weight: 600; text-transform: uppercase;">Not Clocked In</div>
+                <div style="font-size: 1.75rem; font-weight: 800; color: #0A2540; margin-top: 0.25rem;">@String.Format("{0:D2}", notClockedIn)</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Visual Timeline -->
+    <div style="background: white; border-radius: 12px; border: 1px solid #E8E8E8; padding: 1.25rem; margin-bottom: 1.5rem;">
+        <div style="font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.75rem;">
+            Shift Timeline Activity
+        </div>
+        <div style="display: flex; align-items: center; justify-content: space-between; position: relative; padding: 0 1rem; margin-bottom: 0.5rem;">
+            <div style="position: absolute; left: 1rem; right: 1rem; top: 50%; height: 2px; background: #F1F5F9; z-index: 1;"></div>
+            @{
+                var timeSlots = new[] { "08:00", "10:00", "12:00", "14:00", "16:00" };
+                foreach (var slot in timeSlots)
+                {
+                    <div style="position: relative; z-index: 2; background: white; padding: 0 0.5rem; font-size: 0.65rem; color: #94A3B8; font-weight: 700;">@slot</div>
+                }
+            }
+        </div>
+        <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center; height: 12px;">
+            @if (Model != null && Model.Any(a => a.ClockInTime.HasValue))
+            {
+                foreach (var att in Model.Where(a => a.ClockInTime.HasValue))
+                {
+                    var color = att.Status == AttendanceStatus.Late ? "#F59E0B" : "#10B981";
+                    <span title="@((att.Staff?.FullName ?? "Staff") + " - Clocked in at " + att.ClockInTime.Value.ToString("HH:mm"))" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: @color; cursor: pointer;"></span>
+                }
+            }
+            else
+            {
+                <span style="font-size: 0.7rem; color: #94A3B8;">No visual clock activity recorded yet</span>
+            }
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div style="background: white; border-radius: 12px; border: 1px solid #E8E8E8; padding: 0.85rem 1.25rem; margin-bottom: 1.5rem;">
+        <form method="get" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; justify-content: space-between;">
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label style="font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase;">Date:</label>
+                    <input type="date" name="date" value="@targetDate.ToString("yyyy-MM-dd")" style="padding: 0.4rem 0.75rem; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem; background: white;" />
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <label style="font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase;">Status:</label>
+                    <select name="status" style="padding: 0.4rem 0.75rem; border: 1px solid #CBD5E1; border-radius: 8px; font-size: 0.85rem; background: white;">
+                        <option value="">All Statuses</option>
+                        @foreach (var s in statusOptions)
+                        {
+                            <option value="@s" @(s == currentStatus ? "selected" : "")>@s</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" style="padding: 0.4rem 1.25rem; background: #0A2540; color: white; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; cursor: pointer;">Filter</button>
+                <a href="@Url.Action("Attendance")" style="padding: 0.4rem 1.25rem; background: #F1F5F9; color: #0A2540; border: none; border-radius: 8px; font-weight: 600; font-size: 0.85rem; text-decoration: none;">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Attendance Table -->
+    <div style="background: white; border-radius: 12px; border: 1px solid #E8E8E8; overflow: hidden; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+        <div style="padding: 1rem 1.25rem; background: #FAFAFA; border-bottom: 1px solid #E8E8E8;">
+            <h3 style="margin: 0; font-size: 0.9rem; font-weight: 700; color: #0A2540;">Today's Attendance</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                    <tr style="background: #FFFFFF; border-bottom: 1px solid #E8E8E8; text-align: left;">
+                        <th style="padding: 0.85rem 1.25rem; font-weight: 700; color: #64748B; font-size: 0.68rem; text-transform: uppercase;">Staff Member</th>
+                        <th style="padding: 0.85rem 1.25rem; font-weight: 700; color: #64748B; font-size: 0.68rem; text-transform: uppercase;">Clock In</th>
+                        <th style="padding: 0.85rem 1.25rem; font-weight: 700; color: #64748B; font-size: 0.68rem; text-transform: uppercase;">Clock Out</th>
+                        <th style="padding: 0.85rem 1.25rem; font-weight: 700; color: #64748B; font-size: 0.68rem; text-transform: uppercase; text-align: center;">Total Hours</th>
+                        <th style="padding: 0.85rem 1.25rem; font-weight: 700; color: #64748B; font-size: 0.68rem; text-transform: uppercase; text-align: right;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var att in Model)
+                        {
+                            var staffName = att.Staff?.FullName ?? "Warehouse Staff";
+                            var staffRole = att.Staff?.Role ?? "Warehouse";
+
+                            string statusDotColor = att.Status == AttendanceStatus.Present ? "#10B981" :
+                                                   att.Status == AttendanceStatus.Late ? "#F59E0B" :
+                                                   att.Status == AttendanceStatus.Absent ? "#DC2626" :
+                                                   att.Status == AttendanceStatus.Leave ? "#3B82F6" : "#94A3B8";
+
+                            <tr style="border-bottom: 1px solid #E8E8E8;" id="row-@att.AttendanceId">
+                                <td style="padding: 0.85rem 1.25rem; vertical-align: middle;">
+                                    <div style="font-weight: 600; color: #0A2540;">@staffName</div>
+                                    <div style="font-size: 0.725rem; color: #94A3B8;">@staffRole</div>
+                                </td>
+                                <td style="padding: 0.85rem 1.25rem; vertical-align: middle; color: #0A2540; font-weight: 500;">
+                                    @(att.ClockInTime?.ToString("HH:mm") ?? "—")
+                                </td>
+                                <td style="padding: 0.85rem 1.25rem; vertical-align: middle; color: #0A2540; font-weight: 500;">
+                                    @(att.ClockOutTime?.ToString("HH:mm") ?? "—")
+                                </td>
+                                <td style="padding: 0.85rem 1.25rem; text-align: center; vertical-align: middle; font-weight: 600; color: #0A2540;">
+                                    @att.TotalHours.ToString("F2") hrs
+                                </td>
+                                <td style="padding: 0.85rem 1.25rem; text-align: right; vertical-align: middle;">
+                                    <div class="status-control-wrapper" style="position: relative; display: inline-block;">
+                                        <button class="status-popover-toggle" data-attid="@att.AttendanceId" style="background: white; border: 1px solid #E2E8F0; border-radius: 20px; padding: 0.3rem 0.75rem; font-size: 0.75rem; font-weight: 600; color: #0A2540; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.15s;" onmouseover="this.style.borderColor='#CBD5E1';" onmouseout="this.style.borderColor='#E2E8F0';">
+                                            <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: @statusDotColor;"></span>
+                                            <span class="status-text">@att.Status</span>
+                                            <i data-lucide="more-horizontal" style="width: 14px; height: 14px; color: #94A3B8;"></i>
+                                        </button>
+
+                                        <!-- Interactive Popover Menu -->
+                                        <div class="status-popover-panel" style="display: none; position: fixed; background: white; border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border: 1px solid #E8E8E8; min-width: 150px; z-index: 1000; overflow: hidden; padding: 0.35rem 0;">
+                                            <div style="font-size: 0.65rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; padding: 0.35rem 0.75rem;">Change Status</div>
+                                            <div class="status-option" data-attid="@att.AttendanceId" data-status="Present" style="padding: 0.45rem 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #0A2540;">
+                                                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10B981;"></span>
+                                                Present
+                                            </div>
+                                            <div class="status-option" data-attid="@att.AttendanceId" data-status="Late" style="padding: 0.45rem 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #0A2540;">
+                                                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #F59E0B;"></span>
+                                                Late
+                                            </div>
+                                            <div class="status-option" data-attid="@att.AttendanceId" data-status="Absent" style="padding: 0.45rem 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #0A2540;">
+                                                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #DC2626;"></span>
+                                                Absent
+                                            </div>
+                                            <div class="status-option" data-attid="@att.AttendanceId" data-status="Leave" style="padding: 0.45rem 0.75rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #0A2540;">
+                                                <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #3B82F6;"></span>
+                                                Leave
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" style="padding: 2.5rem 1.25rem; text-align: center; color: #94A3B8;">
+                                No attendance records found for this date.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@Html.AntiForgeryToken()
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    lucide.createIcons();
+
+    function showToast(message, title = '') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.style.cssText = `background:#FFFFFF;border:1px solid #E8E8E8;border-left:4px solid #10B981;border-radius:10px;padding:0.85rem 1rem;display:flex;align-items:flex-start;gap:0.75rem;animation:toastIn 0.3s ease;box-shadow:0 8px 24px rgba(10,37,64,0.12);pointer-events:auto;max-width:380px;width:100%;`;
+        toast.innerHTML = `
+            <span style="display:flex; align-items:center; justify-content:center; width: 28px; height: 28px; border-radius: 50%; background: #ECFDF5; flex-shrink: 0;">
+                <i data-lucide="check" style="color: #10B981; width: 16px; height: 16px;"></i>
+            </span>
+            <div style="flex: 1; min-width: 0;">
+                ${title ? `<div style="font-weight: 700; color: #0A2540; font-size: 0.85rem;">${title}</div>` : ''}
+                <div style="color: #065F46; font-size: 0.8rem; line-height: 1.4;">${message}</div>
+            </div>`;
+        container.appendChild(toast);
+        lucide.createIcons();
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            toast.style.transition = 'all 0.3s ease';
+            setTimeout(() => toast.remove(), 300);
+        }, 4000);
+    }
+
+    // Interactive Popover Toggle
+    document.querySelectorAll('.status-popover-toggle').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const panel = this.nextElementSibling;
+            const isOpen = panel.style.display === 'block';
+            document.querySelectorAll('.status-popover-panel').forEach(p => p.style.display = 'none');
+
+            if (!isOpen) {
+                const rect = this.getBoundingClientRect();
+                const panelWidth = 150;
+                panel.style.left = Math.min(rect.right - panelWidth, window.innerWidth - panelWidth - 10) + 'px';
+                panel.style.top = (rect.bottom + 6) + 'px';
+                panel.style.display = 'block';
+            }
+        });
+    });
+
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.status-popover-panel').forEach(p => p.style.display = 'none');
+    });
+
+    document.querySelectorAll('.status-option').forEach(opt => {
+        opt.addEventListener('mouseover', function() { this.style.background = '#F8FAFC'; });
+        opt.addEventListener('mouseout', function() { this.style.background = 'transparent'; });
+
+        opt.addEventListener('click', function() {
+            const attId = this.dataset.attid;
+            const newStatus = this.dataset.status;
+            const token = $('input[name="__RequestVerificationToken"]').val();
+
+            $.ajax({
+                url: '@Url.Action("UpdateAttendanceStatus", "StaffManager")',
+                type: 'POST',
+                data: {
+                    attendanceId: attId,
+                    status: newStatus,
+                    notes: '',
+                    __RequestVerificationToken: token
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showToast(`Status updated to ${newStatus}`, 'success', 'Attendance Updated');
+                        setTimeout(() => location.reload(), 800);
+                    }
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    @@keyframes toastIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+</style>

@@ -1,0 +1,444 @@
+﻿﻿@model ChesterMeatMatrix.Models.ExpectedStock
+@{
+    ViewBag.Title = "Expected Stock Details";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var receivingHistory = ViewBag.ReceivingHistory as List<ChesterMeatMatrix.Models.StockBatch>;
+}
+
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .container-custom {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+        .header-bar h1 {
+            color: #0a4c8c;
+            font-weight: 700;
+            margin: 0;
+        }
+
+    .btn-back {
+        background: #64748b;
+        padding: 8px 24px;
+        border-radius: 40px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+        .btn-back:hover {
+            background: #475569;
+            color: white;
+            text-decoration: none;
+        }
+
+    .detail-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(10, 76, 140, 0.08);
+    }
+
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+        .detail-header h2 {
+            color: #0a4c8c;
+            margin: 0;
+        }
+
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #b45309;
+    }
+
+    .status-intransit {
+        background: #e0e7ff;
+        color: #3730a3;
+    }
+
+    .status-partiallyreceived {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .status-received {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .info-item {
+        padding: 0.5rem 0;
+    }
+
+    .info-label {
+        color: #64748b;
+        font-size: 0.8rem;
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+    }
+
+    .info-value {
+        color: #1e293b;
+        font-size: 1rem;
+        font-weight: 600;
+    }
+
+    .progress-section {
+        margin-top: 1.5rem;
+        padding-top: 1rem;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .progress-bar-large {
+        height: 20px;
+        background: #e2e8f0;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .progress-fill-large {
+        height: 100%;
+        background: linear-gradient(90deg, #0a4c8c 0%, #10b981 100%);
+        border-radius: 20px;
+        transition: width 0.3s;
+    }
+
+    .btn-update {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+        .btn-update:hover {
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+    .history-table {
+        width: 100%;
+    }
+
+        .history-table th {
+            text-align: left;
+            padding: 0.75rem 0;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 0.8rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .history-table td {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        max-width: 500px;
+        width: 90%;
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+        .modal-header h3 {
+            color: #0a4c8c;
+            margin: 0;
+        }
+
+    .modal-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: #64748b;
+        cursor: pointer;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #0a4c8c;
+            margin-bottom: 0.25rem;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+        }
+</style>
+
+<div class="container-custom">
+    <div class="header-bar">
+        <h1>📦 Expected Stock Details</h1>
+        <a href="@Url.Action("ExpectedStock")" class="btn-back">← Back to Expected Stock</a>
+    </div>
+
+    @if (Model != null)
+    {
+        string productName = Model.Product != null ? Model.Product.Name : "Unknown";
+        var progressPercent = Model.ExpectedQuantity > 0
+            ? (int)((double)Model.QuantityReceived / Model.ExpectedQuantity * 100)
+            : 0;
+
+        <div class="detail-card">
+            <div class="detail-header">
+                <h2>@Model.PurchaseOrderNumber</h2>
+                <span class="status-badge @GetStatusClass(Model.Status)">@Model.Status</span>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Product</div>
+                    <div class="info-value">@productName</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Expected Quantity</div>
+                    <div class="info-value">@Model.ExpectedQuantity units</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Unit Weight</div>
+                    <div class="info-value">@Model.ExpectedUnitWeightKg kg</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Total Expected Weight</div>
+                    <div class="info-value">@(Model.ExpectedQuantity * Model.ExpectedUnitWeightKg) kg</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Expected Delivery Date</div>
+                    <div class="info-value">@Model.ExpectedDeliveryDate.ToString("dd MMMM yyyy")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Supplier Reference</div>
+                    <div class="info-value">@(Model.SupplierReference ?? "N/A")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Created By</div>
+                    <div class="info-value">@(Model.CreatedBy ?? "System")</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Created Date</div>
+                    <div class="info-value">@Model.CreatedDate.ToString("dd MMM yyyy HH:mm")</div>
+                </div>
+            </div>
+
+            <div class="progress-section">
+                <div class="progress-header">
+                    <span><strong>Receiving Progress</strong></span>
+                    <span>@Model.QuantityReceived / @Model.ExpectedQuantity units (@progressPercent%)</span>
+                </div>
+                <div class="progress-bar-large">
+                    <div class="progress-fill-large" style="width: @progressPercent%;"></div>
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div style="margin-top: 1rem; padding: 1rem; background: #f8fafc; border-radius: 12px;">
+                    <div class="info-label">Notes</div>
+                    <div style="color: #1e293b; white-space: pre-line;">@Model.Notes</div>
+                </div>
+            }
+
+            @if (Model.Status != "Received" && Model.Status != "Cancelled")
+            {
+                <div style="margin-top: 1.5rem;">
+                    <a href="#" onclick="openStatusModal(@Model.ExpectedStockId, '@Model.Status'); return false;" class="btn-update">Update Status</a>
+                </div>
+            }
+        </div>
+
+        <!-- Receiving History -->
+        <div class="detail-card">
+            <h3 style="color: #0a4c8c; margin-bottom: 1rem;">📋 Receiving History</h3>
+
+            @if (receivingHistory != null && receivingHistory.Any())
+            {
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Batch Number</th>
+                            <th>Quantity</th>
+                            <th>Unit Weight</th>
+                            <th>Total Weight</th>
+                            <th>Received Date</th>
+                            <th>Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var batch in receivingHistory)
+                        {
+                            <tr>
+                                <td><strong>@batch.BatchNumber</strong></td>
+                                <td>@batch.Quantity</td>
+                                <td>@batch.UnitWeightKg kg</td>
+                                <td>@(batch.Quantity * batch.UnitWeightKg) kg</td>
+                                <td>@batch.ReceivedDate.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@batch.Location</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p style="color: #64748b; text-align: center; padding: 2rem;">No receiving history available.</p>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="detail-card" style="text-align: center;">
+            <p style="color: #64748b;">Expected stock record not found.</p>
+            <br />
+            <a href="@Url.Action("ExpectedStock")" class="btn-back">Back to Expected Stock</a>
+        </div>
+    }
+</div>
+
+<!-- Status Update Modal -->
+<div class="modal-overlay" id="statusModal">
+    <div class="modal-card">
+        <div class="modal-header">
+            <h3>Update Status</h3>
+            <button type="button" class="modal-close" onclick="closeStatusModal()">✕</button>
+        </div>
+        <form method="post" action="@Url.Action("UpdateExpectedStockStatus")">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="expectedStockId" id="statusExpectedStockId" />
+            <div class="form-group">
+                <label>New Status</label>
+                <select name="newStatus" required>
+                    <option value="Pending">Pending</option>
+                    <option value="InTransit">In Transit</option>
+                    <option value="PartiallyReceived">Partially Received</option>
+                    <option value="Received">Received</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Notes</label>
+                <textarea name="notes" rows="3"></textarea>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="submit" class="btn-primary" style="flex: 1;">Update</button>
+                <button type="button" onclick="closeStatusModal()" class="btn-back" style="flex: 1;">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openStatusModal(id, currentStatus) {
+        document.getElementById('statusExpectedStockId').value = id;
+        var select = document.querySelector('#statusModal select[name="newStatus"]');
+        for (var i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === currentStatus) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+        document.getElementById('statusModal').style.display = 'flex';
+    }
+
+    function closeStatusModal() {
+        document.getElementById('statusModal').style.display = 'none';
+    }
+
+    window.onclick = function (event) {
+        if (event.target.classList.contains('modal-overlay')) {
+            event.target.style.display = 'none';
+        }
+    }
+</script>
+
+@functions {
+    string GetStatusClass(string status)
+    {
+        if (string.IsNullOrEmpty(status)) return "";
+        if (status == "Pending") return "status-pending";
+        if (status == "InTransit") return "status-intransit";
+        if (status == "PartiallyReceived") return "status-partiallyreceived";
+        if (status == "Received") return "status-received";
+        if (status == "Cancelled") return "status-cancelled";
+        return "";
+    }
+}

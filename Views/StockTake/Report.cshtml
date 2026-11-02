@@ -1,0 +1,186 @@
+﻿@using ChesterMeatMatrix.Models
+@model StockTake
+@{
+    ViewBag.Title = "Stock Take Report";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+}
+
+<div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: #0A2540;">📊 Stock Take Report</h2>
+        <div style="display: flex; gap: 10px;">
+            <button onclick="window.print()" class="btn btn-primary">🖨️ Print Report</button>
+            <a href="@Url.Action("Details", new { id = Model.StockTakeId })" class="btn btn-outline-secondary">← Back</a>
+        </div>
+    </div>
+
+    <!-- Report Header -->
+    <div style="background: white; padding: 20px; border-radius: 12px; margin-bottom: 20px; border: 1px solid #E8E8E8;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+            <div>
+                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Session Number</div>
+                <div style="font-weight: 700; color: #0A2540; font-size: 1.1rem;">@Model.SessionNumber</div>
+            </div>
+            <div>
+                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Session Name</div>
+                <div style="font-weight: 700; color: #0A2540; font-size: 1.1rem;">@Model.Name</div>
+            </div>
+            <div>
+                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Location</div>
+                <div style="font-weight: 700; color: #0A2540; font-size: 1.1rem;">@Model.Location</div>
+            </div>
+            <div>
+                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Start Date</div>
+                <div style="font-weight: 700; color: #0A2540; font-size: 1.1rem;">@Model.StartDate.ToString("dd MMM yyyy")</div>
+            </div>
+            <div>
+                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Status</div>
+                <div style="font-weight: 700; color: #0A2540; font-size: 1.1rem;">@Model.Status</div>
+            </div>
+            <div>
+                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Created By</div>
+                <div style="font-weight: 700; color: #0A2540; font-size: 1.1rem;">@Model.CreatedBy</div>
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Notes))
+        {
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #E8E8E8;">
+                <div style="font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Notes</div>
+                <div style="color: #1E1E1E; margin-top: 0.25rem;">@Model.Notes</div>
+            </div>
+        }
+    </div>
+
+    <!-- Summary Cards -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 20px;">
+        <div style="background: white; padding: 1rem; border-radius: 12px; text-align: center; border-left: 4px solid #3B82F6;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #3B82F6;">@(Model.CountItems?.Count() ?? 0)</div>
+            <div style="font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Total Items</div>
+        </div>
+        <div style="background: white; padding: 1rem; border-radius: 12px; text-align: center; border-left: 4px solid #10B981;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #10B981;">@Model.TotalItemsCounted</div>
+            <div style="font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Items Counted</div>
+        </div>
+        <div style="background: white; padding: 1rem; border-radius: 12px; text-align: center; border-left: 4px solid #DC2626;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #DC2626;">@Model.TotalVariancesFound</div>
+            <div style="font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Variances Found</div>
+        </div>
+        <div style="background: white; padding: 1rem; border-radius: 12px; text-align: center; border-left: 4px solid #F59E0B;">
+            <div style="font-size: 1.5rem; font-weight: 700; color: #F59E0B;">@(Model.CountItems?.Count(i => i.Status == StockCountStatus.Verified || i.Status == StockCountStatus.Variance) ?? 0)</div>
+            <div style="font-size: 0.7rem; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">Corrections Approved</div>
+        </div>
+    </div>
+
+    <!-- Count Items Table -->
+    <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #E8E8E8;">
+        <div style="padding: 1rem 1.25rem; background: #F8FAFE; border-bottom: 1px solid #E8E8E8;">
+            <h3 style="margin: 0; font-size: 0.875rem; font-weight: 700; color: #0A2540;">📋 Count Items Report</h3>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                    <tr style="background: #FAFBFC; border-bottom: 2px solid #E8E8E8;">
+                        <th style="padding: 0.75rem 1.25rem; text-align: left; font-weight: 700; color: #0A2540; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Product</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">System Qty</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Physical Count</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Variance</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.CountItems != null && Model.CountItems.Any())
+                    {
+                        foreach (var item in Model.CountItems)
+                        {
+                            string statusBg = item.Status == StockCountStatus.Pending ? "#FEF3C7" :
+                                              item.Status == StockCountStatus.Counted ? "#DBEAFE" :
+                                              item.Status == StockCountStatus.Variance ? "#FEE2E2" :
+                                              item.Status == StockCountStatus.Verified ? "#D1FAE5" :
+                                              "#D1FAE5";
+
+                            string statusColor = item.Status == StockCountStatus.Pending ? "#92400E" :
+                                                 item.Status == StockCountStatus.Counted ? "#1E40AF" :
+                                                 item.Status == StockCountStatus.Variance ? "#991B1B" :
+                                                 item.Status == StockCountStatus.Verified ? "#065F46" :
+                                                 "#065F46";
+
+                            <tr style="border-bottom: 1px solid #E8E8E8;">
+                                <td style="padding: 0.75rem 1.25rem;">
+                                    <div style="font-weight: 600; color: #0A2540;">@(item.Product?.Name ?? "Unknown Product")</div>
+                                    <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.125rem;">@(item.Product?.ProductCode ?? "N/A")</div>
+                                </td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 600; color: #0A2540;">@item.SystemQuantity</td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 600; color: @(item.PhysicalCount.HasValue ? "#0A2540" : "#94A3B8");">
+                                    @(item.PhysicalCount.HasValue ? item.PhysicalCount.Value.ToString() : "-")
+                                </td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700;">
+                                    @if (item.Variance != 0)
+                                    {
+                                        <span style="color: @(item.Variance > 0 ? "#10B981" : "#DC2626");">
+                                            @(item.Variance > 0 ? "+" : "")@item.Variance
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #94A3B8;">0</span>
+                                    }
+                                </td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center;">
+                                    <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600; background: @statusBg; color: @statusColor;">
+                                        <i data-lucide="@(item.Status == StockCountStatus.Pending ? "clock" :
+                                                    item.Status == StockCountStatus.Counted ? "check-circle" :
+                                                    item.Status == StockCountStatus.Variance ? "alert-triangle" : "check-circle")"
+                                           style="width: 12px; height: 12px;"></i>
+                                        @item.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="5" style="padding: 2rem 1.25rem; text-align: center; color: #94A3B8;">
+                                No count items found
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div style="margin-top: 20px; text-align: center; color: #94A3B8; font-size: 12px; border-top: 1px solid #E8E8E8; padding-top: 15px;">
+        Generated: @DateTime.Now.ToString("dd MMM yyyy HH:mm") | Chester Meat Matrix
+    </div>
+</div>
+
+<style>
+    @@media print {
+        body {
+            background: white;
+        }
+
+        .btn, .btn-outline-secondary {
+            display: none;
+        }
+
+        .container {
+            max-width: 100%;
+            padding: 0;
+        }
+
+        .staff-sidebar {
+            display: none !important;
+        }
+
+        .staff-main {
+            margin-left: 0 !important;
+        }
+
+        .staff-topbar {
+            display: none !important;
+        }
+    }
+</style>

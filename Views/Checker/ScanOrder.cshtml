@@ -1,0 +1,360 @@
+﻿﻿@{
+    ViewBag.Title = "Scan Order - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_CheckerLayout.cshtml";
+}
+
+<style>
+    .scan-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .scanner-card {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        margin-bottom: 25px;
+    }
+
+    .scanner-header {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        color: white;
+        padding: 20px;
+    }
+
+    .scanner-body {
+        padding: 25px;
+    }
+
+    #reader {
+        width: 100%;
+        max-width: 500px;
+        margin: 0 auto 20px auto;
+    }
+
+    .btn-scan {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        display: block;
+    }
+
+    .manual-input {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #E0E8F0;
+    }
+
+        .manual-input input {
+            width: 70%;
+            padding: 10px;
+            border: 2px solid #E0E8F0;
+            border-radius: 12px;
+        }
+
+    .order-details {
+        background: #F8FBFE;
+        border-radius: 16px;
+        padding: 20px;
+        margin-top: 20px;
+        display: none;
+    }
+
+        .order-details.show {
+            display: block;
+        }
+
+    .order-items {
+        margin-top: 15px;
+        max-height: 200px;
+        overflow: auto;
+    }
+
+    .order-item {
+        padding: 8px 0;
+        border-bottom: 1px solid #E0E8F0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-Pending {
+        background: #FEF3C7;
+        color: #D97706;
+    }
+
+    .status-Confirmed {
+        background: #DBEAFE;
+        color: #2563EB;
+    }
+
+    .status-Processing {
+        background: #D1FAE5;
+        color: #059669;
+    }
+
+    .weight-field {
+        background: #F0F4F8;
+        border-radius: 12px;
+        padding: 15px;
+        margin: 15px 0;
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+        .weight-field input {
+            width: 120px;
+            padding: 8px;
+            border: 2px solid #E0E8F0;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+    .btn-update-weight {
+        background: #2C6E9E;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="scan-container">
+        <div class="scanner-card">
+            <div class="scanner-header">
+                <h2>📷 Scan QR Code</h2>
+                <p>Scan order QR code to view and process order</p>
+            </div>
+            <div class="scanner-body">
+                <div id="reader"></div>
+                <button id="startCamera" class="btn-scan">📷 Start Camera</button>
+                <button id="stopCamera" class="btn-scan" style="display:none; background:#DC2626;">🛑 Stop Camera</button>
+
+                <div class="manual-input text-center">
+                    <p>Or enter order number manually:</p>
+                    <input type="text" id="manualOrderNumber" placeholder="Enter order number" />
+                    <button id="manualLookup" class="btn btn-primary mt-2">Lookup Order</button>
+                </div>
+
+                <div id="orderDetails" class="order-details">
+                    <h4>Order Details</h4>
+                    <p><strong>Order #:</strong> <span id="orderNumber"></span></p>
+                    <p><strong>Customer:</strong> <span id="customerName"></span></p>
+                    <p><strong>Total:</strong> R <span id="totalAmount"></span></p>
+                    <p><strong>Total Weight:</strong> <span id="totalWeight"></span> kg</p>
+                    <p><strong>Status:</strong> <span id="orderStatus" class="status-badge"></span></p>
+
+                    <!-- Weight Entry Section -->
+                    <div class="weight-field">
+                        <label><strong>Update Order Weight:</strong></label>
+                        <input type="number" id="orderWeight" step="0.01" placeholder="Enter weight (kg)" />
+                        <button id="updateWeightBtn" class="btn-update-weight">Update Weight</button>
+                    </div>
+
+                    <h5>Items</h5>
+                    <div id="orderItems" class="order-items"></div>
+                    <button id="processOrder" class="btn btn-success mt-3" style="display:none;">Mark as Picked</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <a href="@Url.Action("Index", "Checker")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+    let html5QrCode;
+    let cameraStarted = false;
+    let currentOrderId = 0;
+
+    // Helper function to get anti-forgery token
+    function getToken() {
+        return $('input[name="__RequestVerificationToken"]').val();
+    }
+
+    $('#startCamera').click(function() {
+        if (!cameraStarted) {
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess, onScanError);
+            cameraStarted = true;
+            $('#startCamera').hide();
+            $('#stopCamera').show();
+        }
+    });
+
+    $('#stopCamera').click(function() {
+        if (html5QrCode && cameraStarted) {
+            html5QrCode.stop().then(() => {
+                cameraStarted = false;
+                $('#startCamera').show();
+                $('#stopCamera').hide();
+            }).catch(err => console.log(err));
+        }
+    });
+
+    function onScanSuccess(decodedText, decodedResult) {
+        processScannedCode(decodedText);
+        if (html5QrCode && cameraStarted) {
+            html5QrCode.stop().then(() => {
+                cameraStarted = false;
+                $('#startCamera').show();
+                $('#stopCamera').hide();
+            });
+        }
+    }
+
+    function onScanError(errorMessage) {
+        // ignore errors
+    }
+
+    $('#manualLookup').click(function() {
+        var orderNumber = $('#manualOrderNumber').val().trim();
+        if (orderNumber === '') {
+            alert('Please enter an order number');
+            return;
+        }
+        processScannedCode(orderNumber);
+    });
+
+    function processScannedCode(code) {
+        var token = getToken();
+        if (!token) {
+            alert('Security token not found. Please refresh the page.');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("ProcessScannedCode", "Checker")',
+            type: 'POST',
+            data: {
+                scannedCode: code,
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                if (response.success) {
+                    currentOrderId = response.orderId;
+                    $('#orderNumber').text(response.orderNumber);
+                    $('#customerName').text(response.customerName);
+                    $('#totalAmount').text(parseFloat(response.total).toFixed(2));
+                    $('#totalWeight').text(response.totalWeight ? parseFloat(response.totalWeight).toFixed(2) : '0');
+                    $('#orderWeight').val(response.totalWeight ? parseFloat(response.totalWeight).toFixed(2) : '0');
+                    $('#orderStatus').text(response.status).addClass('status-' + response.status);
+
+                    var itemsHtml = '';
+                    for (var i = 0; i < response.items.length; i++) {
+                        var it = response.items[i];
+                        itemsHtml += '<div class="order-item">' + it.productName + ' - ' + it.quantity + ' x R ' + it.unitPrice.toFixed(2) + ' = R ' + it.subtotal.toFixed(2) + '</div>';
+                    }
+                    $('#orderItems').html(itemsHtml);
+                    $('#orderDetails').addClass('show');
+
+                    if (response.status === 'Confirmed' || response.status === 'Processing') {
+                        $('#processOrder').show();
+                        $('#processOrder').data('order-id', response.orderId);
+                    } else {
+                        $('#processOrder').hide();
+                    }
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error:', error);
+                console.log('Response:', xhr.responseText);
+                alert('Error processing request: ' + error);
+            }
+        });
+    }
+
+    // Update weight functionality
+    $('#updateWeightBtn').click(function() {
+        var weight = $('#orderWeight').val();
+        if (!weight || weight <= 0) {
+            alert('Please enter a valid weight');
+            return;
+        }
+
+        var token = getToken();
+        if (!token) {
+            alert('Security token not found. Please refresh the page.');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("UpdateOrderWeight", "Checker")',
+            type: 'POST',
+            data: {
+                orderId: currentOrderId,
+                weight: weight,
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#totalWeight').text(parseFloat(weight).toFixed(2));
+                    alert('Weight updated to ' + weight + ' kg');
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error updating weight');
+            }
+        });
+    });
+
+    $('#processOrder').click(function() {
+        var orderId = $(this).data('order-id');
+        var token = getToken();
+        if (!token) {
+            alert('Security token not found. Please refresh the page.');
+            return;
+        }
+
+        $.ajax({
+            url: '@Url.Action("MarkAsReady", "Checker")',
+            type: 'POST',
+            data: {
+                orderId: orderId,
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                if (response.success) {
+                    alert(response.message);
+                    $('#orderStatus').text('Processing').removeClass().addClass('status-badge status-Processing');
+                    $('#processOrder').hide();
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.log('Error:', error);
+                console.log('Response:', xhr.responseText);
+                alert('Error processing order: ' + error);
+            }
+        });
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

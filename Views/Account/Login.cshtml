@@ -1,0 +1,121 @@
+﻿@{
+    ViewBag.Title = "Login - Chester Meat Matrix";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Chester Meat Matrix - Login</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="@Url.Content("~/Content/Site.css")" rel="stylesheet" type="text/css" />
+    <style>
+        /* Login page specific styles - kept minimal, most styles moved to Site.css */
+        .login-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-medium) 100%);
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--white);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            width: 100%;
+            max-width: 460px;
+            padding: 40px;
+        }
+
+        .login-title {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+            .login-title h2 {
+                color: var(--navy-dark);
+                font-size: 28px;
+                font-weight: 800;
+                margin-bottom: 5px;
+            }
+
+            .login-title p {
+                color: var(--text-secondary);
+                font-size: 13px;
+            }
+
+        .validation-summary {
+            background: #FEF3F2;
+            border-left: 4px solid var(--red-primary);
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-top: 20px;
+        }
+
+            .validation-summary ul {
+                margin: 0;
+                padding-left: 20px;
+            }
+
+            .validation-summary li {
+                color: var(--red-primary);
+                font-size: 12px;
+            }
+    </style>
+</head>
+<body class="login-page">
+    <div class="login-card">
+                <div class="login-title">
+
+        <div class="login-title">
+            <h2>CHESTER MEAT MATRIX</h2>
+            <p>PREMIUM WHOLESALE MEATS</p>
+        </div>
+
+        @using (Html.BeginForm("Login", "Account", FormMethod.Post, new { id = "loginForm" }))
+        {
+            @Html.AntiForgeryToken()
+
+           
+
+            <div class="form-group">
+                <label><i class="fas fa-envelope"></i> Username / Email</label>
+                <input type="text" name="username" class="form-control" value="@ViewBag.Username" placeholder="Enter your username or email" autocomplete="off" required />
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-lock"></i> Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Enter your password" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                <i class="fas fa-door-open"></i> LOGIN
+            </button>
+        }
+
+                <div class="text-center" style="margin-top: 25px; padding-top: 20px; border-top: 1px solid var(--gray-light);">
+                    <p><i class="fas fa-drumstick-bite"></i> New customer? <a href="@Url.Action("SignUp", "Account")">Create wholesale account</a></p>
+                    <small style="color: var(--text-secondary);">Free range • Halaal certified • Fresh daily</small>
+                </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="validation-summary">@Html.ValidationSummary(true)</div>
+        }
+    </div>
+
+    <script>
+        document.getElementById('loginForm')?.addEventListener('submit', function () {
+            var btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> PROCESSING...';
+        });
+
+    </script>
+</body>
+</html>

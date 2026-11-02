@@ -1,0 +1,280 @@
+﻿@using ChesterMeatMatrix.Data
+@using System.Linq
+@{
+    ViewBag.Title = "Dashboard";
+    var role = Session["Role"] as string;
+    var fullName = Session["FullName"] as string;
+    var productCount = InMemoryDatabase.Products.Count;
+    var orderCount = InMemoryDatabase.Orders.Count;
+    var customerCount = InMemoryDatabase.Customers.Count;
+    var userCount = InMemoryDatabase.Users.Count;
+    var recentOrders = InMemoryDatabase.Orders.OrderByDescending(o => o.CreatedAt).Take(5).ToList();
+}
+
+<style>
+    /* Dashboard Specific Styles */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #F8FBFE 0%, #F0F4F8 100%);
+        border-radius: 20px;
+        padding: 25px 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid #E0E8F0;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+    .stat-number {
+        font-size: 42px;
+        font-weight: 800;
+        color: #0A2540;
+        line-height: 1;
+    }
+
+    .stat-label {
+        font-size: 14px;
+        color: #4A6F8F;
+        margin-top: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .stat-link {
+        margin-top: 12px;
+    }
+
+        .stat-link a {
+            color: #1A4A7A;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+            .stat-link a:hover {
+                color: #0A2540;
+                text-decoration: underline;
+            }
+
+    .quick-actions {
+        background: #F8FBFE;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border: 1px solid #E0E8F0;
+    }
+
+        .quick-actions h3 {
+            color: #0A2540;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            margin-top: 0;
+        }
+
+    .actions-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .action-btn {
+        background: white;
+        border: 2px solid #E0E8F0;
+        border-radius: 50px;
+        padding: 10px 20px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #0A2540;
+    }
+
+        .action-btn:hover {
+            border-color: #2C6E9E;
+            background: #F0F4F8;
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: #0A2540;
+        }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+        .data-table thead th {
+            background: #F0F4F8;
+            color: #0A2540;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #E0E8F0;
+        }
+
+        .data-table tbody td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #E8F0F8;
+            color: #1A3A5A;
+        }
+
+        .data-table tbody tr:hover {
+            background: #F8FBFE;
+        }
+
+    .validate-link {
+        color: #1A4A7A;
+        text-decoration: none;
+        font-weight: 700;
+    }
+
+        .validate-link:hover {
+            color: #0A2540;
+            text-decoration: underline;
+        }
+
+    .welcome {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        border-radius: 20px;
+        padding: 15px 20px;
+        margin-bottom: 25px;
+        color: white;
+    }
+
+        .welcome p {
+            margin: 0;
+            font-size: 14px;
+        }
+
+    .section-title {
+        color: #0A2540;
+        font-size: 18px;
+        margin-bottom: 15px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        border-left: 4px solid #2C6E9E;
+        padding-left: 12px;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-number {
+            font-size: 32px;
+        }
+
+        .data-table thead {
+            display: none;
+        }
+
+        .data-table tbody tr {
+            display: block;
+            margin-bottom: 15px;
+            border: 1px solid #E0E8F0;
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .data-table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: none;
+            padding: 8px 10px;
+        }
+
+            .data-table tbody td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                width: 40%;
+            }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container-fluid px-4 py-4">
+    <!-- Welcome Section -->
+    <div class="welcome">
+        <p>👋 Welcome back, <strong>@fullName</strong> | Role: <strong>@role</strong></p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-number">@productCount</div>
+            <div class="stat-label">📦 Products</div>
+            @if (string.Equals(role, "Admin", System.StringComparison.OrdinalIgnoreCase) || string.Equals(role, "Checker", System.StringComparison.OrdinalIgnoreCase))
+            {
+                <div class="stat-link">@Html.ActionLink("View Warehouse →", "Warehouse", "Dashboard")</div>
+            }
+            else
+            {
+                <div class="stat-link" style="visibility:hidden;">&nbsp;</div>
+            }
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">@orderCount</div>
+            <div class="stat-label">📋 Orders</div>
+            @if (string.Equals(role, "Admin", System.StringComparison.OrdinalIgnoreCase) || string.Equals(role, "Checker", System.StringComparison.OrdinalIgnoreCase))
+            {
+                <div class="stat-link">@Html.ActionLink("Start Picking →", "PickOrder", "Dashboard")</div>
+            }
+            else
+            {
+                <div class="stat-link" style="visibility:hidden;">&nbsp;</div>
+            }
+        </div>
+        @* Customers and Users cards removed per request *@
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+        <h3>⚡ QUICK ACTIONS</h3>
+        <div class="actions-list">
+            @if (string.Equals(role, "Admin", System.StringComparison.OrdinalIgnoreCase) || string.Equals(role, "Checker", System.StringComparison.OrdinalIgnoreCase))
+            {
+                <a href="@Url.Action("PickOrder", "Dashboard")" class="action-btn">🎯 Start Pick Order</a>
+                <a href="@Url.Action("Warehouse", "Dashboard")" class="action-btn">🏭 View Warehouse</a>
+            }
+            @if (string.Equals(role, "Admin", System.StringComparison.OrdinalIgnoreCase) || string.Equals(role, "Router", System.StringComparison.OrdinalIgnoreCase))
+            {
+                <a href="@Url.Action("RoutedDeliveries", "Router")" class="action-btn">🚚 Routed Deliveries</a>
+            }
+            @if (string.Equals(role, "Admin", System.StringComparison.OrdinalIgnoreCase))
+            {
+                <a href="@Url.Action("Index", "Admin")" class="action-btn">👥 Users</a>
+                <a href="@Url.Action("CreateUser", "Admin")" class="action-btn">➕ Create Staff Account</a>
+            }
+        </div>
+    </div>
+
+    @* Recent Orders removed per request *@
+</div>

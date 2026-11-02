@@ -1,0 +1,313 @@
+﻿﻿@{
+    ViewBag.Title = "Assign Task";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var staff = ViewBag.Staff as List<ChesterMeatMatrix.Models.User>;
+    var taskTypes = ViewBag.TaskTypes as List<SelectListItem>;
+    var priorities = ViewBag.Priorities as List<SelectListItem>;
+}
+
+<div class="container-fluid px-4 py-4" style="max-width: 900px; margin: 0 auto;">
+    @{
+        Response.Cache.SetCacheability(System.Web.HttpCacheability.NoCache);
+        Response.Cache.SetNoStore();
+    }
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold" style="color: #0A2540; display: flex; align-items: center; gap: 0.75rem;">
+                <i data-lucide="user-plus" style="color: #C1272D; width: 28px; height: 28px;"></i>
+                Assign New Task
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Create and assign a task to a staff member</p>
+        </div>
+        <a href="@Url.Action("Dashboard", "StaffManager")" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #64748B; text-decoration: none; font-size: 0.875rem; transition: color 0.2s;" onmouseover="this.style.color='#C1272D'" onmouseout="this.style.color='#64748B'">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+            Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: 100%; pointer-events: none;"></div>
+    @Html.AntiForgeryToken()
+
+    <!-- Error Alert -->
+    @if (TempData["Error"] != null)
+    {
+        <div style="background: #FEE2E2; border: none; border-left: 4px solid #DC2626; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+            <i data-lucide="alert-circle" style="color: #DC2626; width: 20px; height: 20px; flex-shrink: 0;"></i>
+            <span style="color: #991B1B; font-weight: 500;">@TempData["Error"]</span>
+        </div>
+    }
+
+    <!-- Form Card -->
+    <div style="background: white; border-radius: 16px; border: 1px solid #E8E8E8; overflow: hidden;">
+        <div style="padding: 1.5rem;">
+            <form method="post" action="@Url.Action("AssignTask")">
+                @Html.AntiForgeryToken()
+
+                <!-- Task Title -->
+                <div style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.375rem;">
+                        <i data-lucide="clipboard" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                        Task Title <span style="color: #C1272D;">*</span>
+                    </label>
+                    <input type="text" name="title" class="form-control" placeholder="e.g., Pick Order #ORD-001" required style="width: 100%; padding: 0.625rem 0.875rem; border: 2px solid #E8E8E8; border-radius: 10px; font-size: 0.875rem; transition: all 0.2s; font-family: inherit; background: white;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)'" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none'" />
+                </div>
+
+                <!-- Description -->
+                <div style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.375rem;">
+                        <i data-lucide="file-text" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                        Description
+                    </label>
+                    <textarea name="description" class="form-control" rows="3" placeholder="Describe the task details..." style="width: 100%; padding: 0.625rem 0.875rem; border: 2px solid #E8E8E8; border-radius: 10px; font-size: 0.875rem; transition: all 0.2s; font-family: inherit; background: white; resize: vertical; min-height: 80px;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)'" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none'"></textarea>
+                </div>
+
+                <!-- Grid Row: Task Type + Priority -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.25rem;">
+                    <div>
+                        <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.375rem;">
+                            <i data-lucide="tag" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                            Task Type <span style="color: #C1272D;">*</span>
+                        </label>
+                        <input type="hidden" name="taskType" id="taskTypeInput" value="@(taskTypes != null && taskTypes.Any() ? taskTypes.First().Value : "")" />
+                        <div class="mini-dropdown-wrapper" style="position: relative;">
+                            <button type="button" class="mini-dropdown-toggle" data-target="taskTypeInput" style="width: 100%; padding: 0.625rem 0.875rem; border: 2px solid #E8E8E8; border-radius: 10px; font-size: 0.875rem; background: white; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-family: inherit; transition: all 0.2s;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)'" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none'">
+                                <span class="mini-dropdown-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="package" class="mini-dropdown-icon" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                                    <span class="mini-dropdown-text">@(taskTypes != null && taskTypes.Any() ? taskTypes.First().Text : "Select type")</span>
+                                </span>
+                                <i data-lucide="chevron-down" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                            </button>
+                            <div class="mini-dropdown-panel" style="display: none;">
+                                @if (taskTypes != null)
+                                {
+                                    foreach (var type in taskTypes)
+                                    {
+                                        string icon = type.Value == "OrderPicking" ? "package" :
+                                                       type.Value == "StockReceiving" ? "package-check" :
+                                                       type.Value == "Delivery" ? "truck" :
+                                                       type.Value == "StockCount" ? "clipboard-list" :
+                                                       type.Value == "QualityCheck" ? "shield-check" : "tag";
+                                        string color = type.Value == "OrderPicking" ? "#1E40AF" :
+                                                       type.Value == "StockReceiving" ? "#0A2540" :
+                                                       type.Value == "Delivery" ? "#C1272D" :
+                                                       type.Value == "StockCount" ? "#D97706" :
+                                                       type.Value == "QualityCheck" ? "#10B981" : "#94A3B8";
+                                        <div class="mini-dropdown-option" data-value="@type.Value" data-text="@type.Text" data-icon="@icon" data-color="@color">
+                                            <i data-lucide="@icon" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                                            <span>@type.Text</span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.375rem;">
+                            <i data-lucide="flag" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                            Priority <span style="color: #C1272D;">*</span>
+                        </label>
+                        <input type="hidden" name="priority" id="priorityInput" value="@(priorities != null && priorities.Any() ? priorities.First().Value : "")" />
+                        <div class="mini-dropdown-wrapper" style="position: relative;">
+                            <button type="button" class="mini-dropdown-toggle" data-target="priorityInput" style="width: 100%; padding: 0.625rem 0.875rem; border: 2px solid #E8E8E8; border-radius: 10px; font-size: 0.875rem; background: white; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-family: inherit; transition: all 0.2s;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)'" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none'">
+                                <span class="mini-dropdown-label" style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <i data-lucide="minus" class="mini-dropdown-icon" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                                    <span class="mini-dropdown-text">@(priorities != null && priorities.Any() ? priorities.First().Text : "Select priority")</span>
+                                </span>
+                                <i data-lucide="chevron-down" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                            </button>
+                            <div class="mini-dropdown-panel" style="display: none;">
+                                @if (priorities != null)
+                                {
+                                    foreach (var p in priorities)
+                                    {
+                                        string icon = p.Value == "Low" ? "arrow-down" :
+                                                      p.Value == "Medium" ? "minus" :
+                                                      p.Value == "High" ? "arrow-up" :
+                                                      p.Value == "Urgent" ? "alert-triangle" : "flag";
+                                        string color = p.Value == "Low" ? "#10B981" :
+                                                      p.Value == "Medium" ? "#D97706" :
+                                                      p.Value == "High" ? "#C1272D" :
+                                                      p.Value == "Urgent" ? "#C1272D" : "#94A3B8";
+                                        <div class="mini-dropdown-option" data-value="@p.Value" data-text="@p.Text" data-icon="@icon" data-color="@color">
+                                            <i data-lucide="@icon" style="width: 16px; height: 16px; color: @color; flex-shrink: 0;"></i>
+                                            <span>@p.Text</span>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assign To -->
+                <div style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.375rem;">
+                        <i data-lucide="user" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                        Assign To <span style="color: #C1272D;">*</span>
+                    </label>
+                    <input type="hidden" name="staffId" id="staffIdInput" value="" />
+                    <div class="mini-dropdown-wrapper" style="position: relative;">
+                        <button type="button" class="mini-dropdown-toggle" data-target="staffIdInput" style="width: 100%; padding: 0.625rem 0.875rem; border: 2px solid #E8E8E8; border-radius: 10px; font-size: 0.875rem; background: white; cursor: pointer; display: flex; align-items: center; justify-content: space-between; font-family: inherit; transition: all 0.2s;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)'" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none'">
+                            <span class="mini-dropdown-label" style="display: flex; align-items: center; gap: 0.5rem; color: #94A3B8;">
+                                <i data-lucide="user-circle" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                                <span class="mini-dropdown-text">-- Select Staff --</span>
+                            </span>
+                            <i data-lucide="chevron-down" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                        </button>
+                        <div class="mini-dropdown-panel" style="display: none; max-height: 260px; overflow-y: auto;">
+                            <div style="padding: 0.5rem; border-bottom: 1px solid #E8E8E8; position: sticky; top: 0; background: white;">
+                                <input type="text" class="staff-search-mini" placeholder="Search staff..." style="width: 100%; padding: 0.375rem 0.75rem; border: 1px solid #E8E8E8; border-radius: 8px; font-size: 0.8rem; font-family: inherit;" />
+                            </div>
+                            @if (staff != null)
+                            {
+                                foreach (var s in staff)
+                                {
+                                    var initials = string.Join("", s.FullName.Split(' ').Select(n => n[0])).ToUpper();
+                                    <div class="mini-dropdown-option staff-option-mini" data-value="@s.Id" data-text="@s.FullName (@s.Role)" data-name="@s.FullName" style="gap: 0.625rem;">
+                                        <span style="display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; background: #0A2540; color: white; border-radius: 50%; font-size: 0.6rem; font-weight: 700; flex-shrink: 0;">@initials</span>
+                                        <div style="text-align: left;">
+                                            <div style="font-weight: 600; color: #0A2540; font-size: 0.8rem;">@s.FullName</div>
+                                            <div style="font-size: 0.65rem; color: #94A3B8;">@s.Role</div>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Due Date -->
+                <div style="margin-bottom: 1.25rem;">
+                    <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.375rem;">
+                        <i data-lucide="calendar" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                        Due Date (Optional)
+                    </label>
+                    <input type="date" name="DueDate" class="form-control" style="width: 100%; padding: 0.625rem 0.875rem; border: 2px solid #E8E8E8; border-radius: 10px; font-size: 0.875rem; transition: all 0.2s; font-family: inherit; background: white;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)'" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none'" />
+                </div>
+
+                <!-- Notes -->
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-size: 0.7rem; font-weight: 700; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.375rem;">
+                        <i data-lucide="sticky-note" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                        Notes
+                    </label>
+                    <textarea name="notes" class="form-control" rows="2" placeholder="Any additional instructions..." style="width: 100%; padding: 0.625rem 0.875rem; border: 2px solid #E8E8E8; border-radius: 10px; font-size: 0.875rem; transition: all 0.2s; font-family: inherit; background: white; resize: vertical; min-height: 60px;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)'" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none'"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div style="display: flex; gap: 1rem; padding-top: 1.25rem; border-top: 2px solid #F1F5F9;">
+                    <button type="submit" style="padding: 0.625rem 2rem; background: #C1272D; color: white; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;" onmouseover="this.style.background='#A11E23'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(193,39,45,0.25)'" onmouseout="this.style.background='#C1272D'; this.style.transform='none'; this.style.boxShadow='none'">
+                        <i data-lucide="check" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem; color: #C1272D;"></i>
+                        Assign Task
+                    </button>
+                    <a href="@Url.Action("Dashboard", "StaffManager")" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.75rem; background: #F1F5F9; color: #0A2540; border-radius: 50px; font-weight: 600; font-size: 0.875rem; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#E2E8F0'" onmouseout="this.style.background='#F1F5F9'">
+                        <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+
+    // ========================================
+    // GENERIC MINI DROPDOWN (Task Type / Priority)
+    // ========================================
+    document.querySelectorAll('.mini-dropdown-wrapper').forEach(wrapper => {
+        const toggle = wrapper.querySelector('.mini-dropdown-toggle');
+        const panel = wrapper.querySelector('.mini-dropdown-panel');
+        const hiddenInput = document.getElementById(toggle.dataset.target);
+
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const isOpen = panel.style.display === 'block';
+            document.querySelectorAll('.mini-dropdown-panel').forEach(p => p.style.display = 'none');
+            if (!isOpen) {
+                panel.style.display = 'block';
+                const search = panel.querySelector('.staff-search-mini');
+                if (search) { search.value = ''; panel.querySelectorAll('.staff-option-mini').forEach(o => o.style.display = 'flex'); setTimeout(() => search.focus({ preventScroll: true }), 100); }
+            }
+        });
+
+        panel.querySelectorAll('.mini-dropdown-option').forEach(opt => {
+            opt.addEventListener('click', function () {
+                hiddenInput.value = this.dataset.value;
+                const labelText = toggle.querySelector('.mini-dropdown-text');
+                labelText.textContent = this.dataset.text;
+                labelText.style.color = '#0A2540';
+
+                const iconEl = toggle.querySelector('.mini-dropdown-icon');
+                if (iconEl && this.dataset.icon) {
+                    iconEl.setAttribute('data-lucide', this.dataset.icon);
+                    iconEl.style.color = this.dataset.color || '#0A2540';
+                    lucide.createIcons();
+                }
+                panel.style.display = 'none';
+            });
+        });
+    });
+
+    // Staff search filter inside Assign To dropdown
+    document.querySelectorAll('.staff-search-mini').forEach(input => {
+        input.addEventListener('input', function (e) {
+            e.stopPropagation();
+            const query = this.value.toLowerCase().trim();
+            this.closest('.mini-dropdown-panel').querySelectorAll('.staff-option-mini').forEach(opt => {
+                opt.style.display = (opt.dataset.name || '').toLowerCase().includes(query) ? 'flex' : 'none';
+            });
+        });
+        input.addEventListener('click', e => e.stopPropagation());
+    });
+
+    // Close all dropdowns on outside click
+    document.addEventListener('click', function () {
+        document.querySelectorAll('.mini-dropdown-panel').forEach(p => p.style.display = 'none');
+    });
+
+    // Validate required hidden fields before submit (Assign To has no default)
+    document.querySelector('form').addEventListener('submit', function (e) {
+        const staffId = document.getElementById('staffIdInput').value;
+        if (!staffId) {
+            e.preventDefault();
+            document.getElementById('staffIdInput').closest('.mini-dropdown-wrapper').querySelector('.mini-dropdown-toggle').style.borderColor = '#DC2626';
+            alert('Please select a staff member to assign this task to.');
+        }
+    });
+</script>
+
+<style>
+    .mini-dropdown-panel {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        margin-top: 6px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.12);
+        border: 1px solid #E8E8E8;
+        z-index: 500;
+        overflow: hidden;
+    }
+
+    .mini-dropdown-option {
+        padding: 0.625rem 0.875rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+        color: #0A2540;
+        transition: background 0.15s;
+    }
+
+        .mini-dropdown-option:hover {
+            background: #F8FAFE;
+        }
+</style>

@@ -1,0 +1,442 @@
+﻿@{
+    ViewBag.Title = "Pick Order - Chester Meat Matrix";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Chester Meat Matrix - Pick Order</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 50%, #2C6E9E 100%);
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Blue Bubble Pattern Overlay */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(circle at 20% 40%, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+
+        /* Floating Bubbles */
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+            border-radius: 50%;
+            backdrop-filter: blur(3px);
+            animation: floatBubble 12s infinite ease-in-out;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @@keyframes floatBubble {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.4; }
+            25% { transform: translateY(-40px) translateX(20px) scale(1.05); opacity: 0.6; }
+            50% { transform: translateY(-70px) translateX(-15px) scale(1.1); opacity: 0.7; }
+            75% { transform: translateY(-30px) translateX(25px) scale(1.05); opacity: 0.5; }
+        }
+
+        .bubble-1 { width: 300px; height: 300px; top: -80px; left: -100px; animation-duration: 14s; }
+        .bubble-2 { width: 200px; height: 200px; bottom: -50px; right: -80px; animation-duration: 11s; animation-delay: 1s; }
+        .bubble-3 { width: 150px; height: 150px; top: 15%; right: 5%; animation-duration: 16s; animation-delay: 2s; }
+        .bubble-4 { width: 250px; height: 250px; bottom: 10%; left: -60px; animation-duration: 18s; animation-delay: 0.5s; }
+        .bubble-5 { width: 100px; height: 100px; top: 70%; right: 15%; animation-duration: 10s; animation-delay: 3s; }
+        .bubble-6 { width: 180px; height: 180px; top: 80%; left: 10%; animation-duration: 13s; animation-delay: 1.5s; }
+        .bubble-7 { width: 120px; height: 120px; top: 20%; left: 20%; animation-duration: 9s; animation-delay: 2.5s; }
+        .bubble-8 { width: 80px; height: 80px; bottom: 25%; right: 10%; animation-duration: 8s; animation-delay: 4s; }
+
+        /* Pick Order Container */
+        .pick-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Pick Card */
+        .pick-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+            padding: 45px 40px;
+            width: 100%;
+            max-width: 500px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(10, 37, 64, 0.1);
+        }
+
+        .pick-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 35px 70px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Blue Accent Border Top */
+        .pick-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20px;
+            right: 20px;
+            height: 4px;
+            background: linear-gradient(90deg, #0A2540, #2C6E9E, #0A2540);
+            border-radius: 4px 4px 0 0;
+        }
+
+        /* Logo Area */
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #0A2540, #1A4A7A);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 20px rgba(10, 37, 64, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, transparent 70%);
+            animation: shine 4s infinite;
+        }
+
+        @@keyframes shine {
+            0% { transform: translate(-30%, -30%); opacity: 0; }
+            30% { opacity: 0.6; }
+            60% { opacity: 0; }
+            100% { transform: translate(30%, 30%); opacity: 0; }
+        }
+
+        .logo span {
+            font-size: 40px;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        /* Header Text */
+        .pick-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .pick-header h2 {
+            color: #0A2540;
+            font-size: 26px;
+            margin-bottom: 8px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .pick-header p {
+            color: #4A6F8F;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0A2540;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        label i {
+            margin-right: 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #E0E8F0;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: inherit;
+            color: #0A2540;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #2C6E9E;
+            box-shadow: 0 0 0 3px rgba(44, 110, 158, 0.15);
+        }
+
+        input::placeholder {
+            color: #B0C4DE;
+        }
+
+        /* Load Button */
+        .load-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #0A2540, #1A4A7A);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .load-btn::before {
+            content: '📦';
+            position: absolute;
+            left: -30px;
+            top: 50%;
+            transform: translateY(-50%);
+            transition: left 0.3s ease;
+            font-size: 18px;
+        }
+
+        .load-btn:hover::before {
+            left: 20px;
+        }
+
+        .load-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(10, 37, 64, 0.35);
+            padding-left: 45px;
+            background: linear-gradient(135deg, #0D2F4F, #1F5A8E);
+        }
+
+        .load-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Back Link */
+        .back-link {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px solid #E8F0F8;
+        }
+
+        .back-link p {
+            color: #4A6F8F;
+            font-size: 13px;
+        }
+
+        .back-link a {
+            color: #1A4A7A;
+            text-decoration: none;
+            font-weight: 800;
+            transition: color 0.3s;
+        }
+
+        .back-link a:hover {
+            color: #0A2540;
+            text-decoration: underline;
+        }
+
+        /* Messages */
+        .alert-success {
+            background: #E6FFED;
+            border-left: 4px solid #10B981;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-top: 15px;
+            color: #0A5C2E;
+        }
+
+        .alert-error {
+            background: #FEF3F2;
+            border-left: 4px solid #DC2626;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-top: 15px;
+            color: #C41E3A;
+        }
+
+        /* Validation Summary */
+        .validation-summary {
+            background: #FEF3F2;
+            border-left: 4px solid #DC2626;
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .validation-summary ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .validation-summary li {
+            color: #DC2626;
+            font-size: 12px;
+        }
+
+        /* Chester Badge */
+        .chester-badge {
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0A2540;
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: bold;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .pick-card {
+                padding: 35px 30px;
+                max-width: 420px;
+            }
+            .logo {
+                width: 70px;
+                height: 70px;
+            }
+            .logo span {
+                font-size: 35px;
+            }
+            .pick-header h2 {
+                font-size: 24px;
+            }
+            .bubble-1, .bubble-2, .bubble-4 {
+                opacity: 0.3;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .pick-card {
+                padding: 30px 22px;
+                margin: 15px;
+            }
+            .pick-header h2 {
+                font-size: 22px;
+            }
+            .load-btn {
+                padding: 12px;
+                font-size: 14px;
+            }
+            input {
+                padding: 11px 14px;
+                font-size: 14px;
+            }
+            .bubble {
+                opacity: 0.2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Blue Floating Bubbles -->
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+    <div class="bubble bubble-3"></div>
+    <div class="bubble bubble-4"></div>
+    <div class="bubble bubble-5"></div>
+    <div class="bubble bubble-6"></div>
+    <div class="bubble bubble-7"></div>
+    <div class="bubble bubble-8"></div>
+
+    <div class="pick-container">
+        <div class="pick-card">
+            <div class="pick-header">
+                <div class="logo">
+                    <span>📋</span>
+                </div>
+                <h2>PICK ORDER</h2>
+                <p>ENTER ORDER NUMBER TO START PICKING</p>
+            </div>
+
+            @using (Html.BeginForm("PickOrder", "Dashboard", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label><i>🔢</i> Customer Order Number</label>
+                    <input type="text"
+                           name="customerOrderNumber"
+                           placeholder="Enter order number (e.g., ORD-12345)"
+                           autocomplete="off"
+                           required />
+                </div>
+
+                <button type="submit" class="load-btn">
+                    📦 LOAD ORDER
+                </button>
+            }
+
+            <div class="back-link">
+                <p>
+                    🥩 Back to
+                    @Html.ActionLink("Dashboard", "Dashboard", "Dashboard")
+                    🥩
+                </p>
+            </div>
+
+            <div class="chester-badge">
+                CHESTER MEAT MATRIX
+            </div>
+
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert-success">
+                    ✅ @TempData["Message"]
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert-error">
+                    ❌ @TempData["Error"]
+                </div>
+            }
+
+            @Html.ValidationSummary(true)
+        </div>
+    </div>
+</body>
+</html>

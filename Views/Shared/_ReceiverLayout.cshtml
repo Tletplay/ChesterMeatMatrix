@@ -1,0 +1,28 @@
+﻿﻿@{
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+@section SidebarMenu {
+    <a href="@Url.Action("Index", "Receiver")" class="@(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")">
+        <i data-lucide="package"></i>
+        Batches
+    </a>
+    <a href="@Url.Action("Create", "Receiver")">
+        <i data-lucide="plus-circle"></i>
+        Receive New Items
+    </a>
+    <a href="@Url.Action("Stock", "Receiver")">
+        <i data-lucide="bar-chart"></i>
+        Available Stock
+    </a>
+    <a href="@Url.Action("Returns", "Receiver")">
+        <i data-lucide="rotate-ccw"></i>
+        Returns
+    </a>
+    <a href="@Url.Action("ScanItem", "Receiver")">
+        <i data-lucide="qr-code"></i>
+        Scan QR Code
+    </a>
+}
+
+@RenderBody()

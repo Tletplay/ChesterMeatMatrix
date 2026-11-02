@@ -1,0 +1,287 @@
+﻿﻿@using System.Collections.Generic
+@using ChesterMeatMatrix.Models
+@model IEnumerable<ChesterMeatMatrix.Models.Product>
+@{
+    ViewBag.Title = "Products - Chester Meat Matrix";
+    var currentCategory = ViewBag.CurrentCategory as string ?? "all";
+    var currentSort = ViewBag.CurrentSort as string ?? "name_asc";
+    var currentPage = ViewBag.CurrentPage ?? 1;
+    var totalPages = ViewBag.TotalPages ?? 1;
+    var categoryCounts = ViewBag.CategoryCounts as Dictionary<string, int> ?? new Dictionary<string, int>();
+    var totalProducts = ViewBag.TotalProducts ?? 0;
+}
+
+<div class="products-page">
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Home</a> &gt;
+        <span>Products</span>
+    </div>
+
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1>PRODUCTS</h1>
+        <p>Premium quality meats, delivered fresh</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-bar">
+        <button class="action-btn filter-btn" id="openFilterBtn">FILTERS</button>
+        <button class="action-btn sort-btn" id="openSortBtn">SORT BY</button>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="products-grid">
+        @foreach (var product in Model)
+        {
+            var inStock = product.Quantity > 0;
+            <div class="product-card" data-product-id="@product.Id">
+                <div class="product-image">
+                    @if (!string.IsNullOrEmpty(product.ImageUrl))
+                    {
+                        <img src="@Url.Content(product.ImageUrl)"
+                             alt="@product.Name"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                    }
+                    <span style="@(!string.IsNullOrEmpty(product.ImageUrl) ? "display:none;" : "")">
+                        @if (product.Category == "Beef")
+                        {<text>🥩</text> }
+                    else if (product.Category == "Chicken")
+                    { <text>🐔</text> }
+                else if (product.Category == "Wors & Sausages")
+                { <text>🌭</text> }
+            else
+            { <text>🍖</text>}
+                    </span>
+                </div>
+                <div class="product-info">
+                    <div class="product-name">@product.Name</div>
+                    <div class="product-price">
+                        R @product.Price.ToString("F2")
+                        <small>/ @(product.Name.Contains("kg") ? "kg" : "unit")</small>
+                    </div>
+                    <button class="add-to-cart-btn" data-id="@product.Id" @(inStock ? "" : "disabled")>
+                        @(inStock ? "ADD TO CART" : "OUT OF STOCK")
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1)
+    {
+        <div class="pagination">
+            @if (currentPage > 1)
+            {
+                <a href="@Url.Action("Products", new { category = currentCategory, sort = currentSort, page = currentPage - 1 })">Prev</a>
+            }
+            else
+            {
+                <span class="disabled">Prev</span>
+            }
+
+            @for (int i = 1; i <= totalPages; i++)
+            {
+                if (i == currentPage)
+                {
+                    <span class="active">@i</span>
+                }
+                else
+                {
+                    <a href="@Url.Action("Products", new { category = currentCategory, sort = currentSort, page = i })">@i</a>
+                }
+            }
+
+            @if (currentPage < totalPages)
+            {
+                <a href="@Url.Action("Products", new { category = currentCategory, sort = currentSort, page = currentPage + 1 })">Next</a>
+            }
+            else
+            {
+                <span class="disabled">Next</span>
+            }
+        </div>
+    }
+</div>
+
+<!-- LEFT DRAWER - FILTERS -->
+<div id="filterOverlay" class="drawer-overlay"></div>
+<div id="filterDrawer" class="drawer drawer-left">
+    <div class="drawer-header">
+        <h3>FILTERS</h3>
+        <button class="drawer-close" id="closeFilterBtn">&times;</button>
+    </div>
+    <div class="drawer-body">
+        <div class="drawer-section">
+            <h4>Category</h4>
+            <label>
+                <input type="checkbox" class="filter-checkbox" value="all" data-category="all" @(currentCategory == "all" ? "checked" : "") />
+                All Products
+            </label>
+            <label>
+                <input type="checkbox" class="filter-checkbox" value="Beef" data-category="Beef" @(currentCategory == "Beef" ? "checked" : "") />
+                Beef <span class="filter-count">(@(categoryCounts.ContainsKey("Beef") ? categoryCounts["Beef"] : 0))</span>
+            </label>
+            <label>
+                <input type="checkbox" class="filter-checkbox" value="Chicken" data-category="Chicken" @(currentCategory == "Chicken" ? "checked" : "") />
+                Chicken <span class="filter-count">(@(categoryCounts.ContainsKey("Chicken") ? categoryCounts["Chicken"] : 0))</span>
+            </label>
+            <label>
+                <input type="checkbox" class="filter-checkbox" value="Wors & Sausages" data-category="Wors & Sausages" @(currentCategory == "Wors & Sausages" ? "checked" : "") />
+                Wors & Sausages <span class="filter-count">(@(categoryCounts.ContainsKey("Wors & Sausages") ? categoryCounts["Wors & Sausages"] : 0))</span>
+            </label>
+            <label>
+                <input type="checkbox" class="filter-checkbox" value="Lamb & Mutton" data-category="Lamb & Mutton" @(currentCategory == "Lamb & Mutton" ? "checked" : "") />
+                Lamb & Mutton <span class="filter-count">(@(categoryCounts.ContainsKey("Lamb & Mutton") ? categoryCounts["Lamb & Mutton"] : 0))</span>
+            </label>
+            <label>
+                <input type="checkbox" class="filter-checkbox" value="Offal" data-category="Offal" @(currentCategory == "Offal" ? "checked" : "") />
+                Offal <span class="filter-count">(@(categoryCounts.ContainsKey("Offal") ? categoryCounts["Offal"] : 0))</span>
+            </label>
+            <label>
+                <input type="checkbox" class="filter-checkbox" value="Deli & Other" data-category="Deli & Other" @(currentCategory == "Deli & Other" ? "checked" : "") />
+                Deli & Other <span class="filter-count">(@(categoryCounts.ContainsKey("Deli & Other") ? categoryCounts["Deli & Other"] : 0))</span>
+            </label>
+        </div>
+        <button class="apply-filters-btn" id="applyFiltersBtn">APPLY FILTERS</button>
+    </div>
+</div>
+
+<!-- RIGHT DRAWER - SORT BY -->
+<div id="sortDrawer" class="drawer drawer-right">
+    <div class="drawer-header">
+        <h3>SORT BY</h3>
+        <button class="drawer-close" id="closeSortBtn">&times;</button>
+    </div>
+    <div class="drawer-body">
+        <div class="sort-option" data-sort="name_asc">Name: A to Z</div>
+        <div class="sort-option" data-sort="name_desc">Name: Z to A</div>
+        <div class="sort-option" data-sort="price_asc">Price: Low to High</div>
+        <div class="sort-option" data-sort="price_desc">Price: High to Low</div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var currentCategory = '@currentCategory';
+        var currentSort = '@currentSort';
+
+        // Drawer Functions
+        function openFilterDrawer() {
+            $('#filterDrawer').addClass('open');
+            $('#filterOverlay').fadeIn(200);
+        }
+        function closeFilterDrawer() {
+            $('#filterDrawer').removeClass('open');
+            $('#filterOverlay').fadeOut(200);
+        }
+        function openSortDrawer() {
+            $('#sortDrawer').addClass('open');
+            $('#filterOverlay').fadeIn(200);
+        }
+        function closeSortDrawer() {
+            $('#sortDrawer').removeClass('open');
+            $('#filterOverlay').fadeOut(200);
+        }
+
+        // Open/Close Filter
+        $('#openFilterBtn').on('click', openFilterDrawer);
+        $('#closeFilterBtn').on('click', closeFilterDrawer);
+
+        // Open/Close Sort
+        $('#openSortBtn').on('click', openSortDrawer);
+        $('#closeSortBtn').on('click', closeSortDrawer);
+
+        // Close both when clicking overlay
+        $('#filterOverlay').on('click', function() {
+            closeFilterDrawer();
+            closeSortDrawer();
+        });
+
+        // Highlight selected sort option
+        $('.sort-option').each(function() {
+            if ($(this).data('sort') === currentSort) {
+                $(this).addClass('selected');
+            }
+        });
+
+        // Apply filters
+        $('#applyFiltersBtn').on('click', function() {
+            var selectedCategory = 'all';
+
+            $('.filter-checkbox:checked').each(function() {
+                var val = $(this).val();
+                if (val !== 'all') {
+                    selectedCategory = $(this).data('category');
+                }
+            });
+
+            if (selectedCategory === 'all') {
+                window.location.href = '@Url.Action("Products", "Customer")' + '?sort=' + currentSort;
+            } else {
+                window.location.href = '@Url.Action("Products", "Customer")' + '?category=' + encodeURIComponent(selectedCategory) + '&sort=' + currentSort;
+            }
+        });
+
+        // Sort option click
+        $('.sort-option').on('click', function() {
+            var newSort = $(this).data('sort');
+            window.location.href = '@Url.Action("Products", "Customer")' + '?category=' + encodeURIComponent(currentCategory) + '&sort=' + newSort;
+        });
+
+        // Handle "All Products" checkbox
+        $('.filter-checkbox[value="all"]').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('.filter-checkbox').not(this).prop('checked', false);
+            }
+        });
+
+        // Handle other checkboxes
+        $('.filter-checkbox').not('[value="all"]').on('change', function() {
+            if ($(this).is(':checked')) {
+                $('.filter-checkbox[value="all"]').prop('checked', false);
+            }
+        });
+
+        // Add to cart
+        $('.add-to-cart-btn').on('click', function() {
+            var btn = $(this);
+            var productId = btn.data('id');
+
+            if (btn.prop('disabled')) return;
+
+            btn.text('ADDING...');
+            btn.prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("AddToCart", "Customer")',
+                method: 'POST',
+                data: { productId: productId, quantity: 1 },
+                success: function (response) {
+                    if (response.success) {
+                        $('#cartCountBadge').text(response.cartCount);
+                        // Open and refresh the cart panel
+                        openCart();          // <-- ADD THIS
+                        loadCartPanel();     // <-- ADD THIS
+                        btn.text('ADDED!');
+                        setTimeout(function () {
+                            btn.text('ADD TO CART');
+                            btn.prop('disabled', false);
+                        }, 1500);
+                    } else {
+                        alert(response.message || 'Error adding to cart');
+                        btn.text('ADD TO CART');
+                        btn.prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    alert('Error adding to cart');
+                    btn.text('ADD TO CART');
+                    btn.prop('disabled', false);
+                }
+            });
+        });
+    });
+</script>

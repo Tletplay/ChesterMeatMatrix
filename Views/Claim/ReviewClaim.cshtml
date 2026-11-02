@@ -1,0 +1,172 @@
+﻿﻿@model ChesterMeatMatrix.Models.Claim
+@{
+    ViewBag.Title = "Review Claim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .review-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .review-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .info-row {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #0a4c8c;
+        width: 150px;
+        display: inline-block;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #0a4c8c;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 10px;
+    }
+
+    .btn-approve {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 40px;
+        cursor: pointer;
+    }
+
+    .btn-reject {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 40px;
+        cursor: pointer;
+    }
+
+    .claim-photo {
+        max-width: 300px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+    }
+</style>
+
+<div class="review-container">
+    <div class="review-card">
+        <div class="card-header">
+            <h4><i class="fas fa-gavel"></i> Review Claim #@Model.ClaimNumber</h4>
+        </div>
+        <div class="card-body">
+            <div class="info-row">
+                <span class="info-label">Customer:</span>
+                <span>@Model.Customer?.Name</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Order #:</span>
+                <span>@Model.Order?.OrderNumber</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Claim Date:</span>
+                <span>@Model.ClaimDate.ToString("dd MMM yyyy HH:mm")</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Claim Type:</span>
+                <span>@Model.ClaimType</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Description:</span>
+                <p style="margin-top: 0.5rem;">@Model.Description</p>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+            {
+                <div class="info-row">
+                    <span class="info-label">Photo Evidence:</span>
+                    <div>
+                        <img src="@Model.PhotoUrl" class="claim-photo" />
+                    </div>
+                </div>
+            }
+
+            @using (Html.BeginForm("ProcessClaim", "Claim", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("claimId", Model.ClaimId)
+
+                <div class="form-group">
+                    <label class="form-label">Decision *</label>
+                    <select name="decision" id="decision" class="form-select" required>
+                        <option value="">-- Select Decision --</option>
+                        <option value="Approved">Approve (Issue Credit)</option>
+                        <option value="Rejected">Reject Claim</option>
+                        <option value="Credited">Approve & Credit</option>
+                    </select>
+                </div>
+
+                <div id="creditField" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label">Credit Amount (R)</label>
+                        <input type="number" name="creditAmount" id="creditAmount" class="form-control" step="0.01" min="0" />
+                        <small>Maximum possible: R @Model.Order?.Total.ToString("N2")</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Resolution Notes</label>
+                    <textarea name="resolutionNotes" class="form-control" rows="3" required
+                              placeholder="Explain your decision..."></textarea>
+                </div>
+
+                <div class="text-end">
+                    <button type="submit" class="btn-approve">Submit Decision</button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('decision').addEventListener('change', function() {
+        var creditField = document.getElementById('creditField');
+        if (this.value === 'Approved' || this.value === 'Credited') {
+            creditField.style.display = 'block';
+        } else {
+            creditField.style.display = 'none';
+        }
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

@@ -1,0 +1,222 @@
+﻿﻿@model IEnumerable<ChesterMeatMatrix.Models.Claim>
+@{
+    ViewBag.Title = "Manage Claims";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentStatus = ViewBag.Status as string ?? "Pending";
+    var statusOptions = ViewBag.StatusOptions as string[] ?? new[] { "Pending", "Approved", "Rejected", "Credited" };
+    // Get counts from the ViewBag passed by controller
+    var pendingCount = ViewBag.PendingCount ?? 0;
+    var approvedCount = ViewBag.ApprovedCount ?? 0;
+    var rejectedCount = ViewBag.RejectedCount ?? 0;
+    var creditedCount = ViewBag.CreditedCount ?? 0;
+}
+
+<style>
+    .claims-container {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .claims-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        padding: 1rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .filter-tab {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        text-decoration: none;
+        color: #64748b;
+        font-size: 0.85rem;
+        background: #f1f5f9;
+    }
+
+        .filter-tab.active {
+            background: #0a4c8c;
+            color: white;
+        }
+
+        .filter-tab:hover {
+            background: #0a4c8c;
+            color: white;
+            text-decoration: none;
+        }
+
+    .claim-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .claim-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #0a4c8c;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .claim-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .claim-table tr:hover {
+            background: #f8fafc;
+        }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-approved {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-credited {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .btn-review, .btn-view {
+        background: #0a4c8c;
+        color: white;
+        border: none;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        text-decoration: none;
+    }
+
+        .btn-review:hover, .btn-view:hover {
+            background: #0e6cb0;
+            color: white;
+            text-decoration: none;
+        }
+</style>
+
+<div class="claims-container">
+    <div class="claims-card">
+        <div class="card-header">
+            <h4><i class="fas fa-gavel"></i> Manage Claims</h4>
+            <a href="@Url.Action("Index", "Admin")" class="btn btn-sm btn-light">Back to Dashboard</a>
+        </div>
+        <div class="filter-tabs">
+            <a href="@Url.Action("ManageClaims", new { status = "Pending" })"
+               class="filter-tab @(currentStatus == "Pending" ? "active" : "")">
+                Pending (@pendingCount)
+            </a>
+            <a href="@Url.Action("ManageClaims", new { status = "Approved" })"
+               class="filter-tab @(currentStatus == "Approved" ? "active" : "")">
+                Approved (@approvedCount)
+            </a>
+            <a href="@Url.Action("ManageClaims", new { status = "Rejected" })"
+               class="filter-tab @(currentStatus == "Rejected" ? "active" : "")">
+                Rejected (@rejectedCount)
+            </a>
+            <a href="@Url.Action("ManageClaims", new { status = "Credited" })"
+               class="filter-tab @(currentStatus == "Credited" ? "active" : "")">
+                Credited (@creditedCount)
+            </a>
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div style="text-align: center; padding: 3rem; color: #64748b;">
+                <i class="fas fa-check-circle fa-2x mb-2 d-block"></i>
+                <p>No @currentStatus.ToLower() claims found.</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="claim-table">
+                    <thead>
+                        <tr>
+                            <th>Claim #</th>
+                            <th>Customer</th>
+                            <th>Order #</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var claim in Model)
+                        {
+                            <tr>
+                                <td><strong>@claim.ClaimNumber</strong></td>
+                                <td>@claim.Customer?.Name</td>
+                                <td>@claim.Order?.OrderNumber</td>
+                                <td>@claim.ClaimType</td>
+                                <td>@claim.ClaimDate.ToString("dd MMM yyyy")</td>
+                                <td><span class="status-@claim.Status.ToLower()">@claim.Status</span></td>
+                                <td>
+                                    @if (claim.Status == "Pending")
+                                    {
+                                        <a href="@Url.Action("ReviewClaim", new { id = claim.ClaimId })" class="btn-review">Review</a>
+                                    }
+                                    else
+                                    {
+                                        <a href="@Url.Action("ClaimDetails", new { id = claim.ClaimId })" class="btn-view">View</a>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

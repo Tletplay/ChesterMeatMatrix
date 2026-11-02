@@ -1,0 +1,618 @@
+@{
+    ViewBag.Title = "Receive Items - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_ReceiverLayout.cshtml";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        /* Receive Items Page Styles */
+        .receive-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Page Header */
+        .page-header {
+            background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .page-header::before {
+                content: '??';
+                position: absolute;
+                right: 20px;
+                bottom: 20px;
+                font-size: 80px;
+                opacity: 0.1;
+                pointer-events: none;
+            }
+
+            .page-header h2 {
+                font-size: 32px;
+                font-weight: 800;
+                margin-bottom: 10px;
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+
+            .page-header p {
+                opacity: 0.9;
+                margin-top: 5px;
+            }
+
+        /* Form Card */
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .form-header {
+            background: #F8FAFE;
+            padding: 20px 25px;
+            border-bottom: 2px solid #E8F0F8;
+        }
+
+            .form-header h3 {
+                color: #0A2540;
+                font-size: 18px;
+                font-weight: 700;
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+        .form-body {
+            padding: 25px;
+        }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0A2540;
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .label-required::after {
+            content: " *";
+            color: #DC2626;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #E0E8F0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+            font-family: inherit;
+            color: #0A2540;
+        }
+
+            input:focus, select:focus, textarea:focus {
+                outline: none;
+                border-color: #2C6E9E;
+                box-shadow: 0 0 0 3px rgba(44, 110, 158, 0.1);
+            }
+
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230A2540' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+
+            input[type="number"]::-webkit-inner-spin-button,
+            input[type="number"]::-webkit-outer-spin-button {
+                opacity: 0.5;
+            }
+
+        /* Quantity Input with Buttons */
+        .quantity-input {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .quantity-input input {
+                flex: 1;
+                text-align: center;
+                font-weight: 700;
+                font-size: 18px;
+            }
+
+        .qty-btn {
+            width: 40px;
+            height: 44px;
+            background: #E8F0F8;
+            border: 2px solid #E0E8F0;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #0A2540;
+        }
+
+            .qty-btn:hover {
+                background: #0A2540;
+                color: white;
+                border-color: #0A2540;
+            }
+
+        /* Submit Button */
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #0A2540, #1A4A7A);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+            .submit-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(10, 37, 64, 0.3);
+                background: linear-gradient(135deg, #0D2F4F, #1F5A8E);
+            }
+
+            .submit-btn:active {
+                transform: translateY(0);
+            }
+
+        /* Preview Section */
+        .preview-section {
+            background: #F8FAFE;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 25px;
+            border: 1px solid #E8F0F8;
+        }
+
+        .preview-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0A2540;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+        }
+
+        .preview-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 1px solid #E0E8F0;
+        }
+
+        .preview-label {
+            font-size: 11px;
+            color: #6B7280;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .preview-value {
+            font-weight: 700;
+            color: #0A2540;
+            font-size: 14px;
+        }
+
+        /* Back Link */
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: #0A2540;
+            padding: 10px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #E0E8F0;
+        }
+
+            .back-link:hover {
+                background: #0A2540;
+                color: white;
+                transform: translateX(-5px);
+                text-decoration: none;
+            }
+
+        /* Validation */
+        .validation-summary {
+            background: #FEF3F2;
+            border-left: 4px solid #DC2626;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+            .validation-summary ul {
+                margin: 0;
+                padding-left: 20px;
+            }
+
+            .validation-summary li {
+                color: #DC2626;
+                font-size: 13px;
+            }
+
+        .field-validation-error {
+            color: #DC2626;
+            font-size: 12px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .input-error {
+            border-color: #DC2626 !important;
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .page-header h2 {
+                font-size: 24px;
+            }
+
+            .form-body {
+                padding: 20px;
+            }
+        }
+
+        /* Loading State */
+        .submit-btn.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+            .submit-btn.loading::after {
+                content: "";
+                width: 18px;
+                height: 18px;
+                border: 2px solid white;
+                border-top-color: transparent;
+                border-radius: 50%;
+                animation: spin 0.8s linear infinite;
+                margin-left: 10px;
+            }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Tooltip */
+        .tooltip-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            background: #E0E8F0;
+            border-radius: 50%;
+            font-size: 11px;
+            margin-left: 8px;
+            cursor: help;
+            color: #0A2540;
+        }
+
+        /* Success Animation */
+        @@keyframes successPulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.02);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="receive-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h2>
+                <span>??</span> Receive New Items
+            </h2>
+            <p>Add new meat products to your warehouse inventory</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            <div class="form-header">
+                <h3>
+                    <span>??</span> Product Information
+                </h3>
+            </div>
+
+            @using (Html.BeginForm("Create", "Receiver", FormMethod.Post, new { id = "receiveForm" }))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-body">
+                    <!-- Product Code -->
+                    <div class="form-group">
+                        <label class="label-required">Product Code</label>
+                        <input type="text"
+                               name="productCode"
+                               id="productCode"
+                               placeholder="e.g., 0103039"
+                               autocomplete="off"
+                               required />
+                        <small style="color: #6B7280; font-size: 11px;">Unique identifier for the product</small>
+                    </div>
+
+                    <!-- Product Name -->
+                    <div class="form-group">
+                        <label class="label-required">Description / Name</label>
+                        <input type="text"
+                               name="name"
+                               id="productName"
+                               placeholder="e.g., Leg Quarter Chicken"
+                               required />
+                    </div>
+
+                    <!-- Row: Mass & Price -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="label-required">Mass (kg)</label>
+                            <input type="text"
+                                   name="mass"
+                                   id="mass"
+                                   placeholder="e.g., 2.5 kg"
+                                   required />
+                        </div>
+                        <div class="form-group">
+                            <label class="label-required">Unit Price (ZAR)</label>
+                            <input type="number"
+                                   step="0.01"
+                                   name="price"
+                                   id="price"
+                                   placeholder="0.00"
+                                   min="0.01"
+                                   required />
+                        </div>
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="form-group">
+                        <label class="label-required">Quantity</label>
+                        <div class="quantity-input">
+                            <button type="button" class="qty-btn" onclick="changeQuantity(-1)">?</button>
+                            <input type="number"
+                                   name="quantity"
+                                   id="quantity"
+                                   min="1"
+                                   value="1"
+                                   required />
+                            <button type="button" class="qty-btn" onclick="changeQuantity(1)">+</button>
+                        </div>
+                    </div>
+
+                    <!-- Location -->
+                    <div class="form-group">
+                        <label class="label-required">Storage Location</label>
+                        <select name="location" id="location">
+                            <option value="Warehouse Floor 175" selected>?? Warehouse Floor 175 (Receiving)</option>
+                            <option value="Warehouse Floor 191">?? Warehouse Floor 191 (Distribution)</option>
+                            <option value="Picking Freezer 180">?? Picking Freezer 180</option>
+                            <option value="Mobile Freezer 170">?? Mobile Freezer 170</option>
+                            <option value="Congeller Freezer 200">?? Congeller Freezer 200</option>
+                            <option value="Other">?? Other (specify below)</option>
+                        </select>
+                        <input type="text"
+                               name="customLocation"
+                               id="customLocation"
+                               placeholder="Enter custom location"
+                               style="margin-top: 10px; display: none;" />
+                    </div>
+
+                    <!-- Preview Section -->
+                    <div class="preview-section" id="previewSection">
+                        <div class="preview-title">
+                            <span>???</span> Live Preview
+                        </div>
+                        <div class="preview-grid">
+                            <div class="preview-item">
+                                <div class="preview-label">Product Code</div>
+                                <div class="preview-value" id="previewCode">—</div>
+                            </div>
+                            <div class="preview-item">
+                                <div class="preview-label">Product Name</div>
+                                <div class="preview-value" id="previewName">—</div>
+                            </div>
+                            <div class="preview-item">
+                                <div class="preview-label">Quantity</div>
+                                <div class="preview-value" id="previewQty">1</div>
+                            </div>
+                            <div class="preview-item">
+                                <div class="preview-label">Location</div>
+                                <div class="preview-value" id="previewLocation">—</div>
+                            </div>
+                            @*<div class="preview-item">
+                                    <div class="preview-label">Total Value</div>
+                                    <div class="preview-value" id="previewTotal">—</div>
+                                </div>*@
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        ?? Receive Items
+                    </button>
+                </div>
+            }
+        </div>
+
+        <!-- Back Link -->
+        <div>
+            <a href="@Url.Action("Receiver", "Dashboard")" class="back-link">
+                ? Back to Receiver Dashboard
+            </a>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="validation-summary" style="margin-top: 20px;">
+                @Html.ValidationSummary(true)
+            </div>
+        }
+    </div>
+
+    <script>
+        // Quantity buttons
+        function changeQuantity(delta) {
+            const qtyInput = document.getElementById('quantity');
+            let newValue = parseInt(qtyInput.value) + delta;
+            if (newValue < 1) newValue = 1;
+            qtyInput.value = newValue;
+            updatePreview();
+        }
+
+        // Live preview update
+        function updatePreview() {
+            const productCode = document.getElementById('productCode')?.value || '—';
+            const productName = document.getElementById('productName')?.value || '—';
+            const quantity = document.getElementById('quantity')?.value || '0';
+            const locationSelect = document.getElementById('location');
+            let location = locationSelect?.options[locationSelect.selectedIndex]?.text || '—';
+
+            document.getElementById('previewCode').innerText = productCode || '—';
+            document.getElementById('previewName').innerText = productName || '—';
+            document.getElementById('previewQty').innerHTML = `<strong style="color: #2C6E9E;">${quantity}</strong> units`;
+            document.getElementById('previewLocation').innerText = location.replace(/[????????????]/g, '').trim();
+        }
+
+        // Event listeners for live preview
+        document.getElementById('productCode')?.addEventListener('input', updatePreview);
+        document.getElementById('productName')?.addEventListener('input', updatePreview);
+        document.getElementById('quantity')?.addEventListener('input', updatePreview);
+        document.getElementById('location')?.addEventListener('change', function() {
+            const customInput = document.getElementById('customLocation');
+            if (this.value === 'Other') {
+                customInput.style.display = 'block';
+                customInput.required = true;
+                customInput.addEventListener('input', function() {
+                    document.getElementById('previewLocation').innerText = this.value || 'Other';
+                });
+            } else {
+                customInput.style.display = 'none';
+                customInput.required = false;
+                updatePreview();
+            }
+            updatePreview();
+        });
+
+        // Initial preview
+        updatePreview();
+
+        // Form submit loading state
+        document.getElementById('receiveForm')?.addEventListener('submit', function(e) {
+            const locationSelect = document.getElementById('location');
+            const customLocation = document.getElementById('customLocation');
+
+            if (locationSelect.value === 'Other' && !customLocation.value.trim()) {
+                e.preventDefault();
+                alert('Please enter a custom location');
+                customLocation.focus();
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.classList.add('loading');
+            submitBtn.innerHTML = '? Processing...';
+        });
+
+        // Auto-generate product code suggestion (optional)
+        document.getElementById('productName')?.addEventListener('blur', function() {
+            const codeInput = document.getElementById('productCode');
+            if (!codeInput.value && this.value) {
+                // Simple suggestion: first 4 letters + random number
+                const suggestion = this.value.substring(0, 4).toUpperCase() + Math.floor(Math.random() * 1000);
+                codeInput.value = suggestion;
+                updatePreview();
+            }
+        });
+
+        // Quantity validation
+        document.getElementById('quantity')?.addEventListener('change', function() {
+            if (this.value < 1) this.value = 1;
+            updatePreview();
+        });
+
+        // Price calculation (if needed)
+        document.getElementById('price')?.addEventListener('input', function() {
+            const qty = document.getElementById('quantity')?.value || 1;
+            const price = parseFloat(this.value) || 0;
+            const total = qty * price;
+            const totalElement = document.getElementById('previewTotal');
+            if (totalElement) {
+                totalElement.innerHTML = total > 0 ? `R ${total.toFixed(2)}` : '—';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,429 @@
+﻿﻿@model ChesterMeatMatrix.Models.Order
+@{
+    ViewBag.Title = "Order Confirmation - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Order Confirmation Page Styles - Clean, No Bubbles */
+    .cm-confirmation-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    /* Cards */
+    .cm-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        border: 1px solid #E8E8E8;
+        margin-bottom: 1.5rem;
+    }
+
+    .cm-card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #E8E8E8;
+        background: #FFFFFF;
+    }
+
+    .cm-card-header h2 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #0A2540;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .cm-card-header p {
+        margin: 0.25rem 0 0;
+        font-size: 0.75rem;
+        color: #6B6B6B;
+    }
+
+    .cm-card-body {
+        padding: 1.5rem;
+    }
+
+    /* Order Info Grid */
+    .cm-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    @@media (max-width: 768px) {
+        .cm-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .cm-info-item {
+        text-align: center;
+        padding: 1rem;
+        background: #F8FAFE;
+        border-radius: 12px;
+        border: 1px solid #E8E8E8;
+    }
+
+    .cm-info-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6B6B6B;
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .cm-info-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0A2540;
+    }
+
+    /* Payment Status */
+    .cm-status-paid {
+        background: #D1FAE5;
+        color: #065F46;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    .cm-status-unpaid {
+        background: #FEF3C7;
+        color: #92400E;
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 1rem;
+    }
+
+    /* Table */
+    .cm-table-wrapper {
+        overflow-x: auto;
+        border-radius: 12px;
+        margin: 1rem 0;
+    }
+
+    .cm-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+
+    .cm-table thead tr {
+        background: #F8FAFE;
+        border-bottom: 2px solid #E8E8E8;
+    }
+
+    .cm-table th {
+        padding: 0.875rem 1rem;
+        text-align: left;
+        font-weight: 700;
+        color: #0A2540;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .cm-table td {
+        padding: 0.875rem 1rem;
+        border-bottom: 1px solid #E8E8E8;
+        color: #1E1E1E;
+    }
+
+    .cm-table tbody tr:hover {
+        background: #F8FAFE;
+    }
+
+    .cm-table .cm-text-right {
+        text-align: right;
+    }
+
+    /* Total Section */
+    .cm-total-section {
+        text-align: right;
+        padding: 1rem;
+        background: #F8FAFE;
+        border-radius: 12px;
+        margin: 1rem 0;
+    }
+
+    .cm-total-label {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #0A2540;
+    }
+
+    .cm-total-amount {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #C1272D;
+        margin-left: 1rem;
+    }
+
+    /* Button Group */
+    .cm-btn-group {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+        margin: 1rem 0;
+    }
+
+    .cm-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        text-decoration: none;
+    }
+
+    .cm-btn-primary {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        color: #FFFFFF;
+    }
+
+    .cm-btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(10, 37, 64, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+
+    .cm-btn-secondary {
+        background: #E8E8E8;
+        color: #1E1E1E;
+    }
+
+    .cm-btn-secondary:hover {
+        background: #D1D5DB;
+        transform: translateY(-2px);
+        text-decoration: none;
+        color: #1E1E1E;
+    }
+
+    .cm-btn-warning {
+        background: #F59E0B;
+        color: #FFFFFF;
+    }
+
+    .cm-btn-warning:hover {
+        background: #D97706;
+        transform: translateY(-2px);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Invoice Info */
+    .cm-invoice-info {
+        background: #F8FAFE;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-top: 1rem;
+        border-left: 4px solid #2C6E9E;
+    }
+
+    /* Alert */
+    .cm-alert {
+        background: #D1FAE5;
+        border-left: 4px solid #10B981;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 1.5rem;
+        color: #065F46;
+        font-size: 0.875rem;
+    }
+
+    /* Responsive Table */
+    @@media (max-width: 768px) {
+        .cm-table thead {
+            display: none;
+        }
+
+        .cm-table tbody tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid #E8E8E8;
+            border-radius: 12px;
+            padding: 0.75rem;
+        }
+
+        .cm-table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: none;
+            padding: 0.5rem 0;
+        }
+
+        .cm-table tbody td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            width: 40%;
+            color: #0A2540;
+        }
+
+        .cm-table .cm-text-right {
+            text-align: left;
+        }
+
+        .cm-total-section {
+            text-align: center;
+        }
+
+        .cm-btn-group {
+            flex-direction: column;
+        }
+
+        .cm-btn {
+            justify-content: center;
+        }
+    }
+</style>
+
+<div class="cm-confirmation-container">
+    <!-- Main Card -->
+    <div class="cm-card">
+        <div class="cm-card-header">
+            <h2>
+                <i class="fas fa-check-circle" style="color: #10B981;"></i>
+                Order Confirmation
+            </h2>
+            <p>Thank you for your order with Chester Meat Matrix</p>
+        </div>
+        <div class="cm-card-body">
+            @if (TempData["Message"] != null)
+            {
+                <div class="cm-alert">
+                    <i class="fas fa-info-circle"></i> @TempData["Message"]
+                </div>
+            }
+
+            <!-- Order Info Grid -->
+            <div class="cm-info-grid">
+                <div class="cm-info-item">
+                    <div class="cm-info-label">Order Number</div>
+                    <div class="cm-info-value">@Model.OrderNumber</div>
+                </div>
+                <div class="cm-info-item">
+                    <div class="cm-info-label">Order Date</div>
+                    <div class="cm-info-value">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</div>
+                </div>
+                <div class="cm-info-item">
+                    <div class="cm-info-label">Customer</div>
+                    <div class="cm-info-value">@(Model.Customer?.Name ?? "N/A")</div>
+                </div>
+            </div>
+
+            <!-- Payment Status -->
+            @if (Model.IsPaid)
+            {
+                <div class="cm-status-paid">
+                    <i class="fas fa-check-circle"></i> Paid - Order Confirmed
+                </div>
+            }
+            else
+            {
+                <div class="cm-status-unpaid">
+                    <i class="fas fa-clock"></i> Pending Payment
+                </div>
+            }
+
+            <!-- Order Items -->
+            <h4 style="color: #0A2540; margin: 1.5rem 0 1rem; font-size: 1rem; font-weight: 700;">
+                <i class="fas fa-shopping-bag"></i> Order Items
+            </h4>
+
+            <div class="cm-table-wrapper">
+                <table class="cm-table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th class="cm-text-right">Qty</th>
+                            <th class="cm-text-right">Unit Price</th>
+                            <th class="cm-text-right">Line Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var it in Model.Items)
+                        {
+                            <tr>
+                                <td data-label="Product">@(it.Product?.Name ?? "Unknown Product")</td>
+                                <td data-label="Qty" class="cm-text-right">@it.Quantity</td>
+                                <td data-label="Unit Price" class="cm-text-right">@it.UnitPrice.ToString("C")</td>
+                                <td data-label="Line Total" class="cm-text-right">@((it.UnitPrice * it.Quantity).ToString("C"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Total Section -->
+            <div class="cm-total-section">
+                <span class="cm-total-label">TOTAL AMOUNT:</span>
+                <span class="cm-total-amount">@Model.Total.ToString("C")</span>
+            </div>
+
+            <!-- Button Group -->
+            <div class="cm-btn-group">
+                @if (Model.IsPaid)
+                {
+                    <a href="@Url.Action("DownloadOrderPdf", "Customer", new { id = Model.Id })" class="cm-btn cm-btn-primary">
+                        <i class="fas fa-download"></i> Download Order PDF
+                    </a>
+                    <a href="@Url.Action("DownloadInvoicePdf", "Customer", new { id = Model.Id })" class="cm-btn cm-btn-primary">
+                        <i class="fas fa-file-invoice"></i> Download Invoice PDF
+                    </a>
+                }
+                else
+                {
+                    <span class="cm-btn cm-btn-secondary" style="opacity: 0.6; cursor: not-allowed;">
+                        <i class="fas fa-lock"></i> PDF available after payment
+                    </span>
+                }
+                <a href="@Url.Action("Index", "Customer")" class="cm-btn cm-btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Claim Section (for delivered orders) -->
+            @if (Model.Status == ChesterMeatMatrix.Models.OrderStatusEnum.Delivered)
+            {
+                <div style="margin-top: 1rem; text-align: center;">
+                    <a href="@Url.Action("FileClaim", "Claim", new { orderId = Model.Id })" class="cm-btn cm-btn-warning">
+                        <i class="fas fa-file-alt"></i> File a Claim
+                    </a>
+                    <small style="display: block; margin-top: 0.5rem; color: #6B6B6B;">Having issues with your order? File a claim here.</small>
+                </div>
+            }
+
+            <!-- Invoice Info -->
+            @if (Model.IsPaid && Model.IsInvoiced)
+            {
+                <div class="cm-invoice-info">
+                    <strong><i class="fas fa-receipt"></i> Invoice Information</strong><br />
+                    <span>Invoice Number: <strong>@Model.InvoiceNumber</strong></span><br />
+                    <span>Invoice Date: @Model.InvoiceDate?.ToString("yyyy-MM-dd HH:mm")</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

@@ -1,0 +1,218 @@
+﻿﻿@using System.Collections.Generic
+@model IEnumerable<ChesterMeatMatrix.Models.Order>
+@{
+    ViewBag.Title = "Pending Orders - Router";
+    Layout = "~/Views/Shared/_RouterLayout.cshtml";
+    var areaLookup = ViewBag.AreaLookup as Dictionary<int, string>;
+    var durbanCount = ViewBag.DurbanCount as int? ?? 0;
+    var outsideCount = ViewBag.OutsideCount as int? ?? 0;
+    var pendingWeight = ViewBag.PendingWeightKg as decimal? ?? 0;
+    var pendingPackages = ViewBag.PendingPackages as int? ?? 0;
+}
+
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .container-custom {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+        .header-bar h2 {
+            color: #0a4c8c;
+            font-weight: 700;
+            margin: 0;
+        }
+
+    .btn-back {
+        background: #64748b;
+        padding: 8px 24px;
+        border-radius: 40px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+        .btn-back:hover {
+            background: #475569;
+            color: white;
+            text-decoration: none;
+        }
+
+    .stats-row {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-pill {
+        background: white;
+        border-radius: 40px;
+        padding: 0.5rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #0a4c8c;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    .alert-warning {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        margin-bottom: 1.5rem;
+        color: #92400e;
+        font-size: 0.85rem;
+    }
+
+    .orders-table {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+        .orders-table th {
+            background: #0a4c8c;
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .orders-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .orders-table tr:hover {
+            background: #f8fafc;
+        }
+
+    .area-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .area-durban {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .area-outside {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .btn-assign {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-assign:hover {
+            transform: translateY(-1px);
+        }
+</style>
+
+<div class="container-custom">
+    <div class="header-bar">
+        <h2><i class="fas fa-list"></i> Pending Orders</h2>
+        <a href="@Url.Action("Dashboard", "Router")" class="btn-back">← Back to Dashboard</a>
+    </div>
+
+    <div class="stats-row">
+        <span class="stat-pill"><i class="fas fa-shopping-cart"></i> Total: @Model.Count() orders</span>
+        <span class="stat-pill"><i class="fas fa-chart-line"></i> Weight: @pendingWeight.ToString("N0") kg</span>
+        <span class="stat-pill"><i class="fas fa-box"></i> Packages: @pendingPackages</span>
+        <span class="stat-pill"><i class="fas fa-city"></i> Durban: @durbanCount</span>
+        <span class="stat-pill"><i class="fas fa-road"></i> Outside: @outsideCount</span>
+    </div>
+
+    <div class="alert-warning">
+        <i class="fas fa-info-circle"></i> <strong>Routing Rule:</strong> Durban-area orders must be routed separately from orders outside the Durban delivery area.
+    </div>
+
+    <form method="get" action="@Url.Action("AssignRoute", "Router")" id="routeForm">
+        <div class="orders-table">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="selectAll" /></th>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Delivery Area</th>
+                        <th>Weight</th>
+                        <th>Packages</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        var area = areaLookup != null && areaLookup.ContainsKey(order.Id) ? areaLookup[order.Id] : "Unknown";
+                        var areaClass = area.Contains("Durban") ? "area-durban" : "area-outside";
+                        <tr>
+                            <td><input type="checkbox" name="selectedIds" value="@order.Id" class="orderCheckbox" /></td>
+                            <td><strong>@order.OrderNumber</strong></td>
+                            <td>@order.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                            <td>@(order.Customer?.Name ?? "N/A")</td>
+                            <td><span class="area-badge @areaClass">@area</span></td>
+                            <td>@order.Total kg</td>
+                            <td>@(order.Items?.Count ?? 0)</td>
+                            <td>@order.TotalWeightKg.ToString("F2") kg</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 1.5rem; text-align: right;">
+            <button type="submit" class="btn-assign" id="assignBtn" style="padding: 0.75rem 2rem; font-size: 1rem;">
+                <i class="fas fa-route"></i> Create Route from Selected
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.getElementById('selectAll')?.addEventListener('change', function() {
+        var checkboxes = document.querySelectorAll('.orderCheckbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+    });
+
+    document.getElementById('assignBtn')?.addEventListener('click', function(e) {
+        var checked = document.querySelectorAll('.orderCheckbox:checked').length;
+        if (checked < 2) {
+            alert('Please select at least 2 orders to create a route.');
+            e.preventDefault();
+        }
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

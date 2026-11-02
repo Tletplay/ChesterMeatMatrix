@@ -1,0 +1,122 @@
+﻿﻿@{
+    ViewBag.Title = "Create Supplier Return";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var products = ViewBag.Products as List<ChesterMeatMatrix.Models.Product>;
+    var batches = ViewBag.Batches as List<ChesterMeatMatrix.Models.StockBatch>;
+}
+
+<style>
+    .form-container {
+        max-width: 700px;
+        margin: 2rem auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #0a4c8c;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        width: 100%;
+        cursor: pointer;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-card">
+        <h2 style="color: #0a4c8c; margin-bottom: 1.5rem;">Return Damaged Stock to Supplier</h2>
+
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label class="form-label">Product *</label>
+                <select name="productId" class="form-select" id="productSelect" required>
+                    <option value="">-- Select Product --</option>
+                    @foreach (var product in products)
+                    {
+                        <option value="@product.Id">@product.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Batch (Optional - leave empty to deduct from oldest stock)</label>
+                <select name="batchId" class="form-select" id="batchSelect">
+                    <option value="">-- All Batches --</option>
+                    @foreach (var batch in batches)
+                    {
+                        <option value="@batch.Id">@batch.BatchNumber - @batch.Quantity units (@batch.ReceivedDate.ToString("dd MMM yyyy"))</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Quantity to Return *</label>
+                <input type="number" name="quantity" class="form-control" min="1" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Return Reason *</label>
+                <select name="returnReason" class="form-select" required>
+                    <option value="">-- Select Reason --</option>
+                    <option value="Defective">Defective Product</option>
+                    <option value="Damaged">Damaged Packaging</option>
+                    <option value="Expired">Expired / Spoiled</option>
+                    <option value="WrongItem">Wrong Item Delivered</option>
+                    <option value="QualityIssue">Quality Issue</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Supplier Name</label>
+                <input type="text" name="supplierName" class="form-control" placeholder="Supplier company name" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notes</label>
+                <textarea name="notes" class="form-control" rows="3" placeholder="Additional details..."></textarea>
+            </div>
+
+            <button type="submit" class="btn-submit">Create Return Request</button>
+        }
+
+        <div class="text-center mt-3">
+            <a href="@Url.Action("Index")" class="btn btn-link">← Back to Returns</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('productSelect')?.addEventListener('change', function() {
+        var productId = this.value;
+        // Could load batch options dynamically if needed
+    });
+</script>

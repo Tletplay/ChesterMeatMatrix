@@ -1,0 +1,182 @@
+﻿﻿@model ChesterMeatMatrix.Models.EnterpriseCart
+@{
+    ViewBag.Title = "Enterprise Checkout";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var customer = ViewBag.Customer as ChesterMeatMatrix.Models.Customer;
+    var total = ViewBag.Total as decimal? ?? 0;
+}
+
+<style>
+    .checkout-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .checkout-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+
+    .card-body {
+        padding: 1.5rem;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #0a4c8c;
+        margin-bottom: 0.3rem;
+    }
+
+    .form-control, textarea {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+    }
+
+        .form-control:focus, textarea:focus {
+            outline: none;
+            border-color: #0a4c8c;
+        }
+
+    .order-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .total-row {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 2px solid #e2e8f0;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #0a4c8c;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .btn-place-order {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        width: 100%;
+        cursor: pointer;
+        margin-top: 1rem;
+    }
+
+    .btn-back {
+        background: #64748b;
+        border: none;
+        padding: 0.6rem 1.5rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        margin-top: 1rem;
+    }
+
+    .notice {
+        background: #fef3c7;
+        border-left: 4px solid #f59e0b;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.85rem;
+        color: #92400e;
+    }
+</style>
+
+<div class="checkout-container">
+    <div class="checkout-grid">
+        <!-- Left: Order Summary -->
+        <div class="checkout-card">
+            <div class="card-header">
+                <h4><i class="fas fa-clipboard-list"></i> Order Summary</h4>
+            </div>
+            <div class="card-body">
+                @if (Model?.Items != null)
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        <div class="order-item">
+                            <span>@item.ProductName x @item.Quantity</span>
+                            <span>R @((item.UnitPrice * item.Quantity).ToString("N2"))</span>
+                        </div>
+                    }
+                }
+                <div class="total-row">
+                    <span>Total</span>
+                    <span>R @total.ToString("N2")</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Delivery Information -->
+        <div class="checkout-card">
+            <div class="card-header">
+                <h4><i class="fas fa-truck"></i> Delivery Information</h4>
+            </div>
+            <div class="card-body">
+                <div class="notice">
+                    <i class="fas fa-info-circle"></i> Enterprise orders are billed monthly. Amount will be added to your account balance.
+                </div>
+
+                @using (Html.BeginForm("PlaceOrder", "EnterpriseCart", FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-group">
+                        <label class="form-label">Delivery Address *</label>
+                        <textarea name="deliveryAddress" class="form-control" rows="3" required>@customer?.Address</textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" name="phoneNumber" class="form-control" value="@customer?.ContactPhone" required />
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Special Instructions (Optional)</label>
+                        <textarea name="specialInstructions" class="form-control" rows="2" placeholder="Gate code, delivery notes, etc."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-place-order">
+                        <i class="fas fa-check-circle"></i> Place Order (Monthly Billing)
+                    </button>
+                }
+
+                <div class="text-center">
+                    <a href="@Url.Action("Index", "EnterpriseCart")" class="btn-back">← Back to Cart</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

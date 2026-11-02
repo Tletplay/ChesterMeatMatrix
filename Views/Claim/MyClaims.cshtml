@@ -1,0 +1,160 @@
+﻿﻿@model IEnumerable<ChesterMeatMatrix.Models.Claim>
+@{
+    ViewBag.Title = "My Claims";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .claims-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .claims-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .card-header {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        color: white;
+        padding: 1rem 1.5rem;
+    }
+
+    .claim-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .claim-table th {
+            background: #f8fafc;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #0a4c8c;
+        }
+
+        .claim-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-approved {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-credited {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .status-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .btn-view {
+        background: #0a4c8c;
+        color: white;
+        border: none;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        text-decoration: none;
+    }
+</style>
+
+<div class="claims-container">
+    <div class="claims-card">
+        <div class="card-header">
+            <h4><i class="fas fa-file-alt"></i> My Claims</h4>
+            <p>Track your claims and their status</p>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            @if (!Model.Any())
+            {
+                <div style="text-align: center; padding: 3rem; color: #64748b;">
+                    <i class="fas fa-clipboard-list fa-2x mb-2 d-block"></i>
+                    <p>You haven't filed any claims yet.</p>
+                    <a href="@Url.Action("Index", "Customer")" class="btn btn-primary">Go to Dashboard</a>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="claim-table">
+                        <thead>
+                            <tr>
+                                <th>Claim #</th>
+                                <th>Order #</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Credit</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var claim in Model)
+                            {
+                                <tr>
+                                    <td><strong>@claim.ClaimNumber</strong></td>
+                                    <td>@claim.Order?.OrderNumber</td>
+                                    <td>@claim.ClaimType</td>
+                                    <td>@claim.ClaimDate.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <span class="status-@claim.Status.ToLower()">@claim.Status</span>
+                                    </td>
+                                    <td>
+                                        @if (claim.CreditAmount > 0)
+                                        {
+                                            <span>R @claim.CreditAmount.ToString("N2")</span>
+                                        }
+                                        else
+                                        {
+                                            <span>-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <a href="@Url.Action("ClaimDetails", new { id = claim.ClaimId })" class="btn-view">View</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

@@ -1,0 +1,542 @@
+﻿@model ChesterMeatMatrix.Models.Order
+@{
+    ViewBag.Title = "Validate Pick - Chester Meat Matrix";
+    Layout = null;
+    var picked = Session["picked_" + Model.Id] as System.Collections.Generic.List<string> ?? new System.Collections.Generic.List<string>();
+
+    decimal ParseMass(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return 0m;
+        try
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(input, "([0-9]+(?:\\.[0-9]+)?)\\s*(kg|g)?", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+            if (!m.Success) return 0m;
+            var val = decimal.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+            var unit = m.Groups[2].Value ?? string.Empty;
+            if (unit.ToLower() == "g") { return val / 1000m; }
+            return val;
+        }
+        catch
+        {
+            return 0m;
+        }
+    }
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Chester Meat Matrix - Validate Pick</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 50%, #2C6E9E 100%);
+            position: relative;
+            overflow-x: hidden;
+            padding: 40px 20px;
+        }
+
+        /* Blue Bubble Pattern Overlay */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(circle at 20% 40%, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+
+        /* Floating Bubbles */
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+            border-radius: 50%;
+            backdrop-filter: blur(3px);
+            animation: floatBubble 12s infinite ease-in-out;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @@keyframes floatBubble {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.4; }
+            25% { transform: translateY(-40px) translateX(20px) scale(1.05); opacity: 0.6; }
+            50% { transform: translateY(-70px) translateX(-15px) scale(1.1); opacity: 0.7; }
+            75% { transform: translateY(-30px) translateX(25px) scale(1.05); opacity: 0.5; }
+        }
+
+        .bubble-1 { width: 300px; height: 300px; top: -80px; left: -100px; animation-duration: 14s; }
+        .bubble-2 { width: 200px; height: 200px; bottom: -50px; right: -80px; animation-duration: 11s; animation-delay: 1s; }
+        .bubble-3 { width: 150px; height: 150px; top: 15%; right: 5%; animation-duration: 16s; animation-delay: 2s; }
+        .bubble-4 { width: 250px; height: 250px; bottom: 10%; left: -60px; animation-duration: 18s; animation-delay: 0.5s; }
+        .bubble-5 { width: 100px; height: 100px; top: 70%; right: 15%; animation-duration: 10s; animation-delay: 3s; }
+        .bubble-6 { width: 180px; height: 180px; top: 80%; left: 10%; animation-duration: 13s; animation-delay: 1.5s; }
+        .bubble-7 { width: 120px; height: 120px; top: 20%; left: 20%; animation-duration: 9s; animation-delay: 2.5s; }
+        .bubble-8 { width: 80px; height: 80px; bottom: 25%; right: 10%; animation-duration: 8s; animation-delay: 4s; }
+
+        /* Main Container */
+        .validate-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Card Style */
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #0A2540, #1A4A7A);
+            color: white;
+            padding: 20px 25px;
+            border-bottom: none;
+        }
+
+        .card-header h2 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .card-header p {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Tables */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table thead th {
+            background: #F0F4F8;
+            color: #0A2540;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #E0E8F0;
+        }
+
+        .data-table tbody td {
+            padding: 10px;
+            border-bottom: 1px solid #E8F0F8;
+            color: #1A3A5A;
+        }
+
+        .data-table tbody tr:hover {
+            background: #F8FBFE;
+        }
+
+        /* Scan Panel */
+        .scan-panel {
+            background: #F8FBFE;
+            border: 1px solid #E0E8F0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .scan-panel label {
+            display: block;
+            margin-bottom: 8px;
+            color: #0A2540;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .scan-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #E0E8F0;
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .scan-input:focus {
+            outline: none;
+            border-color: #2C6E9E;
+            box-shadow: 0 0 0 3px rgba(44, 110, 158, 0.15);
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #0A2540, #1A4A7A);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(10, 37, 64, 0.3);
+            background: linear-gradient(135deg, #0D2F4F, #1F5A8E);
+        }
+
+        .btn-secondary {
+            background: #E8F0F8;
+            color: #0A2540;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-secondary:hover {
+            background: #D0E0F0;
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* Picked Items List */
+        .picked-list {
+            max-height: 350px;
+            overflow: auto;
+            border: 1px solid #E0E8F0;
+            border-radius: 12px;
+            background: white;
+        }
+
+        .picked-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .picked-table thead th {
+            background: #F0F4F8;
+            padding: 10px;
+            text-align: left;
+            font-weight: 700;
+            color: #0A2540;
+            position: sticky;
+            top: 0;
+        }
+
+        .picked-table tbody td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #E8F0F8;
+        }
+
+        /* Messages */
+        .alert-success {
+            background: #E6FFED;
+            border: 1px solid #B6F2C4;
+            border-radius: 12px;
+            padding: 12px 15px;
+            color: #0A5C2E;
+            margin-top: 15px;
+        }
+
+        .alert-error {
+            background: #FFF3F3;
+            border: 1px solid #F5C2C7;
+            border-radius: 12px;
+            padding: 12px 15px;
+            color: #C41E3A;
+            margin-top: 15px;
+        }
+
+        .scan-result {
+            margin-top: 12px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            background: #E8F0F8;
+            color: #0A2540;
+        }
+
+        /* Badge */
+        .chester-badge {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(10, 37, 64, 0.9);
+            color: white;
+            border-radius: 30px;
+            font-size: 10px;
+            font-weight: bold;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Responsive */
+        @@media (max-width: 1000px) {
+            .flex-layout {
+                flex-direction: column;
+            }
+            .right-panel {
+                width: 100% !important;
+            }
+        }
+
+        .flex-layout {
+            display: flex;
+            gap: 25px;
+        }
+
+        .left-panel {
+            flex: 2;
+        }
+
+        .right-panel {
+            flex: 1;
+        }
+
+        h3 {
+            color: #0A2540;
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Blue Floating Bubbles -->
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+    <div class="bubble bubble-3"></div>
+    <div class="bubble bubble-4"></div>
+    <div class="bubble bubble-5"></div>
+    <div class="bubble bubble-6"></div>
+    <div class="bubble bubble-7"></div>
+    <div class="bubble bubble-8"></div>
+
+    <div class="validate-container">
+        <div class="card">
+            <div class="card-header">
+                <h2>🔪 VALIDATE PICK - @Model.OrderNumber</h2>
+                <p>🥩 Scan items to verify order picking accuracy</p>
+                @{
+                    var route = ChesterMeatMatrix.Data.InMemoryDatabase.Routes.FirstOrDefault(rr => rr.OrderIds != null && rr.OrderIds.Contains(Model.Id));
+                    var assignedDriver = route != null && route.AssignedDriverId.HasValue ? ChesterMeatMatrix.Data.InMemoryDatabase.Users.FirstOrDefault(u => u.Id == route.AssignedDriverId.Value) : null;
+                    var assignedVehicle = route != null && route.AssignedVehicleId.HasValue ? ChesterMeatMatrix.Data.InMemoryDatabase.Vehicles.FirstOrDefault(v => v.Id == route.AssignedVehicleId.Value) : null;
+                }
+                <div style="margin-top:8px;font-size:13px;">
+                    <strong>Customer Address:</strong> @Html.Raw((Model.Customer?.Address ?? "-") .Replace("\n","<br/>"))<br/>
+                    <strong>Route:</strong> @(route != null ? route.Name : "-") &nbsp; <strong>Destination:</strong> @(route != null ? (route.OrderIds.Any() ? (ChesterMeatMatrix.Data.InMemoryDatabase.Orders.FirstOrDefault(o => o.Id == route.OrderIds.First())?.Customer?.Address ?? route.Destination) : route.Destination) : "-")<br/>
+                    <strong>Assigned:</strong> @(assignedDriver != null ? assignedDriver.FullName : "-") @((assignedVehicle!=null)?(" / "+assignedVehicle.Registration):"")
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="flex-layout">
+                    <!-- Left Panel - Order Items Table -->
+                    <div class="left-panel">
+                        <h3>📋 ORDER ITEMS</h3>
+                        <div style="overflow-x: auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Description</th>
+                                        <th>Qty Ordered</th>
+                                        <th>Qty Picked</th>
+                                        <th>Unit Mass (kg)</th>
+                                        <th>Expected Mass (kg)</th>
+                                        <th>Scanned Mass (kg)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Items)
+                                    {
+                                        var pickedCount = 0;
+                                        decimal scannedMass = 0m;
+                                        foreach (var sn in picked)
+                                        {
+                                            var prod = ChesterMeatMatrix.Data.InMemoryDatabase.Products.FirstOrDefault(p => p.SerialNumber == sn);
+                                            if (prod != null && prod.ProductCode == item.Product?.ProductCode)
+                                            {
+                                                pickedCount++;
+                                                scannedMass += ParseMass(prod.Name);
+                                            }
+                                        }
+
+                                        var unitMass = item.Product != null ? ParseMass(item.Product.Name) : 0m;
+                                        var expectedMass = unitMass * (decimal)item.Quantity;
+                                        var prodCode = item.Product != null ? item.Product.ProductCode : string.Empty;
+                                        var prodName = item.Product != null ? item.Product.Name : string.Empty;
+
+                                        <tr>
+                                            <td>@prodCode</td>
+                                            <td>@prodName</td>
+                                            <td>@item.Quantity</td>
+                                            <td>@pickedCount</td>
+                                            <td>@(unitMass > 0 ? unitMass.ToString("F2") : "-")</td>
+                                            <td>@(expectedMass > 0 ? expectedMass.ToString("F2") : "-")</td>
+                                            <td>@(scannedMass > 0 ? scannedMass.ToString("F2") : "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Right Panel - Scan Input & Picked Items -->
+                    <div class="right-panel">
+                        <h3>🔍 SCAN INPUT</h3>
+                        <div class="scan-panel">
+                            <label><i>📷</i> Enter serial or pallet code</label>
+                            <input type="text" id="scannedCode" class="scan-input" placeholder="Scan barcode here..." />
+                            <div class="btn-group">
+                                <button id="btnScan" class="btn-primary">✓ Scan</button>
+                                <button id="btnClear" type="button" class="btn-secondary">🗑 Clear</button>
+                            </div>
+                            <div id="scanResult" class="scan-result" style="display:none;"></div>
+                        </div>
+
+                        <h3>📦 PICKED ITEMS (@picked.Count)</h3>
+                        <div class="picked-list">
+                            <table class="picked-table">
+                                <thead>
+                                    <tr>
+                                        <th>Serial</th>
+                                        <th>Code</th>
+                                        <th>Name</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pickedList">
+                                    @foreach (var sn in picked)
+                                    {
+                                        var prod = ChesterMeatMatrix.Data.InMemoryDatabase.Products.FirstOrDefault(p => p.SerialNumber == sn) as ChesterMeatMatrix.Models.Product;
+                                        if (prod != null)
+                                        {
+                                            <tr>
+                                                <td>@prod.SerialNumber</td>
+                                                <td>@prod.ProductCode</td>
+                                                <td>@prod.Name</td>
+                                            </tr>
+                                        }
+                                        else
+                                        {
+                                            <tr>
+                                                <td colspan="3">@sn (not found in stock)</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <form method="post" action="@Url.Action("SetReadyToInvoice","Dashboard")">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="orderId" value="@Model.Id" />
+                            <div class="btn-group" style="margin-top: 15px;">
+                                <button type="submit" class="btn-primary">✅ Set Ready To Invoice</button>
+                                <a href="@Url.Action("Index","Dashboard")" class="btn-secondary">✖ Cancel</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                @if (TempData["Message"] != null)
+                {
+                    <div class="alert-success">🥩 @TempData["Message"]</div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert-error">⚠️ @TempData["Error"]</div>
+                }
+            </div>
+        </div>
+
+        <div class="chester-badge">
+            🥩 CHESTER MEAT MATRIX - QUALITY MEAT, DELIVERED FRESH 🥩
+        </div>
+    </div>
+
+    <script>
+        (function(){
+            var orderId = @Model.Id;
+            var scanInput = document.getElementById('scannedCode');
+            var btnScan = document.getElementById('btnScan');
+            var btnClear = document.getElementById('btnClear');
+            var scanResult = document.getElementById('scanResult');
+
+            btnScan.addEventListener('click', function(){
+                var code = scanInput.value.trim();
+                if(!code){ alert('Please enter or scan a code'); return; }
+                scanResult.style.display = 'block';
+                scanResult.innerText = '⏳ Checking...';
+                fetch('@Url.Action("ValidateScannedItem","Dashboard")', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ orderId: orderId, scannedCode: code })
+                }).then(r=>r.json()).then(j=>{
+                    if(!j.ok){
+                        scanResult.innerText = '❌ ' + (j.message || 'Item not found');
+                        return;
+                    }
+                    scanResult.innerText = '✅ Added: ' + (j.added ? j.added.join(',') : '') + ' (total picked ' + j.totalPicked + ')';
+                    setTimeout(function(){ location.reload(); }, 800);
+                }).catch(e=>{
+                    scanResult.innerText = '❌ Error processing request';
+                });
+            });
+
+            btnClear.addEventListener('click', function(){
+                scanInput.value='';
+                scanResult.style.display = 'none';
+                scanResult.innerText = '';
+                scanInput.focus();
+            });
+
+            // Enter key support
+            scanInput.addEventListener('keypress', function(e){
+                if(e.key === 'Enter'){
+                    btnScan.click();
+                }
+            });
+        })();
+    </script>
+</body>
+</html>

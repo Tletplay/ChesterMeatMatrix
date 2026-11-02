@@ -1,0 +1,263 @@
+﻿﻿@{
+    ViewBag.Title = "Checker Dashboard - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_CheckerLayout.cshtml";
+    var pendingCount = ViewBag.PendingCount as int? ?? 0;
+    var fullName = ViewBag.FullName as string ?? Session["FullName"] as string ?? "Checker";
+}
+
+<style>
+    .checker-dashboard {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .checker-welcome {
+        background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .checker-welcome::after {
+        content: "📦";
+        position: absolute;
+        bottom: 0.5rem;
+        right: 1.5rem;
+        font-size: 5rem;
+        opacity: 0.08;
+        pointer-events: none;
+    }
+
+    .checker-welcome h2 {
+        color: white;
+        margin: 0 0 0.25rem 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .checker-welcome h2 i {
+        font-size: 1.75rem;
+        color: #F59E0B;
+    }
+
+    .checker-welcome p {
+        color: rgba(255,255,255,0.85);
+        margin: 0;
+        font-size: 0.85rem;
+    }
+
+    .checker-stats {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    @@media (min-width: 768px) {
+        .checker-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .checker-stat-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        padding: 1.5rem;
+        border: 1px solid #EDF2F7;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        text-align: center;
+    }
+
+    .checker-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(10, 37, 64, 0.1);
+    }
+
+    .checker-stat-icon {
+        width: 60px;
+        height: 60px;
+        background: #FEF2F2;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem auto;
+    }
+
+    .checker-stat-icon i {
+        font-size: 1.8rem;
+        color: #C1272D;
+    }
+
+    .checker-stat-number {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #0A2540;
+        line-height: 1.2;
+        margin-bottom: 0.25rem;
+    }
+
+    .checker-stat-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .checker-stat-sub {
+        font-size: 0.7rem;
+        color: #9CA3AF;
+        margin-top: 0.5rem;
+    }
+
+    .checker-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    @@media (min-width: 768px) {
+        .checker-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .checker-action-card {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px solid #EDF2F7;
+        overflow: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .checker-action-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(10, 37, 64, 0.1);
+    }
+
+    .checker-action-header {
+        padding: 1.25rem 1.5rem;
+        background: #F8FAFE;
+        border-bottom: 1px solid #EDF2F7;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .checker-action-header i {
+        font-size: 1.5rem;
+        color: #C1272D;
+    }
+
+    .checker-action-header h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0A2540;
+    }
+
+    .checker-action-body {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .checker-action-body p {
+        margin: 0 0 1rem 0;
+        font-size: 0.85rem;
+        color: #718096;
+    }
+
+    .checker-action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #C1272D;
+        color: white;
+        padding: 0.6rem 1.25rem;
+        border-radius: 40px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .checker-action-btn:hover {
+        background: #A11E23;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(193, 39, 45, 0.25);
+        color: white;
+        text-decoration: none;
+    }
+</style>
+
+<div class="checker-dashboard">
+    <!-- Welcome Section -->
+    <div class="checker-welcome">
+        <h2>
+            <i class="fas fa-clipboard-list"></i>
+            Welcome, @fullName!
+        </h2>
+        <p>Checker Dashboard - Manage order picking and packing</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="checker-stats">
+        <div class="checker-stat-card">
+            <div class="checker-stat-icon">
+                <i class="fas fa-box"></i>
+            </div>
+            <div class="checker-stat-number">@pendingCount</div>
+            <div class="checker-stat-label">Ready to Pick</div>
+            <div class="checker-stat-sub">Orders confirmed and ready</div>
+        </div>
+
+        <div class="checker-stat-card">
+            <div class="checker-stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="checker-stat-number">-</div>
+            <div class="checker-stat-label">Picked Today</div>
+            <div class="checker-stat-sub">Orders processed</div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="checker-actions">
+        <div class="checker-action-card">
+            <div class="checker-action-header">
+                <i class="fas fa-list"></i>
+                <h3>Pending Orders</h3>
+            </div>
+            <div class="checker-action-body">
+                <p>View orders ready for picking and packing.</p>
+                <a href="@Url.Action("PendingOrders", "Checker")" class="checker-action-btn">
+                    View Orders
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="checker-action-card">
+            <div class="checker-action-header">
+                <i class="fas fa-qrcode"></i>
+                <h3>Scan QR Code</h3>
+            </div>
+            <div class="checker-action-body">
+                <p>Scan order QR code to quickly process and verify.</p>
+                <a href="@Url.Action("ScanOrder", "Checker")" class="checker-action-btn">
+                    Scan Order
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

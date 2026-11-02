@@ -1,0 +1,132 @@
+﻿@model IEnumerable<ChesterMeatMatrix.Models.Order>
+@{
+    ViewBag.Title = "EFT Pending Orders - Admin";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<style>
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .data-table th {
+            background: #F0F4F8;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 2px solid #E0E8F0;
+        }
+
+        .data-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #E0E8F0;
+        }
+
+        .data-table tr:hover {
+            background: #F8FBFE;
+        }
+
+    .btn-confirm {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #6B7280;
+    }
+
+        .empty-state span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+    .alert-success {
+        background: #D1FAE5;
+        border-left: 4px solid #10B981;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        color: #065F46;
+    }
+
+    .badge-pending {
+        background: #FEF3C7;
+        color: #D97706;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="card">
+    <div class="card-header">
+        <h3>🏦 EFT Orders Awaiting Confirmation</h3>
+        <p>Manually confirm orders after verifying bank payment</p>
+    </div>
+    <div class="card-body">
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert-success">✅ @TempData["Message"]</div>
+        }
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <span>🏦</span>
+                <p>No pending EFT orders.</p>
+                <p style="font-size: 12px;">When customers pay via EFT, orders will appear here for you to confirm.</p>
+            </div>
+        }
+        else
+        {
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td><strong>@order.OrderNumber</strong></td>
+                            <td>@order.Customer?.Name</td>
+                            <td>@order.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                            <td><strong>R @order.Total:F2</strong></td>
+                            <td><span class="badge-pending">⏳ Pending</span></td>
+                            <td>
+                                @using (Html.BeginForm("ConfirmEftPayment", "Admin", FormMethod.Post))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("orderId", order.Id)
+                                    <button type="submit" class="btn-confirm">✓ Confirm Payment</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>

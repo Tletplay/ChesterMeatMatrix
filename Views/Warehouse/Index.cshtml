@@ -1,0 +1,78 @@
+﻿﻿@{
+    ViewBag.Title = "Warehouse Dashboard - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_WarehouseLayout.cshtml";
+    var totalProducts = ViewBag.TotalProducts as int? ?? 0;
+    var totalStock = ViewBag.TotalStock as int? ?? 0;
+    var lowStockCount = ViewBag.LowStockCount as int? ?? 0;
+    var outOfStockCount = ViewBag.OutOfStockCount as int? ?? 0;
+    var fullName = Session["FullName"] as string ?? "Warehouse Staff";
+}
+
+<style>
+    .warehouse-dashboard { max-width: 1400px; margin: 0 auto; }
+    .warehouse-welcome {
+        background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .warehouse-welcome::after { content: "🏭"; position: absolute; bottom: 0.5rem; right: 1.5rem; font-size: 5rem; opacity: 0.08; pointer-events: none; }
+    .warehouse-welcome h2 { color: white; margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .warehouse-welcome h2 i { font-size: 1.75rem; color: #F59E0B; }
+    .warehouse-welcome p { color: rgba(255,255,255,0.85); margin: 0; font-size: 0.85rem; }
+    .warehouse-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @@media (min-width: 768px) { .warehouse-stats { grid-template-columns: repeat(4, 1fr); } }
+    .warehouse-stat-card { background: white; border-radius: 16px; padding: 1.25rem; text-align: center; border: 1px solid #EDF2F7; transition: all 0.2s; }
+    .warehouse-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(10,37,64,0.1); }
+    .warehouse-stat-number { font-size: 2rem; font-weight: 800; color: #0A2540; }
+    .warehouse-stat-label { font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase; }
+    .warehouse-actions { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    @@media (min-width: 768px) { .warehouse-actions { grid-template-columns: repeat(3, 1fr); } }
+    .warehouse-action-card { background: white; border-radius: 20px; border: 1px solid #EDF2F7; overflow: hidden; transition: all 0.2s; text-align: center; }
+    .warehouse-action-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(10,37,64,0.1); }
+    .warehouse-action-icon { font-size: 2rem; padding: 1.25rem 1.5rem 0; color: #C1272D; }
+    .warehouse-action-card h3 { margin: 0.5rem 0; font-size: 1rem; font-weight: 700; color: #0A2540; }
+    .warehouse-action-card p { padding: 0 1.5rem; font-size: 0.8rem; color: #718096; }
+    .warehouse-action-btn { display: inline-block; margin: 1rem 0 1.5rem; background: #C1272D; color: white; padding: 0.5rem 1.25rem; border-radius: 40px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+    .warehouse-action-btn:hover { background: #A11E23; transform: translateY(-2px); color: white; text-decoration: none; }
+</style>
+
+<div class="warehouse-dashboard">
+    <div class="warehouse-welcome">
+        <h2><i class="fas fa-boxes"></i> Welcome, @fullName!</h2>
+        <p>Warehouse Dashboard - Manage inventory and stock levels</p>
+    </div>
+
+    <div class="warehouse-stats">
+        <div class="warehouse-stat-card"><div class="warehouse-stat-number">@totalProducts</div><div class="warehouse-stat-label">Total Products</div></div>
+        <div class="warehouse-stat-card"><div class="warehouse-stat-number">@totalStock</div><div class="warehouse-stat-label">Total Units</div></div>
+        <div class="warehouse-stat-card"><div class="warehouse-stat-number">@lowStockCount</div><div class="warehouse-stat-label">Low Stock</div></div>
+        <div class="warehouse-stat-card"><div class="warehouse-stat-number">@outOfStockCount</div><div class="warehouse-stat-label">Out of Stock</div></div>
+    </div>
+
+    <div class="warehouse-actions">
+        <div class="warehouse-action-card">
+            <div class="warehouse-action-icon"><i class="fas fa-list"></i></div>
+            <h3>Stock Levels</h3>
+            <p>View current stock levels and product information.</p>
+            <a href="@Url.Action("StockLevels", "Warehouse")" class="warehouse-action-btn">View Stock →</a>
+        </div>
+        <div class="warehouse-action-card">
+            <div class="warehouse-action-icon"><i class="fas fa-history"></i></div>
+            <h3>Stock Movements</h3>
+            <p>Track all stock movements (IN/OUT).</p>
+            <a href="@Url.Action("Movements", "Warehouse")" class="warehouse-action-btn">View Movements →</a>
+        </div>
+        <div class="warehouse-action-card">
+            <div class="warehouse-action-icon"><i class="fas fa-truck"></i></div>
+            <h3>Receive Stock</h3>
+            <p>Receive new stock into warehouse.</p>
+            <a href="@Url.Action("Create", "Receiver")" class="warehouse-action-btn">Receive Stock →</a>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

@@ -1,0 +1,20 @@
+﻿﻿@{
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+@section SidebarMenu {
+    <a href="@Url.Action("Index", "Sales")" class="@(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")">
+        <i data-lucide="layout-dashboard"></i>
+        Dashboard
+    </a>
+    <a href="@Url.Action("PendingOrders", "Sales")">
+        <i data-lucide="clock"></i>
+        Pending Orders
+    </a>
+    <a href="@Url.Action("Invoices", "Sales")">
+        <i data-lucide="file-text"></i>
+        Invoices
+    </a>
+}
+
+@RenderBody()

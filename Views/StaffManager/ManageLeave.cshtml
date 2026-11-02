@@ -1,0 +1,208 @@
+﻿﻿@using ChesterMeatMatrix.Models
+@model IEnumerable<LeaveRequest>
+@{
+    ViewBag.Title = "Manage Leave";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var currentStatus = ViewBag.CurrentStatus as string;
+    var statusOptions = ViewBag.StatusOptions as string[];
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .manage-container { max-width: 1400px; margin: 0 auto; }
+    .manage-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .manage-title { font-size: 1.25rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem; margin: 0; }
+    .manage-title i { color: #C1272D; }
+    .manage-back { color: #718096; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .manage-back:hover { color: #C1272D; }
+
+    /* Filter Tabs */
+    .manage-filter { background: white; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid #EDF2F7; margin-bottom: 1.25rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .manage-filter a { padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; text-decoration: none; transition: all 0.15s; }
+    .manage-filter-active { background: #C1272D; color: white; }
+    .manage-filter-active:hover { background: #A11E23; color: white; text-decoration: none; }
+    .manage-filter-inactive { background: #F3F4F6; color: #6B7280; }
+    .manage-filter-inactive:hover { background: #E5E7EB; color: #4B5563; text-decoration: none; }
+
+    /* Stats */
+    .manage-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+    @@media (max-width: 600px) { .manage-stats { grid-template-columns: 1fr; } }
+    .manage-stat { background: white; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid #EDF2F7; }
+    .manage-stat-number { font-size: 1.5rem; font-weight: 700; }
+    .manage-stat-number-amber { color: #F59E0B; }
+    .manage-stat-number-green { color: #10B981; }
+    .manage-stat-number-red { color: #EF4444; }
+    .manage-stat-label { font-size: 0.65rem; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 0.1rem; }
+
+    /* Table */
+    .manage-table-wrap { background: white; border-radius: 12px; border: 1px solid #EDF2F7; overflow: hidden; }
+    .manage-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .manage-table th { text-align: left; padding: 0.6rem 0.75rem; background: #F9FAFB; font-weight: 600; color: #6B7280; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid #EDF2F7; }
+    .manage-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #F3F4F6; vertical-align: middle; }
+    .manage-table tr:hover td { background: #FAFBFC; }
+
+    .manage-badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 12px; font-size: 0.6rem; font-weight: 600; }
+    .manage-badge-pending { background: #FEF3C7; color: #92400E; }
+    .manage-badge-approved { background: #D1FAE5; color: #065F46; }
+    .manage-badge-rejected { background: #FEE2E2; color: #991B1B; }
+    .manage-badge-cancelled { background: #F3F4F6; color: #6B7280; }
+
+    .manage-btn { padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.6rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.15s; }
+    .manage-btn-approve { background: #10B981; color: white; }
+    .manage-btn-approve:hover { background: #059669; }
+    .manage-btn-reject { background: #EF4444; color: white; }
+    .manage-btn-reject:hover { background: #DC2626; }
+
+    .manage-empty { text-align: center; padding: 2rem; color: #9CA3AF; }
+    .manage-empty i { font-size: 1.5rem; display: block; margin-bottom: 0.5rem; color: #D1D5DB; }
+
+    @@media (max-width: 768px) {
+        .manage-table-wrap { overflow-x: auto; }
+        .manage-table { font-size: 0.75rem; }
+        .manage-table th, .manage-table td { padding: 0.4rem 0.5rem; white-space: nowrap; }
+    }
+</style>
+
+<div class="manage-container">
+    <div class="manage-header">
+        <h2 class="manage-title"><i class="fas fa-clipboard-list"></i> Leave Requests</h2>
+        <a href="@Url.Action("Dashboard", "StaffManager")" class="manage-back"><i class="fas fa-arrow-left"></i> Dashboard</a>
+    </div>
+
+    <!-- Filter -->
+    <div class="manage-filter">
+        <a href="@Url.Action("ManageLeave", new { status = "" })" class="@(string.IsNullOrEmpty(currentStatus) ? "manage-filter-active" : "manage-filter-inactive")">All</a>
+        @foreach (var s in statusOptions)
+        {
+            <a href="@Url.Action("ManageLeave", new { status = s })" class="@(currentStatus == s ? "manage-filter-active" : "manage-filter-inactive")">@s</a>
+        }
+    </div>
+
+    <!-- Stats -->
+    <div class="manage-stats">
+        <div class="manage-stat">
+            <div class="manage-stat-number manage-stat-number-amber">@ViewBag.PendingCount</div>
+            <div class="manage-stat-label">Pending</div>
+        </div>
+        <div class="manage-stat">
+            <div class="manage-stat-number manage-stat-number-green">@ViewBag.ApprovedCount</div>
+            <div class="manage-stat-label">Approved</div>
+        </div>
+        <div class="manage-stat">
+            <div class="manage-stat-number manage-stat-number-red">@ViewBag.RejectedCount</div>
+            <div class="manage-stat-label">Rejected</div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="manage-table-wrap">
+        <table class="manage-table">
+            <thead>
+                <tr>
+                    <th>Staff</th>
+                    <th>Type</th>
+                    <th>Period</th>
+                    <th>Days</th>
+                    <th>Reason</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var leave in Model.OrderByDescending(l => l.RequestDate))
+                    {
+                        string badgeClass = leave.Status == LeaveStatus.Pending ? "manage-badge-pending" :
+                                            leave.Status == LeaveStatus.Approved ? "manage-badge-approved" :
+                                            leave.Status == LeaveStatus.Rejected ? "manage-badge-rejected" :
+                                            "manage-badge-cancelled";
+
+                        <tr>
+                            <td>
+                                <strong>@(leave.Staff?.FullName ?? "Unknown")</strong>
+                                <br /><small style="color:#9CA3AF; font-size:0.6rem;">@(leave.Staff?.Role ?? "")</small>
+                            </td>
+                            <td>@leave.Type</td>
+                            <td>@leave.StartDate.ToString("dd MMM") - @leave.EndDate.ToString("dd MMM yyyy")</td>
+                            <td>@leave.TotalDays</td>
+                            <td style="max-width:150px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@leave.Reason">
+                                @(leave.Reason ?? "-")
+                            </td>
+                            <td><span class="manage-badge @badgeClass">@leave.Status</span></td>
+                            <td>
+                                @if (leave.Status == LeaveStatus.Pending)
+                                {
+                                    <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                                        <button class="manage-btn manage-btn-approve btn-approve" data-id="@leave.LeaveRequestId">Approve</button>
+                                        <button class="manage-btn manage-btn-reject btn-reject" data-id="@leave.LeaveRequestId">Reject</button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span style="font-size:0.65rem; color:#9CA3AF;">@(leave.ReviewedBy ?? "—")</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="manage-empty">
+                            <i class="fas fa-clipboard-list"></i>
+                            <p>No leave requests found.</p>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        $('.btn-approve').click(function() {
+            var id = $(this).data('id');
+            var notes = prompt('Enter manager notes (optional):');
+            if (notes === null) return;
+            if (confirm('Approve this leave request?')) {
+                processLeave(id, 'Approve', notes || '');
+            }
+        });
+
+        $('.btn-reject').click(function() {
+            var id = $(this).data('id');
+            var notes = prompt('Enter manager notes (optional):');
+            if (notes === null) return;
+            if (confirm('Reject this leave request?')) {
+                processLeave(id, 'Reject', notes || '');
+            }
+        });
+
+        function processLeave(id, decision, notes) {
+            var btn = $('.btn-approve, .btn-reject').prop('disabled', true);
+            $.ajax({
+                url: '@Url.Action("ProcessLeaveRequest", "StaffManager")',
+                type: 'POST',
+                data: {
+                    leaveRequestId: id,
+                    decision: decision,
+                    managerNotes: notes,
+                    __RequestVerificationToken: token
+                },
+                success: function(response) {
+                    if (response.success) { location.reload(); }
+                    else { alert('Error: ' + response.message); btn.prop('disabled', false); }
+                },
+                error: function() { alert('Error processing leave request'); btn.prop('disabled', false); }
+            });
+        }
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

@@ -1,0 +1,752 @@
+﻿﻿@model IEnumerable<ChesterMeatMatrix.Models.Product>
+@{
+    ViewBag.Title = "Start Order - Chester Meat Matrix";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Chester Meat Matrix - Start Order</title>
+
+    <text>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                min-height: 100vh;
+                background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 50%, #2C6E9E 100%);
+                position: relative;
+                overflow-x: hidden;
+                padding: 40px 20px;
+            }
+
+                body::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    background-image: radial-gradient(circle at 20% 40%, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+                    background-size: 30px 30px;
+                    pointer-events: none;
+                }
+
+            .bubble {
+                position: absolute;
+                background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+                border-radius: 50%;
+                backdrop-filter: blur(3px);
+                animation: floatBubble 12s infinite ease-in-out;
+                z-index: 0;
+                pointer-events: none;
+            }
+
+            @@keyframes floatBubble {
+                0%, 100% {
+                    transform: translateY(0) translateX(0) scale(1);
+                    opacity: 0.4;
+                }
+
+                25% {
+                    transform: translateY(-40px) translateX(20px) scale(1.05);
+                    opacity: 0.6;
+                }
+
+                50% {
+                    transform: translateY(-70px) translateX(-15px) scale(1.1);
+                    opacity: 0.7;
+                }
+
+                75% {
+                    transform: translateY(-30px) translateX(25px) scale(1.05);
+                    opacity: 0.5;
+                }
+            }
+
+            .bubble-1 {
+                width: 300px;
+                height: 300px;
+                top: -80px;
+                left: -100px;
+                animation-duration: 14s;
+            }
+
+            .bubble-2 {
+                width: 200px;
+                height: 200px;
+                bottom: -50px;
+                right: -80px;
+                animation-duration: 11s;
+                animation-delay: 1s;
+            }
+
+            .bubble-3 {
+                width: 150px;
+                height: 150px;
+                top: 15%;
+                right: 5%;
+                animation-duration: 16s;
+                animation-delay: 2s;
+            }
+
+            .bubble-4 {
+                width: 250px;
+                height: 250px;
+                bottom: 10%;
+                left: -60px;
+                animation-duration: 18s;
+                animation-delay: 0.5s;
+            }
+
+            .bubble-5 {
+                width: 100px;
+                height: 100px;
+                top: 70%;
+                right: 15%;
+                animation-duration: 10s;
+                animation-delay: 3s;
+            }
+
+            .bubble-6 {
+                width: 180px;
+                height: 180px;
+                top: 80%;
+                left: 10%;
+                animation-duration: 13s;
+                animation-delay: 1.5s;
+            }
+
+            .bubble-7 {
+                width: 120px;
+                height: 120px;
+                top: 20%;
+                left: 20%;
+                animation-duration: 9s;
+                animation-delay: 2.5s;
+            }
+
+            .bubble-8 {
+                width: 80px;
+                height: 80px;
+                bottom: 25%;
+                right: 10%;
+                animation-duration: 8s;
+                animation-delay: 4s;
+            }
+
+            .order-container {
+                max-width: 1400px;
+                margin: 0 auto;
+                position: relative;
+                z-index: 1;
+            }
+
+            .card {
+                background: white;
+                border-radius: 24px;
+                box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+                overflow: hidden;
+            }
+
+            .card-header {
+                background: linear-gradient(135deg, #0A2540, #1A4A7A);
+                color: white;
+                padding: 20px 25px;
+                border-bottom: none;
+            }
+
+                .card-header h2 {
+                    font-size: 24px;
+                    font-weight: 800;
+                    letter-spacing: 1px;
+                    margin: 0;
+                }
+
+                .card-header p {
+                    font-size: 13px;
+                    opacity: 0.8;
+                    margin-top: 5px;
+                }
+
+            .card-body {
+                padding: 25px;
+            }
+
+            .search-section {
+                background: #F8FBFE;
+                border-radius: 16px;
+                padding: 20px;
+                margin-bottom: 25px;
+                border: 1px solid #E0E8F0;
+            }
+
+            .search-title {
+                color: #0A2540;
+                font-weight: 700;
+                margin-bottom: 12px;
+                font-size: 14px;
+            }
+
+            .search-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 12px;
+                align-items: flex-end;
+            }
+
+            .search-field {
+                flex: 1;
+                min-width: 150px;
+
+            }
+
+                .search-field label {
+                    display: block;
+                    font-size: 11px;
+                    text-transform: uppercase;
+                    color: #4A6F8F;
+                    font-weight: 600;
+                    margin-bottom: 4px;
+                }
+
+                .search-field input {
+                    width: 100%;
+                    padding: 10px 12px;
+                    border: 2px solid #E0E8F0;
+                    border-radius: 10px;
+                    font-size: 13px;
+                    transition: all 0.2s;
+                }
+
+                    .search-field input:focus {
+                        outline: none;
+                        border-color: #2C6E9E;
+                        box-shadow: 0 0 0 3px rgba(44, 110, 158, 0.15);
+                    }
+
+            .clear-btn {
+                background: #E8F0F8;
+                border: none;
+                border-radius: 10px;
+                padding: 10px 20px;
+                font-weight: 600;
+                font-size: 13px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+                .clear-btn:hover {
+                    background: #D0E0F0;
+                }
+
+            .product-table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 14px;
+            }
+
+                .product-table thead th {
+                    background: #F0F4F8;
+                    color: #0A2540;
+                    padding: 14px 12px;
+                    text-align: left;
+                    font-weight: 700;
+                    font-size: 12px;
+                    text-transform: uppercase;
+                    letter-spacing: 0.5px;
+                    border-bottom: 2px solid #E0E8F0;
+                }
+
+                .product-table tbody td {
+                    padding: 12px;
+                    border-bottom: 1px solid #E8F0F8;
+                    color: #1A3A5A;
+                }
+
+                .product-table tbody tr:hover {
+                    background: #F8FBFE;
+                }
+
+            .qty-input {
+                width: 80px;
+                padding: 8px;
+                border: 2px solid #E0E8F0;
+                border-radius: 8px;
+                text-align: center;
+            }
+
+                .qty-input:focus {
+                    outline: none;
+                    border-color: #2C6E9E;
+                }
+
+            .add-cart-btn {
+                background: linear-gradient(135deg, #0A2540, #1A4A7A);
+                color: white;
+                border: none;
+                border-radius: 20px;
+                padding: 6px 14px;
+                font-size: 12px;
+                font-weight: 600;
+                cursor: pointer;
+                margin-left: 8px;
+                transition: all 0.2s;
+            }
+
+                .add-cart-btn:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 2px 8px rgba(10, 37, 64, 0.3);
+                }
+
+            .product-price {
+                font-weight: 700;
+                color: #2C6E9E;
+            }
+
+            .cart-section {
+                background: #F8FBFE;
+                border-radius: 16px;
+                padding: 20px;
+                margin-top: 25px;
+                border: 1px solid #E0E8F0;
+            }
+
+            .cart-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .cart-title {
+                font-size: 18px;
+                font-weight: 800;
+                color: #0A2540;
+            }
+
+            .cart-badge {
+                background: #2C6E9E;
+                color: white;
+                border-radius: 30px;
+                padding: 5px 15px;
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .cart-items {
+                max-height: 200px;
+                overflow: auto;
+                margin-bottom: 15px;
+            }
+
+            .cart-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 10px;
+                border-bottom: 1px solid #E0E8F0;
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+
+            .cart-item-info {
+                flex: 1;
+            }
+
+            .cart-item-name {
+                font-weight: 600;
+                color: #0A2540;
+            }
+
+            .cart-item-price {
+                color: #2C6E9E;
+                font-weight: 600;
+            }
+
+            .remove-item-btn {
+                background: #DC2626;
+                color: white;
+                border: none;
+                border-radius: 20px;
+                padding: 4px 12px;
+                font-size: 11px;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+                .remove-item-btn:hover {
+                    background: #B91C1C;
+                }
+
+            .cart-actions {
+                display: flex;
+                gap: 12px;
+                justify-content: flex-end;
+            }
+
+            .btn-secondary {
+                background: #E8F0F8;
+                color: #0A2540;
+                border: none;
+                border-radius: 30px;
+                padding: 10px 20px;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+                .btn-secondary:hover {
+                    background: #D0E0F0;
+                }
+
+            .btn-checkout {
+                background: linear-gradient(135deg, #0A2540, #1A4A7A);
+                color: white;
+                border: none;
+                border-radius: 30px;
+                padding: 10px 25px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+                .btn-checkout:hover:not(:disabled) {
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(10, 37, 64, 0.3);
+                }
+
+                .btn-checkout:disabled {
+                    opacity: 0.5;
+                    cursor: not-allowed;
+                }
+
+            .empty-cart {
+                text-align: center;
+                padding: 30px;
+                color: #4A6F8F;
+            }
+
+            .chester-badge {
+                text-align: center;
+                margin-top: 20px;
+                padding: 10px;
+                background: rgba(10, 37, 64, 0.9);
+                color: white;
+                border-radius: 30px;
+                font-size: 10px;
+                font-weight: bold;
+                width: fit-content;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            @@media (max-width: 768px) {
+                .product-table thead {
+                    display: none;
+                }
+
+                .product-table tbody tr {
+                    display: block;
+                    margin-bottom: 15px;
+                    border: 1px solid #E0E8F0;
+                    border-radius: 12px;
+                    padding: 10px;
+                }
+
+                .product-table tbody td {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    border: none;
+                    padding: 8px 10px;
+                }
+
+                    .product-table tbody td::before {
+                        content: attr(data-label);
+                        font-weight: 700;
+                        width: 40%;
+                    }
+
+                .search-grid {
+                    flex-direction: column;
+                }
+
+                .cart-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+            }
+        </style>
+    </text>
+</head>
+<body>
+    <!-- Blue Floating Bubbles -->
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+    <div class="bubble bubble-3"></div>
+    <div class="bubble bubble-4"></div>
+    <div class="bubble bubble-5"></div>
+    <div class="bubble bubble-6"></div>
+    <div class="bubble bubble-7"></div>
+    <div class="bubble bubble-8"></div>
+
+    <div class="order-container">
+        <div class="card">
+            <div class="card-header">
+                <h2>🛒 START NEW ORDER</h2>
+                <p>Browse our premium meat products and add to cart</p>
+            </div>
+            <div class="card-body">
+                @using (Html.BeginForm("PlaceOrder", "Customer", FormMethod.Post, new { id = "orderForm" }))
+                {
+                    @Html.AntiForgeryToken()
+
+                    <div class="search-section">
+                        <div class="search-title">🔍 Filter Products</div>
+                        <div class="search-grid">
+                            <div class="search-field">
+                                <label>Product Code</label>
+                                <input type="text" id="searchCode" placeholder="e.g., BEEF-001" />
+                            </div>
+                            <div class="search-field">
+                                <label>Product Name</label>
+                                <input type="text" id="searchName" placeholder="e.g., Beef Steak" />
+                            </div>
+                            <div class="search-field">
+                                <label>Mass / Weight</label>
+                                <input type="text" id="searchMass" placeholder="e.g., 2kg, 500g" />
+                            </div>
+                            <div>
+                                <button type="button" id="clearFilters" class="clear-btn">🗑 Clear Filters</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="overflow-x: auto;">
+                        <table class="product-table" id="productTable">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Name</th>
+                                    <th>Price</th>
+                                    <th>Available</th>
+                                    <th>Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model ?? Enumerable.Empty<ChesterMeatMatrix.Models.Product>())
+                                {
+                                    var mass = "";
+                                    if (!string.IsNullOrEmpty(p.Name) && p.Name.Contains("(") && p.Name.Contains(")"))
+                                    {
+                                        var open = p.Name.IndexOf('(');
+                                        var close = p.Name.IndexOf(')', open + 1);
+                                        if (open >= 0 && close > open) { mass = p.Name.Substring(open + 1, close - open - 1); }
+                                    }
+                                    <tr data-code="@p.ProductCode" data-name="@p.Name" data-mass="@mass" data-id="@p.Id">
+                                        <td data-label="Code"><strong>@p.ProductCode</strong></td>
+                                        <td data-label="Name" class="prod-name">@p.Name</td>
+                                        <td data-label="Price" class="product-price">R @p.Price.ToString("F2")</td>
+                                        <td data-label="Available">@p.Quantity</td>
+                                        <td data-label="Quantity">
+                                            <input type="number" class="qty-input" min="0" value="0" step="1" data-price='@p.Price.ToString("F2")' />
+                                            <button type="button" class="add-cart-btn">➕ Add</button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="cart-section">
+                        <div class="cart-header">
+                            <div class="cart-title">🛍️ Your Cart</div>
+                            <div class="cart-badge" id="cartCount">0 items</div>
+                        </div>
+                        <div class="cart-items" id="cartItems">
+                            <div class="empty-cart">Your cart is empty. Add products from above.</div>
+                        </div>
+                        <div class="cart-actions">
+                            <button type="button" id="clearCartBtn" class="btn-secondary">🗑 Clear Cart</button>
+                            <button type="submit" id="checkoutBtn" class="btn-checkout" disabled>💳 Proceed to Checkout</button>
+                        </div>
+                    </div>
+                }
+
+                @Html.ValidationSummary(true)
+            </div>
+        </div>
+
+        <div class="chester-badge">
+            🥩 CHESTER MEAT MATRIX - QUALITY MEAT, DELIVERED FRESH 🥩
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        (function(){
+            var form = document.getElementById('orderForm');
+            var table = document.getElementById('productTable');
+            var codeInput = document.getElementById('searchCode');
+            var nameInput = document.getElementById('searchName');
+            var massInput = document.getElementById('searchMass');
+            var clearBtn = document.getElementById('clearFilters');
+            var cart = [];
+            var cartItemsDiv = document.getElementById('cartItems');
+            var cartCountSpan = document.getElementById('cartCount');
+            var checkoutBtn = document.getElementById('checkoutBtn');
+            var clearCartBtn = document.getElementById('clearCartBtn');
+
+            function renderCart(){
+                if (!cartItemsDiv) return;
+                cartItemsDiv.innerHTML = '';
+                var totalCount = 0;
+                var totalAmount = 0;
+
+                if(cart.length === 0){
+                    var emptyDiv = document.createElement('div');
+                    emptyDiv.className = 'empty-cart';
+                    emptyDiv.innerHTML = '🛒 Your cart is empty. Add products from above.';
+                    cartItemsDiv.appendChild(emptyDiv);
+                } else {
+                    cart.forEach(function(item, idx){
+                        totalCount += item.qty;
+                        totalAmount += item.price * item.qty;
+                        var div = document.createElement('div');
+                        div.className = 'cart-item';
+                        div.innerHTML = `
+                            <div class="cart-item-info">
+                                <span class="cart-item-name">${escapeHtml(item.name)}</span>
+                                <span class="cart-item-price"> x${item.qty}  R${item.price.toFixed(2)}</span>
+                            </div>
+                            <div>
+                                <span style="font-weight:700;color:#0A2540;">R${(item.price * item.qty).toFixed(2)}</span>
+                                <button type="button" class="remove-item-btn" data-idx="${idx}">Remove</button>
+                            </div>
+                        `;
+                        cartItemsDiv.appendChild(div);
+                    });
+                    var totalDiv = document.createElement('div');
+                    totalDiv.className = 'cart-item';
+                    totalDiv.style.background = '#E8F0F8';
+                    totalDiv.style.fontWeight = 'bold';
+                    totalDiv.innerHTML = `
+                        <div class="cart-item-info">
+                            <span class="cart-item-name">📊 TOTAL</span>
+                        </div>
+                        <div>
+                            <span style="font-weight:800;color:#0A2540;">R${totalAmount.toFixed(2)}</span>
+                        </div>
+                    `;
+                    cartItemsDiv.appendChild(totalDiv);
+                }
+
+                cartCountSpan.innerText = totalCount + ' item' + (totalCount !== 1 ? 's' : '');
+                checkoutBtn.disabled = cart.length === 0;
+
+                document.querySelectorAll('.remove-item-btn').forEach(function(btn){
+                    btn.addEventListener('click', function(e){
+                        var idx = parseInt(btn.getAttribute('data-idx'));
+                        cart.splice(idx,1);
+                        renderCart();
+                    });
+                });
+            }
+
+            function escapeHtml(str) {
+                if(!str) return '';
+                return str.replace(/[&<>]/g, function(m) {
+                    if(m === '&') return '&amp;';
+                    if(m === '<') return '&lt;';
+                    if(m === '>') return '&gt;';
+                    return m;
+                });
+            }
+
+            function applyFilters(){
+                var codeQ = (codeInput.value || '').trim().toLowerCase();
+                var nameQ = (nameInput.value || '').trim().toLowerCase();
+                var massQ = (massInput.value || '').trim().toLowerCase();
+                var rows = table.querySelectorAll('tbody tr');
+                rows.forEach(function(r){
+                    var code = (r.getAttribute('data-code') || '').toLowerCase();
+                    var name = (r.getAttribute('data-name') || '').toLowerCase();
+                    var mass = (r.getAttribute('data-mass') || '').toLowerCase();
+                    var ok = true;
+                    if (codeQ && code.indexOf(codeQ) === -1) ok = false;
+                    if (nameQ && name.indexOf(nameQ) === -1) ok = false;
+                    if (massQ && mass.indexOf(massQ) === -1) ok = false;
+                    r.style.display = ok ? '' : 'none';
+                });
+            }
+
+            codeInput?.addEventListener('input', applyFilters);
+            nameInput?.addEventListener('input', applyFilters);
+            massInput?.addEventListener('input', applyFilters);
+            clearBtn?.addEventListener('click', function(){ codeInput.value=''; nameInput.value=''; massInput.value=''; applyFilters(); });
+
+            Array.from(document.querySelectorAll('.add-cart-btn')).forEach(function(btn){
+                btn.addEventListener('click', function(){
+                    var tr = this.closest('tr');
+                    var id = tr.getAttribute('data-id');
+                    var name = tr.getAttribute('data-name');
+                    var price = parseFloat(tr.querySelector('.qty-input').getAttribute('data-price')) || 0;
+                    var qty = parseInt(tr.querySelector('.qty-input').value) || 0;
+                    if (qty <= 0){ alert('Please enter a quantity to add to cart'); return; }
+                    var existing = cart.find(function(c){ return c.id == id; });
+                    if (existing){ existing.qty += qty; }
+                    else { cart.push({ id: id, name: name, qty: qty, price: price }); }
+                    tr.querySelector('.qty-input').value = 0;
+                    renderCart();
+                });
+            });
+
+            clearCartBtn?.addEventListener('click', function(){ cart = []; renderCart(); });
+
+            if (!form) return;
+            form.addEventListener('submit', function(evt){
+                evt.preventDefault();
+                if (!cart.length){ alert('Your cart is empty. Add items before checkout.'); return; }
+
+                Array.from(document.querySelectorAll('input[name="productId"]')).forEach(function(n){ n.remove(); });
+                Array.from(document.querySelectorAll('input[name="quantity"]')).forEach(function(n){ n.remove(); });
+
+                var total = 0;
+                var lines = [];
+                cart.forEach(function(item){
+                    var pid = document.createElement('input');
+                    pid.type = 'hidden';
+                    pid.name = 'productId';
+                    pid.value = item.id;
+                    form.appendChild(pid);
+
+                    var qn = document.createElement('input');
+                    qn.type = 'hidden';
+                    qn.name = 'quantity';
+                    qn.value = item.qty;
+                    form.appendChild(qn);
+
+                    var lineTotal = item.price * item.qty;
+                    total += lineTotal;
+                    lines.push(item.name + ' x' + item.qty + ' R ' + item.price.toFixed(2) + ' = R' + lineTotal.toFixed(2));
+                });
+
+                var msg = 'Please confirm your order:\n\n' + lines.join('\n') + '\n\nTotal: R' + total.toFixed(2) + '\n\nProceed to payment?';
+                if (confirm(msg)) { form.submit(); }
+            });
+
+            renderCart();
+            applyFilters();
+        })();
+    </script>
+</body>
+</html>

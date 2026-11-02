@@ -1,0 +1,439 @@
+﻿﻿@using ChesterMeatMatrix.Models
+@model IEnumerable<WorkTask>
+@{
+    ViewBag.Title = "My Tasks";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+<div class="container-fluid px-4 py-4" style="max-width: 1400px; margin: 0 auto;">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold" style="color: #0A2540; display: flex; align-items: center; gap: 0.75rem;">
+                <i data-lucide="clipboard-list" style="color: #C1272D; width: 28px; height: 28px;"></i>
+                My Tasks
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">View and manage your assigned tasks</p>
+        </div>
+        <a href="@Url.Action("Index", "Dashboard")" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #64748B; text-decoration: none; font-size: 0.875rem; transition: color 0.2s;" onmouseover="this.style.color='#C1272D'" onmouseout="this.style.color='#64748B'">
+            <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+            Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: 100%; pointer-events: none;"></div>
+    @Html.AntiForgeryToken()
+
+    <!-- Stats -->
+    @{
+        var total = Model?.Count() ?? 0;
+        var pending = Model?.Count(t => t.Status == WorkTaskStatus.Pending || t.Status == WorkTaskStatus.Assigned) ?? 0;
+        var inProgress = Model?.Count(t => t.Status == WorkTaskStatus.InProgress) ?? 0;
+        var completed = Model?.Count(t => t.Status == WorkTaskStatus.Completed) ?? 0;
+    }
+
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+        <div style="background: white; padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid #E8E8E8; border-left: 3px solid #0A2540;">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #0A2540;">@total</div>
+            <div style="font-size: 0.65rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total Tasks</div>
+        </div>
+        <div style="background: white; padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid #E8E8E8; border-left: 3px solid #F59E0B;">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #F59E0B;">@pending</div>
+            <div style="font-size: 0.65rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Pending</div>
+        </div>
+        <div style="background: white; padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid #E8E8E8; border-left: 3px solid #3B82F6;">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #3B82F6;">@inProgress</div>
+            <div style="font-size: 0.65rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">In Progress</div>
+        </div>
+        <div style="background: white; padding: 1rem 1.25rem; border-radius: 12px; border: 1px solid #E8E8E8; border-left: 3px solid #10B981;">
+            <div style="font-size: 1.5rem; font-weight: 800; color: #10B981;">@completed</div>
+            <div style="font-size: 0.65rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Completed</div>
+        </div>
+    </div>
+
+    <!-- Task Table -->
+    <div style="background: white; border-radius: 16px; border: 1px solid #E8E8E8; overflow: hidden;">
+        <div style="padding: 1rem 1.25rem; background: #F8FAFE; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 style="margin: 0; font-size: 0.875rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="clipboard" style="width: 18px; height: 18px; color: #C1272D;"></i>
+                My Task List
+            </h3>
+            <span style="font-size: 0.75rem; color: #94A3B8;">@Model.Count() tasks</span>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                    <tr style="background: #FAFBFC; border-bottom: 2px solid #E8E8E8;">
+                        <th style="padding: 0.75rem 1rem; text-align: left; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Task</th>
+                        <th style="padding: 0.75rem 1rem; text-align: left; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Type</th>
+                        <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Priority</th>
+                        <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Progress</th>
+                        <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Due Date</th>
+                        <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var task in Model)
+                        {
+                            // Status badge
+                            string statusBg;
+                            string statusColor;
+
+                            if (task.Status == WorkTaskStatus.Pending)
+                            {
+                                statusBg = "#FEF3C7";
+                                statusColor = "#92400E";
+                            }
+                            else if (task.Status == WorkTaskStatus.Assigned)
+                            {
+                                statusBg = "#DBEAFE";
+                                statusColor = "#1E40AF";
+                            }
+                            else if (task.Status == WorkTaskStatus.InProgress)
+                            {
+                                statusBg = "#FEF3C7";
+                                statusColor = "#92400E";
+                            }
+                            else
+                            {
+                                statusBg = "#D1FAE5";
+                                statusColor = "#065F46";
+                            }
+
+                            // Priority chip
+                            string priorityBg;
+                            string priorityColor;
+
+                            if (task.Priority == WorkTaskPriority.High || task.Priority == WorkTaskPriority.Urgent)
+                            {
+                                priorityBg = "#FEE2E2";
+                                priorityColor = "#DC2626";
+                            }
+                            else if (task.Priority == WorkTaskPriority.Medium)
+                            {
+                                priorityBg = "#FEF3C7";
+                                priorityColor = "#D97706";
+                            }
+                            else
+                            {
+                                priorityBg = "#D1FAE5";
+                                priorityColor = "#065F46";
+                            }
+
+                            // Progress calculation
+                            int progress = 0;
+                            if (task.Status == WorkTaskStatus.Completed)
+                            {
+                                progress = 100;
+                            }
+                            else if (task.Status == WorkTaskStatus.InProgress)
+                            {
+                                progress = 66;
+                            }
+                            else if (task.Status == WorkTaskStatus.Assigned)
+                            {
+                                progress = 33;
+                            }
+                            else
+                            {
+                                progress = 0;
+                            }
+
+                            bool isOverdue = task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today
+                                             && task.Status != WorkTaskStatus.Completed && task.Status != WorkTaskStatus.Cancelled;
+
+                            <tr style="border-bottom: 1px solid #E8E8E8; transition: background 0.15s ease;" onmouseover="this.style.background='#F8FAFE'" onmouseout="this.style.background='transparent'">
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle;">
+                                    <div style="font-weight: 600; color: #0A2540;">@task.Title</div>
+                                    @if (!string.IsNullOrEmpty(task.Description))
+                                    {
+                                        <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.125rem;">@task.Description</div>
+                                    }
+                                </td>
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle; color: #1E1E1E;">@task.Type</td>
+                                <td style="padding: 0.75rem 1rem; text-align: center; vertical-align: middle;">
+                                    <span style="display: inline-flex; padding: 0.125rem 0.625rem; border-radius: 50px; font-size: 0.65rem; font-weight: 700; background: @priorityBg; color: @priorityColor; text-transform: uppercase;">
+                                        @task.Priority
+                                    </span>
+                                </td>
+                                <td style="padding: 0.75rem 1rem; text-align: center; vertical-align: middle;">
+                                    @{
+                                        string barColor = task.Status == WorkTaskStatus.Completed ? "#10B981" :
+                                                           task.Status == WorkTaskStatus.InProgress ? "#3B82F6" :
+                                                           task.Status == WorkTaskStatus.Assigned ? "#F59E0B" :
+                                                           "#CBD5E1";
+                                    }
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
+                                        <div style="width: 80px; height: 6px; background: #E8E8E8; border-radius: 50px; overflow: hidden;">
+                                            <div style="height: 100%; width: @progress%; background: @barColor; border-radius: 50px; transition: width 0.5s ease, background-color 0.5s ease;"></div>
+                                        </div>
+                                        <span style="font-size: 0.65rem; font-weight: 600; color: #94A3B8; min-width: 28px; text-align: left;">@progress%</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 0.75rem 1rem; text-align: center; vertical-align: middle;">
+                                    <div style="font-size: 0.8rem; color: #1E1E1E;">@(task.DueDate?.ToString("dd MMM yyyy") ?? "-")</div>
+                                    @if (isOverdue)
+                                    {
+                                        <div style="font-size: 0.6rem; color: #DC2626; font-weight: 700;">⚠ OVERDUE</div>
+                                    }
+                                </td>
+                                <td style="padding: 0.75rem 1rem; text-align: center; vertical-align: middle;">
+                                    @if (task.Status != WorkTaskStatus.Completed && task.Status != WorkTaskStatus.Cancelled)
+                                    {
+                                        <div class="task-status-wrapper" style="position: relative; display: inline-block;">
+                                            <button type="button" class="task-status-toggle" style="padding: 0.25rem 0.75rem; border-radius: 8px; border: 1px solid #D1D5DB; font-size: 0.7rem; background: white; cursor: pointer; display: inline-flex; align-items: center; gap: 0.375rem; font-family: inherit; transition: all 0.2s;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)'" onblur="this.style.borderColor='#D1D5DB'; this.style.boxShadow='none'">
+                                                <i data-lucide="edit-3" style="width: 12px; height: 12px; color: #64748B;"></i>
+                                                Update
+                                                <i data-lucide="chevron-down" style="width: 12px; height: 12px; color: #94A3B8;"></i>
+                                            </button>
+                                            <div class="task-status-panel" style="display: none; position: fixed; background: white; border-radius: 10px; box-shadow: 0 10px 40px rgba(0,0,0,0.12); border: 1px solid #E8E8E8; min-width: 180px; z-index: 1000; overflow: hidden;">
+                                                <div class="task-status-option" data-taskid="@task.WorkTaskId" data-status="InProgress" data-label="In Progress" style="padding: 0.625rem 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #0A2540; transition: background 0.15s;">
+                                                    <i data-lucide="loader-2" style="width: 14px; height: 14px; color: #3B82F6;"></i>
+                                                    Mark In Progress
+                                                </div>
+                                                <div class="task-status-option" data-taskid="@task.WorkTaskId" data-status="Completed" data-label="Completed" style="padding: 0.625rem 0.875rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; color: #0A2540; transition: background 0.15s;">
+                                                    <i data-lucide="check-circle" style="width: 14px; height: 14px; color: #10B981;"></i>
+                                                    Mark Complete
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #10B981; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.375rem;">
+                                            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
+                                            Done
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" style="padding: 2.5rem 1.25rem; text-align: center; color: #94A3B8;">
+                                <i data-lucide="check-circle" style="width: 32px; height: 32px; display: block; margin: 0 auto 0.5rem; color: #CBD5E1;"></i>
+                                <p style="margin: 0; font-size: 1rem; color: #64748B;">You have no tasks assigned</p>
+                                <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #94A3B8;">Tasks assigned to you will appear here</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+</div>
+<!-- Status Update Confirmation Modal -->
+<div id="statusConfirmModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div style="background: white; border-radius: 16px; padding: 1.75rem; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: modalIn 0.2s ease;">
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #DBEAFE; border-radius: 50%; flex-shrink: 0;">
+                <i data-lucide="refresh-cw" style="width: 20px; height: 20px; color: #1E40AF;"></i>
+            </div>
+            <div>
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0A2540;">Update task status?</h4>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #64748B;">Set status to <strong id="statusConfirmLabel" style="color: #0A2540;"></strong></p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <button onclick="closeStatusModal()" style="padding: 0.5rem 1.5rem; background: #F1F5F9; color: #0A2540; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem; cursor: pointer;">Cancel</button>
+            <button id="statusConfirmBtn" style="padding: 0.5rem 1.5rem; background: #C1272D; color: white; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem; cursor: pointer;">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    lucide.createIcons();
+
+    // ========================================
+    // TOAST SYSTEM (matches Schedule.cshtml exactly)
+    // ========================================
+    function showToast(message, type = 'success', title = '', duration = 6000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        const icons = { success: 'check-circle', error: 'alert-circle', warning: 'alert-triangle', info: 'info' };
+        const colors = {
+            success: { accent: '#10B981', badgeBg: '#ECFDF5', text: '#065F46' },
+            error: { accent: '#C1272D', badgeBg: '#FEF2F2', text: '#991B1B' },
+            warning: { accent: '#D97706', badgeBg: '#FFFBEB', text: '#92400E' },
+            info: { accent: '#1A4A7A', badgeBg: '#EFF6FF', text: '#1E40AF' }
+        };
+        const c = colors[type] || colors.success;
+        const finalDuration = duration;
+
+        toast.style.cssText = `background:#FFFFFF;border:1px solid #E8E8E8;border-left:4px solid ${c.accent};border-radius:10px;padding:0.9rem 1rem;display:flex;align-items:flex-start;gap:0.75rem;animation:toastIn 0.3s ease;box-shadow:0 8px 24px rgba(10,37,64,0.12);pointer-events:auto;max-width:380px;width:100%;`;
+        toast.innerHTML = `
+            <span style="display:flex; align-items:center; justify-content:center; width: 32px; height: 32px; border-radius: 50%; background: ${c.badgeBg}; flex-shrink: 0;">
+                <i data-lucide="${icons[type] || 'check-circle'}" style="color: ${c.accent}; width: 18px; height: 18px;"></i>
+            </span>
+            <div style="flex: 1; min-width: 0;">
+                ${title ? `<div style="font-weight: 700; color: #0A2540; font-size: 0.875rem;">${title}</div>` : ''}
+                <div style="color: ${c.text}; font-size: 0.8rem; line-height: 1.4; ${title ? 'margin-top: 0.15rem;' : ''}">${message}</div>
+                <div style="margin-top: 0.5rem; height: 3px; background: #F1F5F9; border-radius: 4px; width: 100%; overflow: hidden;">
+                    <div class="toast-progress-bar" style="height: 100%; background: ${c.accent}; border-radius: 4px; width: 100%;"></div>
+                </div>
+            </div>
+            <button onclick="this.closest('[data-toast]').remove()" style="background: none; border: none; color: #94A3B8; cursor: pointer; opacity: 0.7; padding: 0; font-size: 1.2rem; line-height: 1; flex-shrink: 0;">
+                <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+            </button>`;
+        toast.setAttribute('data-toast', '');
+        container.appendChild(toast);
+        lucide.createIcons();
+
+        const progressBar = toast.querySelector('.toast-progress-bar');
+        let startTime = Date.now(), elapsed = 0, remaining = finalDuration, animationFrame = null, isPaused = false;
+
+        function animateProgress() {
+            if (isPaused) return;
+            const now = Date.now();
+            elapsed += now - startTime;
+            startTime = now;
+            const progress = Math.min(1, elapsed / remaining);
+            progressBar.style.width = ((1 - progress) * 100) + '%';
+            if (progress < 1) { animationFrame = requestAnimationFrame(animateProgress); }
+            else { dismissToast(); }
+        }
+        function dismissToast() {
+            if (animationFrame) cancelAnimationFrame(animationFrame);
+            toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            setTimeout(() => toast.remove(), 300);
+        }
+        animationFrame = requestAnimationFrame(animateProgress);
+        toast.addEventListener('mouseenter', () => { isPaused = true; if (animationFrame) cancelAnimationFrame(animationFrame); });
+        toast.addEventListener('mouseleave', () => {
+            isPaused = false; startTime = Date.now(); remaining = remaining - elapsed; elapsed = 0;
+            if (remaining <= 0) dismissToast(); else animationFrame = requestAnimationFrame(animateProgress);
+        });
+    }
+
+    // ========================================
+    // STATUS UPDATE (branded modal, no browser confirm/alert)
+    // ========================================
+    let pendingStatusUpdate = null;
+
+    function closeStatusModal() {
+        document.getElementById('statusConfirmModal').style.display = 'none';
+        pendingStatusUpdate = null;
+    }
+
+    document.querySelectorAll('.task-status-toggle').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const panel = this.nextElementSibling;
+            const isOpen = panel.style.display === 'block';
+            document.querySelectorAll('.task-status-panel').forEach(p => p.style.display = 'none');
+            if (!isOpen) {
+                const rect = this.getBoundingClientRect();
+                panel.style.left = Math.min(rect.left, window.innerWidth - 200) + 'px';
+                panel.style.top = (rect.bottom + 6) + 'px';
+                panel.style.display = 'block';
+            }
+        });
+    });
+
+    document.addEventListener('click', function() {
+        document.querySelectorAll('.task-status-panel').forEach(p => p.style.display = 'none');
+    });
+
+    document.querySelectorAll('.task-status-option').forEach(opt => {
+        opt.addEventListener('mouseover', function() { this.style.background = '#F8FAFE'; });
+        opt.addEventListener('mouseout', function() { this.style.background = 'transparent'; });
+        opt.addEventListener('click', function() {
+            pendingStatusUpdate = { taskId: this.dataset.taskid, status: this.dataset.status };
+            document.getElementById('statusConfirmLabel').textContent = this.dataset.label;
+            document.getElementById('statusConfirmModal').style.display = 'flex';
+            document.querySelectorAll('.task-status-panel').forEach(p => p.style.display = 'none');
+            lucide.createIcons();
+        });
+    });
+
+    document.getElementById('statusConfirmBtn').addEventListener('click', function() {
+        if (!pendingStatusUpdate) return;
+        const { taskId, status } = pendingStatusUpdate;
+        closeStatusModal();
+
+        const token = $('input[name="__RequestVerificationToken"]').val();
+        $.ajax({
+            url: '@Url.Action("UpdateTaskStatus", "StaffManager")',
+            type: 'POST',
+            data: { taskId: taskId, status: status, __RequestVerificationToken: token },
+            success: function(response) {
+                if (response.success) {
+                    showToast('Task status updated successfully', 'success', 'Updated');
+                    setTimeout(() => location.reload(), 6400);
+                } else {
+                    showToast(response.message, 'error', 'Update Failed');
+                }
+            },
+            error: function() {
+                showToast('Error updating task status', 'error', 'Update Failed');
+            }
+        });
+    });
+
+    document.getElementById('statusConfirmModal').addEventListener('click', function(e) {
+        if (e.target === this) closeStatusModal();
+    });
+</script>
+
+<style>
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.4;
+            transform: scale(0.8);
+        }
+    }
+
+    @@keyframes toastIn {
+        from {
+            opacity: 0;
+            transform: translateX(20px) scale(0.96);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
+    @@keyframes modalIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+</style>
+
+<style>
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.4;
+            transform: scale(0.8);
+        }
+    }
+</style>

@@ -1,0 +1,95 @@
+﻿﻿@{
+    ViewBag.Title = "Request Leave";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+    var leaveTypes = ViewBag.LeaveTypes as List<SelectListItem>;
+}
+
+@section SidebarMenu {
+    <!-- Empty sidebar for staff views -->
+}
+
+<style>
+    .request-container { max-width: 700px; margin: 0 auto; }
+    .request-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .request-title { font-size: 1.25rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem; margin: 0; }
+    .request-title i { color: #C1272D; }
+    .request-back { color: #718096; font-size: 0.8rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; }
+    .request-back:hover { color: #C1272D; }
+
+    .request-alert { padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1rem; border-left: 3px solid #EF4444; background: #FEE2E2; color: #991B1B; display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+
+    .request-card { background: white; border-radius: 12px; padding: 1.5rem; border: 1px solid #EDF2F7; }
+    .request-sub { color: #9CA3AF; font-size: 0.85rem; margin-bottom: 1.25rem; }
+
+    .request-form-group { margin-bottom: 1.25rem; }
+    .request-form-label { display: block; font-size: 0.7rem; font-weight: 600; color: #4A5568; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 0.3rem; }
+    .request-form-control { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 0.85rem; transition: border 0.15s; background: white; font-family: inherit; }
+    .request-form-control:focus { outline: none; border-color: #C1272D; box-shadow: 0 0 0 2px rgba(193,39,45,0.08); }
+    .request-form-select { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #E2E8F0; border-radius: 8px; font-size: 0.85rem; background: white; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236B7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 10px; }
+    .request-form-select:focus { outline: none; border-color: #C1272D; }
+    .request-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @@media (max-width: 500px) { .request-form-row { grid-template-columns: 1fr; } }
+
+    .request-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap; }
+    .request-btn-submit { padding: 0.5rem 1.5rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; border: none; cursor: pointer; transition: all 0.15s; background: #C1272D; color: white; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .request-btn-submit:hover { background: #A11E23; }
+    .request-btn-cancel { padding: 0.5rem 1.5rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; border: none; cursor: pointer; transition: all 0.15s; background: #F3F4F6; color: #6B7280; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .request-btn-cancel:hover { background: #E5E7EB; color: #4B5563; text-decoration: none; }
+</style>
+
+<div class="request-container">
+    <div class="request-header">
+        <h2 class="request-title"><i class="fas fa-pen"></i> Request Leave</h2>
+        <a href="@Url.Action("MyLeave")" class="request-back"><i class="fas fa-arrow-left"></i> Back</a>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="request-alert"><i class="fas fa-exclamation-circle"></i> @TempData["Error"]</div>
+    }
+
+    <div class="request-card">
+        <p class="request-sub">Submit a leave request for approval</p>
+
+        <form method="post" action="@Url.Action("RequestLeave")">
+            @Html.AntiForgeryToken()
+
+            <div class="request-form-group">
+                <label class="request-form-label">Leave Type *</label>
+                <select name="leaveType" class="request-form-select" required>
+                    <option value="">— Select Leave Type —</option>
+                    @if (leaveTypes != null)
+                    {
+                        foreach (var type in leaveTypes)
+                        {
+                            <option value="@type.Value">@type.Text</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div class="request-form-row">
+                <div class="request-form-group">
+                    <label class="request-form-label">Start Date *</label>
+                    <input type="date" name="startDate" class="request-form-control" required />
+                </div>
+                <div class="request-form-group">
+                    <label class="request-form-label">End Date *</label>
+                    <input type="date" name="endDate" class="request-form-control" required />
+                </div>
+            </div>
+
+            <div class="request-form-group">
+                <label class="request-form-label">Reason</label>
+                <textarea name="reason" class="request-form-control" rows="2" placeholder="Why do you need leave?"></textarea>
+            </div>
+
+            <div class="request-actions">
+                <button type="submit" class="request-btn-submit"><i class="fas fa-paper-plane"></i> Submit Request</button>
+                <a href="@Url.Action("MyLeave")" class="request-btn-cancel"><i class="fas fa-times"></i> Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

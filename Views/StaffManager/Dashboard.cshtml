@@ -1,0 +1,136 @@
+﻿﻿@using ChesterMeatMatrix.Models
+@model IEnumerable<WorkTask>
+@{
+    ViewBag.Title = "Staff Manager Dashboard";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var pending = ViewBag.PendingTasks as int? ?? 0;
+    var assigned = ViewBag.AssignedTasks as int? ?? 0;
+    var inProgress = ViewBag.InProgressTasks as int? ?? 0;
+    var completed = ViewBag.CompletedTasks as int? ?? 0;
+    var totalStaff = ViewBag.TotalStaff as int? ?? 0;
+    var presentToday = ViewBag.PresentToday as int? ?? 0;
+}
+
+<style>
+    .sm-dashboard { max-width: 1400px; margin: 0 auto; }
+    .sm-welcome {
+        background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .sm-welcome::after { content: "👥"; position: absolute; bottom: 0.5rem; right: 1.5rem; font-size: 5rem; opacity: 0.08; pointer-events: none; }
+    .sm-welcome h2 { color: white; margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .sm-welcome h2 i { font-size: 1.75rem; color: #F59E0B; }
+    .sm-welcome p { color: rgba(255,255,255,0.85); margin: 0; font-size: 0.85rem; }
+    .sm-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @@media (min-width: 768px) { .sm-stats { grid-template-columns: repeat(3, 1fr); } }
+    @@media (min-width: 1024px) { .sm-stats { grid-template-columns: repeat(6, 1fr); } }
+    .sm-stat-card { background: white; border-radius: 16px; padding: 1rem; text-align: center; border: 1px solid #EDF2F7; transition: all 0.2s; }
+    .sm-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(10,37,64,0.1); }
+    .sm-stat-number { font-size: 1.8rem; font-weight: 800; color: #0A2540; }
+    .sm-stat-label { font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase; }
+    .sm-actions { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .sm-action-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: #C1272D; color: white; padding: 0.6rem 1.25rem; border-radius: 40px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+    .sm-action-btn:hover { background: #A11E23; transform: translateY(-2px); color: white; text-decoration: none; }
+    .sm-section { background: white; border-radius: 20px; border: 1px solid #EDF2F7; overflow: hidden; }
+    .sm-section-header { padding: 1rem 1.5rem; border-bottom: 1px solid #EDF2F7; background: #F8FAFE; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .sm-section-header h3 { margin: 0; font-size: 1rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem; }
+    .sm-table { width: 100%; border-collapse: collapse; }
+    .sm-table th, .sm-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #EDF2F7; font-size: 0.85rem; }
+    .sm-table th { background: #F8FAFE; font-weight: 600; color: #0A2540; }
+    .sm-table tr:hover { background: #F8FAFE; }
+    .status-pending { background: #FEF3C7; color: #92400E; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+    .status-assigned { background: #DBEAFE; color: #1E40AF; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+    .status-inprogress { background: #FEF3C7; color: #92400E; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+    .status-completed { background: #D1FAE5; color: #065F46; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+</style>
+
+<div class="sm-dashboard">
+    <div class="sm-welcome">
+        <h2><i class="fas fa-users"></i> Staff Manager Dashboard</h2>
+        <p>Manage staff, tasks, and performance</p>
+    </div>
+
+    <div class="sm-stats">
+        <div class="sm-stat-card">
+            <div class="sm-stat-number">@totalStaff</div>
+            <div class="sm-stat-label">Total Staff</div>
+        </div>
+        <div class="sm-stat-card">
+            <div class="sm-stat-number">@presentToday</div>
+            <div class="sm-stat-label">Present Today</div>
+        </div>
+        <div class="sm-stat-card">
+            <div class="sm-stat-number">@pending</div>
+            <div class="sm-stat-label">Pending Tasks</div>
+        </div>
+        <div class="sm-stat-card">
+            <div class="sm-stat-number">@assigned</div>
+            <div class="sm-stat-label">Assigned Tasks</div>
+        </div>
+        <div class="sm-stat-card">
+            <div class="sm-stat-number">@inProgress</div>
+            <div class="sm-stat-label">In Progress</div>
+        </div>
+        <div class="sm-stat-card">
+            <div class="sm-stat-number">@completed</div>
+            <div class="sm-stat-label">Completed</div>
+        </div>
+    </div>
+
+    <div class="sm-actions">
+        <a href="@Url.Action("AssignTask", "StaffManager")" class="sm-action-btn"><i class="fas fa-plus"></i> Assign New Task</a>
+        <a href="@Url.Action("Tasks", "StaffManager")" class="sm-action-btn"><i class="fas fa-list"></i> View All Tasks</a>
+        <a href="@Url.Action("Schedule", "StaffManager")" class="sm-action-btn"><i class="fas fa-calendar"></i> Schedule</a>
+        <a href="@Url.Action("Attendance", "StaffManager")" class="sm-action-btn"><i class="fas fa-clock"></i> Attendance</a>
+    </div>
+
+    <div class="sm-section">
+        <div class="sm-section-header">
+            <h3><i class="fas fa-list"></i> Recent Tasks</h3>
+            <a href="@Url.Action("Tasks", "StaffManager")" style="color: #C1272D; font-size: 0.8rem;">View All →</a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="sm-table">
+                <thead>
+                    <tr>
+                        <th>Task</th>
+                        <th>Type</th>
+                        <th>Assigned To</th>
+                        <th>Status</th>
+                        <th>Due Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var task in Model.Take(10))
+                        {
+                            string statusClass = task.Status == WorkTaskStatus.Pending ? "status-pending" :
+                                                task.Status == WorkTaskStatus.Assigned ? "status-assigned" :
+                                                task.Status == WorkTaskStatus.InProgress ? "status-inprogress" :
+                                                "status-completed";
+                            <tr>
+                                <td><strong>@task.Title</strong></td>
+                                <td>@task.Type</td>
+                                <td>@(task.AssignedTo?.FullName ?? "Unassigned")</td>
+                                <td><span class="@statusClass">@task.Status</span></td>
+                                <td>@(task.DueDate?.ToString("dd MMM yyyy") ?? "-")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" style="text-align: center; padding: 2rem; color: #64748B;">No tasks found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

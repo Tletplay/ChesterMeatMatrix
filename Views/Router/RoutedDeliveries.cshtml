@@ -1,0 +1,417 @@
+﻿@using ChesterMeatMatrix.Data
+@model IEnumerable<ChesterMeatMatrix.Models.Route>
+@{
+    ViewBag.Title = "Routed Deliveries - Chester Meat Matrix";
+    var role = Session["Role"] as string;
+    Layout = "~/Views/Shared/_RouterLayout.cshtml";
+
+    var routes = Model ?? new System.Collections.Generic.List<ChesterMeatMatrix.Models.Route>();
+    var routeCount = routes.Count();
+    var totalItems = routes.Sum(r => r.ItemsCount);
+    var totalMass = routes.Sum(r => r.TotalMassKg);
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Chester Meat Matrix - Routed Deliveries</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 50%, #2C6E9E 100%);
+            position: relative;
+            overflow-x: hidden;
+            padding: 40px 20px;
+        }
+
+        /* Blue Bubble Pattern Overlay */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: radial-gradient(circle at 20% 40%, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+        }
+
+        /* Floating Bubbles */
+        .bubble {
+            position: absolute;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
+            border-radius: 50%;
+            backdrop-filter: blur(3px);
+            animation: floatBubble 12s infinite ease-in-out;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @@keyframes floatBubble {
+            0%, 100% { transform: translateY(0) translateX(0) scale(1); opacity: 0.4; }
+            25% { transform: translateY(-40px) translateX(20px) scale(1.05); opacity: 0.6; }
+            50% { transform: translateY(-70px) translateX(-15px) scale(1.1); opacity: 0.7; }
+            75% { transform: translateY(-30px) translateX(25px) scale(1.05); opacity: 0.5; }
+        }
+
+        .bubble-1 { width: 300px; height: 300px; top: -80px; left: -100px; animation-duration: 14s; }
+        .bubble-2 { width: 200px; height: 200px; bottom: -50px; right: -80px; animation-duration: 11s; animation-delay: 1s; }
+        .bubble-3 { width: 150px; height: 150px; top: 15%; right: 5%; animation-duration: 16s; animation-delay: 2s; }
+        .bubble-4 { width: 250px; height: 250px; bottom: 10%; left: -60px; animation-duration: 18s; animation-delay: 0.5s; }
+        .bubble-5 { width: 100px; height: 100px; top: 70%; right: 15%; animation-duration: 10s; animation-delay: 3s; }
+        .bubble-6 { width: 180px; height: 180px; top: 80%; left: 10%; animation-duration: 13s; animation-delay: 1.5s; }
+        .bubble-7 { width: 120px; height: 120px; top: 20%; left: 20%; animation-duration: 9s; animation-delay: 2.5s; }
+        .bubble-8 { width: 80px; height: 80px; bottom: 25%; right: 10%; animation-duration: 8s; animation-delay: 4s; }
+
+        /* Main Container */
+        .deliveries-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Card Style */
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #0A2540, #1A4A7A);
+            color: white;
+            padding: 20px 25px;
+            border-bottom: none;
+        }
+
+        .card-header h2 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .card-header p {
+            font-size: 13px;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        /* Back Button */
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #E8F0F8;
+            color: #0A2540;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            margin-bottom: 20px;
+        }
+
+        .back-btn:hover {
+            background: #D0E0F0;
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: #0A2540;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-badge {
+            background: #F0F4F8;
+            border-radius: 30px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #0A2540;
+        }
+
+        .stat-badge span {
+            color: #2C6E9E;
+            font-size: 18px;
+            font-weight: 800;
+            margin-right: 5px;
+        }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .data-table thead th {
+            background: #F0F4F8;
+            color: #0A2540;
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 700;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #E0E8F0;
+        }
+
+        .data-table tbody td {
+            padding: 12px;
+            border-bottom: 1px solid #E8F0F8;
+            color: #1A3A5A;
+        }
+
+        .data-table tbody tr:hover {
+            background: #F8FBFE;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .status-Pending { background: #E8F0F8; color: #0A2540; }
+        .status-InProgress { background: #2C6E9E; color: white; }
+        .status-Completed { background: #10B981; color: white; }
+        .status-Cancelled { background: #DC2626; color: white; }
+
+        /* Edit Button */
+        .btn-edit {
+            background: linear-gradient(135deg, #0A2540, #1A4A7A);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 6px 15px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-edit:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(10, 37, 64, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #4A6F8F;
+        }
+
+        .empty-state span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+        /* Message Alert */
+        .alert-success {
+            background: #E6FFED;
+            border-left: 4px solid #10B981;
+            border-radius: 12px;
+            padding: 12px 15px;
+            margin-bottom: 20px;
+            color: #0A5C2E;
+        }
+
+        /* Chester Badge */
+        .chester-badge {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background: rgba(10, 37, 64, 0.9);
+            color: white;
+            border-radius: 30px;
+            font-size: 10px;
+            font-weight: bold;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Responsive */
+        @@media (max-width: 1000px) {
+            .data-table thead {
+                display: none;
+            }
+            .data-table tbody tr {
+                display: block;
+                margin-bottom: 15px;
+                border: 1px solid #E0E8F0;
+                border-radius: 12px;
+                padding: 10px;
+            }
+            .data-table tbody td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border: none;
+                padding: 8px 10px;
+            }
+            .data-table tbody td::before {
+                content: attr(data-label);
+                font-weight: 700;
+                width: 40%;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            .card-body {
+                padding: 15px;
+            }
+            .stats-bar {
+                gap: 10px;
+            }
+            .stat-badge {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Blue Floating Bubbles -->
+    <div class="bubble bubble-1"></div>
+    <div class="bubble bubble-2"></div>
+    <div class="bubble bubble-3"></div>
+    <div class="bubble bubble-4"></div>
+    <div class="bubble bubble-5"></div>
+    <div class="bubble bubble-6"></div>
+    <div class="bubble bubble-7"></div>
+    <div class="bubble bubble-8"></div>
+
+    <div class="deliveries-container">
+        <div class="card">
+            <div class="card-header">
+                <h2>🚚 ROUTED DELIVERIES</h2>
+                <p>View and manage all scheduled delivery routes</p>
+            </div>
+            <div class="card-body">
+                @if (TempData["Message"] != null)
+                {
+                    <div class="alert-success">
+                        ✅ @TempData["Message"]
+                    </div>
+                }
+
+                <!-- Back Button -->
+                <a href="@Url.Action("Index", "Router")" class="back-btn">
+                    ← Back to Routes
+                </a>
+
+                @* stats computed at top of view to avoid repeated casts and handle null Model *@
+
+                <!-- Stats Bar -->
+                <div class="stats-bar">
+                    <div class="stat-badge">
+                        <span>🗺️ @routeCount</span> Total Routes
+                    </div>
+                    <div class="stat-badge">
+                        <span>📦 @totalItems</span> Total Items
+                    </div>
+                    <div class="stat-badge">
+                        <span>⚖️ @totalMass.ToString("F2")</span> Total Mass (kg)
+                    </div>
+                </div>
+
+                @if (!routes.Any())
+                {
+                    <div class="empty-state">
+                        <span>🚚</span>
+                        <p>No routed deliveries found.</p>
+                        <p style="font-size: 12px;">Create routes from the <a href="@Url.Action("Index", "Router")" style="color: #2C6E9E;">Routes page</a> to get started.</p>
+                    </div>
+                }
+                else
+                {
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Route</th>
+                                    <th>Destination</th>
+                                    <th>Date</th>
+                                    <th>Driver</th>
+                                    <th>Vehicle</th>
+                                    <th>Items</th>
+                                    <th>Mass (kg)</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var r in routes)
+                                {
+                                    var driver = InMemoryDatabase.Users.FirstOrDefault(u => u.Id == r.AssignedDriverId);
+                                    var vehicle = InMemoryDatabase.Vehicles.FirstOrDefault(v => v.Id == r.AssignedVehicleId);
+                                    var statusClass = r.Status == "Pending" ? "status-Pending" :
+                                                     r.Status == "InProgress" ? "status-InProgress" :
+                                                     r.Status == "Completed" ? "status-Completed" : "status-Cancelled";
+
+                                    <tr>
+                                        <td data-label="Route"><strong>@r.Name</strong></td>
+                                        <td data-label="Destination">@r.Destination</td>
+                                        <td data-label="Date">@(r.Date > System.DateTime.MinValue ? r.Date.ToString("yyyy-MM-dd") : "-")</td>
+                                        <td data-label="Driver">@(driver != null ? driver.FullName : "-")</td>
+                                        <td data-label="Vehicle">@(vehicle != null ? vehicle.Registration : "-")</td>
+                                        <td data-label="Items">@r.ItemsCount</td>
+                                        <td data-label="Mass">@r.TotalMassKg.ToString("F2")</td>
+                                        <td data-label="Status"><span class="status-badge @statusClass">@r.Status</span></td>
+                                        <td data-label="Actions">
+                                            <a href="@Url.Action("Edit", "Router", new { id = r.Id })" class="btn-edit">
+                                                ✏️ Edit
+                                            </a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="chester-badge">
+            🥩 CHESTER MEAT MATRIX - QUALITY MEAT, DELIVERED FRESH 🥩
+        </div>
+    </div>
+</body>
+</html>

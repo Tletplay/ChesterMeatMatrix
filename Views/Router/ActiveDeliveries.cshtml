@@ -1,0 +1,252 @@
+﻿﻿@model IEnumerable<ChesterMeatMatrix.Models.Route>
+@{
+    ViewBag.Title = "Active Deliveries";
+    Layout = "~/Views/Shared/_RouterLayout.cshtml";
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .container-custom {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+        .header-bar h2 {
+            color: #0a4c8c;
+            font-weight: 700;
+            margin: 0;
+        }
+
+    .btn-back {
+        background: #64748b;
+        padding: 8px 24px;
+        border-radius: 40px;
+        color: white;
+        text-decoration: none;
+    }
+
+    .routes-table {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+        .routes-table th {
+            background: #0a4c8c;
+            color: white;
+            padding: 1rem;
+        }
+
+        .routes-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+    .status-assigned {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+    .status-inprogress {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+    .status-senttodriver {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+    .status-readytodispatch {
+        background: #d1fae5;
+        color: #065f46;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+    .status-weightmismatch {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+    .btn-send {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        border: none;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        cursor: pointer;
+        margin-right: 5px;
+    }
+
+    .btn-weigh {
+        background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+        border: none;
+        padding: 0.3rem 1rem;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        margin-right: 5px;
+    }
+
+        .btn-weigh:hover {
+            transform: translateY(-1px);
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-send:hover {
+        transform: translateY(-1px);
+        color: white;
+        text-decoration: none;
+    }
+
+    .action-cell {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+</style>
+
+<div class="container-custom">
+    <div class="header-bar">
+        <h2><i class="fas fa-truck"></i> Active Deliveries</h2>
+        <a href="@Url.Action("Dashboard", "Router")" class="btn-back">← Back to Dashboard</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div style="background: #d1fae5; color: #065f46; padding: 1rem; border-radius: 12px; margin-bottom: 1rem;">
+            ✅ @TempData["Success"]
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div style="background: white; border-radius: 20px; padding: 3rem; text-align: center; color: #64748b;">
+            <i class="fas fa-truck fa-2x mb-2 d-block"></i>
+            <p>No active deliveries found.</p>
+        </div>
+    }
+    else
+    {
+        <div class="routes-table">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th>Route #</th>
+                        <th>Driver</th>
+                        <th>Vehicle</th>
+                        <th>Scheduled</th>
+                        <th>Orders</th>
+                        <th>Total Weight</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var route in Model)
+                    {
+                        var driver = ChesterMeatMatrix.Data.InMemoryDatabase.Users.FirstOrDefault(u => u.Id == route.AssignedDriverId);
+                        var vehicle = ChesterMeatMatrix.Data.InMemoryDatabase.Vehicles.FirstOrDefault(v => v.Id == route.AssignedVehicleId);
+                        var totalWeight = 0m;
+                        if (route.OrderIds != null && route.OrderIds.Any())
+                        {
+                            var orders = ChesterMeatMatrix.Data.InMemoryDatabase.Orders.Where(o => route.OrderIds.Contains(o.Id)).ToList();
+                            totalWeight = orders.Sum(o => o.TotalWeightKg);
+                        }
+
+                        var statusClass = route.Status == "Assigned" ? "status-assigned" :
+                                        (route.Status == "InProgress" ? "status-inprogress" :
+                                        (route.Status == "SentToDriver" ? "status-senttodriver" :
+                                        (route.Status == "ReadyForDispatch" ? "status-readytodispatch" :
+                                        (route.Status == "WeightMismatch" ? "status-weightmismatch" : "status-assigned"))));
+
+                        <tr>
+                            <td><strong>@route.Name</strong></td>
+                            <td>@(driver?.FullName ?? "Unassigned")</td>
+                            <td>@(vehicle?.Registration ?? "Unassigned")</td>
+                            <td>@route.Date.ToString("dd MMM yyyy HH:mm")</td>
+                            <td>@(route.OrderIds?.Count ?? 0) orders</td>
+                            <td>@totalWeight.ToString("F2") kg</td>
+                            <td><span class="@statusClass">@route.Status</span></td>
+                            <td>
+                                <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                                    @if (route.Status != "SentToDriver" && route.Status != "ReadyForDispatch")
+                                    {
+                                        <button class="btn-send" onclick="sendToDriver(@route.Id)">Send to Driver</button>
+                                    }
+
+                                    @if (route.Status == "Assigned" || route.Status == "SentToDriver")
+                                    {
+                                        <a href="@Url.Action("WeighTruck", "Router", new { routeId = route.Id })" class="btn-weigh">
+                                            ⚖️ Weigh Truck
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function sendToDriver(routeId) {
+        if (confirm('Send this route to the driver?\n\nThe driver will receive a notification with route details.')) {
+            $.ajax({
+                url: '@Url.Action("SendToDriver", "Router")',
+                type: 'POST',
+                data: {
+                    routeId: routeId,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert(response.message);
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('Error sending route: ' + error);
+                }
+            });
+        }
+    }
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

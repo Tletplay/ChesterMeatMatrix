@@ -1,0 +1,29 @@
+﻿﻿@model IEnumerable<ChesterMeatMatrix.Models.Product>
+@{
+    ViewBag.Title = "Pallet Details";
+    Layout = "~/Views/Shared/_ReceiverLayout.cshtml";
+    var pallet = ViewBag.Pallet as ChesterMeatMatrix.Models.Product;
+}
+
+<h2>Pallet Details: @pallet?.PalletCode</h2>
+<p><strong>Location:</strong> @pallet?.Location</p>
+<p><strong>Total Items:</strong> @Model.Count()</p>
+
+<table class="table">
+    <thead>
+        <tr><th>Serial Number</th><th>Product Code</th><th>Name</th><th>Created</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.SerialNumber</td>
+                <td>@item.ProductCode</td>
+                <td>@item.Name</td>
+                <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a href="@Url.Action("Pallets")" class="btn btn-secondary">← Back to Pallets</a>

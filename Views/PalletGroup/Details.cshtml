@@ -1,0 +1,121 @@
+﻿﻿@model ChesterMeatMatrix.Models.PalletGroup
+@{
+    ViewBag.Title = "Pallet Group Details";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .details-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+    }
+
+    .details-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        margin-bottom: 1.5rem;
+    }
+
+    .info-row {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #0a4c8c;
+        width: 150px;
+        display: inline-block;
+    }
+
+    .pallets-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .pallets-table th {
+            background: #f8fafc;
+            padding: 0.75rem;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .pallets-table td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+</style>
+
+<div class="details-container">
+    <div class="details-card">
+        <h2 style="color: #0a4c8c;">Pallet Group @Model.GroupNumber</h2>
+
+        <div class="info-row">
+            <span class="info-label">Group Name:</span>
+            <span>@Model.GroupName</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Product Type:</span>
+            <span>@(Model.ProductType ?? "-")</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Location:</span>
+            <span>@(Model.Location ?? "-")</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total Pallets:</span>
+            <span>@(Model.Pallets?.Count ?? 0)</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Total Quantity:</span>
+            <span>@Model.TotalQuantity units</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Created By:</span>
+            <span>@Model.CreatedBy</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Created Date:</span>
+            <span>@Model.CreatedDate.ToString("dd MMM yyyy HH:mm")</span>
+        </div>
+    </div>
+
+    <div class="details-card">
+        <h3 style="color: #0a4c8c; margin-bottom: 1rem;">Pallets in this Group</h3>
+
+        @if (Model.Pallets == null || !Model.Pallets.Any())
+        {
+            <p class="text-muted">No pallets in this group.</p>
+        }
+        else
+        {
+            <table class="pallets-table">
+                <thead>
+                    <tr>
+                        <th>Pallet Number</th>
+                        <th>Quantity</th>
+                        <th>Created Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var pallet in Model.Pallets)
+                    {
+                        <tr>
+                            <td>@pallet.PalletNumber</td>
+                            <td>@pallet.Quantity units</td>
+                            <td>@pallet.CreatedDate.ToString("dd MMM yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+        <div class="text-center mt-4">
+            <a href="@Url.Action("Index")" class="btn btn-secondary">← Back to Groups</a>
+        </div>
+    </div>
+</div>

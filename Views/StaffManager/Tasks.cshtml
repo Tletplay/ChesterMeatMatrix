@@ -1,0 +1,252 @@
+﻿﻿@using ChesterMeatMatrix.Models
+@model IEnumerable<WorkTask>
+@{
+    ViewBag.Title = "All Tasks";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var currentStatus = ViewBag.CurrentStatus as string ?? "";
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold" style="color: #0A2540; display: flex; align-items: center; gap: 0.75rem;">
+                <i data-lucide="list-checks" style="color: #C1272D; width: 28px; height: 28px;"></i>
+                All Tasks
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Manage and track all warehouse tasks</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a href="@Url.Action("AssignTask", "StaffManager")" style="display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1.5rem; background: #C1272D; color: white; border-radius: 50px; font-weight: 600; font-size: 0.875rem; text-decoration: none; transition: all 0.2s;" onmouseover="this.style.background='#A11E23'; this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(193,39,45,0.25)'" onmouseout="this.style.background='#C1272D'; this.style.transform='none'; this.style.boxShadow='none'">
+                <i data-lucide="plus" style="width: 18px; height: 18px;"></i>
+                Assign New Task
+            </a>
+            <a href="@Url.Action("Dashboard", "StaffManager")" style="display: inline-flex; align-items: center; gap: 0.5rem; color: #64748B; text-decoration: none; font-size: 0.875rem; transition: color 0.2s;" onmouseover="this.style.color='#C1272D'" onmouseout="this.style.color='#64748B'">
+                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: 100%; pointer-events: none;"></div>
+
+    <!-- Status Filter -->
+    <div style="background: white; border-radius: 12px; border: 1px solid #E8E8E8; padding: 0.75rem 1rem; margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <a href="@Url.Action("Tasks", new { status = "" })" style="padding: 0.375rem 1.25rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; @(string.IsNullOrEmpty(currentStatus) ? "background: #C1272D; color: white;" : "background: #F1F5F9; color: #64748B;")" onmouseover="if(!this.style.background.includes('#C1272D')) { this.style.background='#E2E8F0'; this.style.color='#0A2540'; }" onmouseout="if(!this.style.background.includes('#C1272D')) { this.style.background='#F1F5F9'; this.style.color='#64748B'; }">
+            All
+        </a>
+        <a href="@Url.Action("Tasks", new { status = "Pending" })" style="padding: 0.375rem 1.25rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; @(currentStatus == "Pending" ? "background: #C1272D; color: white;" : "background: #F1F5F9; color: #64748B;")" onmouseover="if(!this.style.background.includes('#C1272D')) { this.style.background='#E2E8F0'; this.style.color='#0A2540'; }" onmouseout="if(!this.style.background.includes('#C1272D')) { this.style.background='#F1F5F9'; this.style.color='#64748B'; }">
+            Pending
+        </a>
+        <a href="@Url.Action("Tasks", new { status = "Assigned" })" style="padding: 0.375rem 1.25rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; @(currentStatus == "Assigned" ? "background: #C1272D; color: white;" : "background: #F1F5F9; color: #64748B;")" onmouseover="if(!this.style.background.includes('#C1272D')) { this.style.background='#E2E8F0'; this.style.color='#0A2540'; }" onmouseout="if(!this.style.background.includes('#C1272D')) { this.style.background='#F1F5F9'; this.style.color='#64748B'; }">
+            Assigned
+        </a>
+        <a href="@Url.Action("Tasks", new { status = "InProgress" })" style="padding: 0.375rem 1.25rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; @(currentStatus == "InProgress" ? "background: #C1272D; color: white;" : "background: #F1F5F9; color: #64748B;")" onmouseover="if(!this.style.background.includes('#C1272D')) { this.style.background='#E2E8F0'; this.style.color='#0A2540'; }" onmouseout="if(!this.style.background.includes('#C1272D')) { this.style.background='#F1F5F9'; this.style.color='#64748B'; }">
+            In Progress
+        </a>
+        <a href="@Url.Action("Tasks", new { status = "Completed" })" style="padding: 0.375rem 1.25rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; @(currentStatus == "Completed" ? "background: #C1272D; color: white;" : "background: #F1F5F9; color: #64748B;")" onmouseover="if(!this.style.background.includes('#C1272D')) { this.style.background='#E2E8F0'; this.style.color='#0A2540'; }" onmouseout="if(!this.style.background.includes('#C1272D')) { this.style.background='#F1F5F9'; this.style.color='#64748B'; }">
+            Completed
+        </a>
+        <a href="@Url.Action("Tasks", new { status = "Cancelled" })" style="padding: 0.375rem 1.25rem; border-radius: 50px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; @(currentStatus == "Cancelled" ? "background: #C1272D; color: white;" : "background: #F1F5F9; color: #64748B;")" onmouseover="if(!this.style.background.includes('#C1272D')) { this.style.background='#E2E8F0'; this.style.color='#0A2540'; }" onmouseout="if(!this.style.background.includes('#C1272D')) { this.style.background='#F1F5F9'; this.style.color='#64748B'; }">
+            Cancelled
+        </a>
+    </div>
+
+    <!-- Task Table -->
+    <div style="background: white; border-radius: 16px; border: 1px solid #E8E8E8; overflow: hidden;">
+        <div style="padding: 1rem 1.25rem; background: #F8FAFE; border-bottom: 1px solid #E8E8E8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+            <h3 style="margin: 0; font-size: 0.875rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="clipboard" style="width: 18px; height: 18px; color: #C1272D;"></i>
+                Task List
+            </h3>
+            <span style="font-size: 0.75rem; color: #94A3B8;">@Model.Count() tasks</span>
+        </div>
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                    <tr style="background: #FAFBFC; border-bottom: 2px solid #E8E8E8;">
+                        <th style="padding: 0.75rem 1rem; text-align: left; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Task</th>
+                        <th style="padding: 0.75rem 1rem; text-align: left; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Type</th>
+                        <th style="padding: 0.75rem 1rem; text-align: left; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Assigned To</th>
+                        <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Priority</th>
+                        <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Progress</th>
+                        <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Due Date</th>
+                        <th style="padding: 0.75rem 1rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var task in Model)
+                        {
+                            // Status badge
+                            string statusBg;
+                            string statusColor;
+
+                            if (task.Status == WorkTaskStatus.Pending)
+                            {
+                                statusBg = "#FEF3C7";
+                                statusColor = "#92400E";
+                            }
+                            else if (task.Status == WorkTaskStatus.Assigned)
+                            {
+                                statusBg = "#DBEAFE";
+                                statusColor = "#1E40AF";
+                            }
+                            else if (task.Status == WorkTaskStatus.InProgress)
+                            {
+                                statusBg = "#FEF3C7";
+                                statusColor = "#92400E";
+                            }
+                            else if (task.Status == WorkTaskStatus.Completed)
+                            {
+                                statusBg = "#D1FAE5";
+                                statusColor = "#065F46";
+                            }
+                            else
+                            {
+                                statusBg = "#FEE2E2";
+                                statusColor = "#991B1B";
+                            }
+
+                            // Priority chip
+                            string priorityBg;
+                            string priorityColor;
+
+                            if (task.Priority == WorkTaskPriority.High || task.Priority == WorkTaskPriority.Urgent)
+                            {
+                                priorityBg = "#FEE2E2";
+                                priorityColor = "#DC2626";
+                            }
+                            else if (task.Priority == WorkTaskPriority.Medium)
+                            {
+                                priorityBg = "#FEF3C7";
+                                priorityColor = "#D97706";
+                            }
+                            else
+                            {
+                                priorityBg = "#D1FAE5";
+                                priorityColor = "#065F46";
+                            }
+
+                            // Progress calculation
+                            int progress = 0;
+                            if (task.Status == WorkTaskStatus.Completed)
+                            {
+                                progress = 100;
+                            }
+                            else if (task.Status == WorkTaskStatus.InProgress)
+                            {
+                                progress = 66;
+                            }
+                            else if (task.Status == WorkTaskStatus.Assigned)
+                            {
+                                progress = 33;
+                            }
+                            else
+                            {
+                                progress = 0;
+                            }
+
+                            bool isOverdue = task.DueDate.HasValue && task.DueDate.Value.Date < DateTime.Today
+                                             && task.Status != WorkTaskStatus.Completed && task.Status != WorkTaskStatus.Cancelled;
+
+                            <tr style="border-bottom: 1px solid #E8E8E8; transition: background 0.15s ease;" onmouseover="this.style.background='#F8FAFE'" onmouseout="this.style.background='transparent'">
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle;">
+                                    <div style="font-weight: 600; color: #0A2540;">@task.Title</div>
+                                    @if (!string.IsNullOrEmpty(task.Description))
+                                    {
+                                        <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.125rem;">@task.Description</div>
+                                    }
+                                </td>
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle; color: #1E1E1E;">@task.Type</td>
+                                <td style="padding: 0.75rem 1rem; vertical-align: middle; font-weight: 500; color: #0A2540;">@(task.AssignedTo?.FullName ?? "Unassigned")</td>
+                                <td style="padding: 0.75rem 1rem; text-align: center; vertical-align: middle;">
+                                    <span style="display: inline-flex; padding: 0.125rem 0.625rem; border-radius: 50px; font-size: 0.65rem; font-weight: 700; background: @priorityBg; color: @priorityColor; text-transform: uppercase;">
+                                        @task.Priority
+                                    </span>
+                                </td>
+                                <td style="padding: 0.75rem 1rem; text-align: center; vertical-align: middle;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; justify-content: center;">
+                                        <div style="width: 80px; height: 6px; background: #E8E8E8; border-radius: 50px; overflow: hidden;">
+                                            <div style="height: 100%; width: @progress%; background: @(progress >= 100 ? "#10B981" : progress >= 66 ? "#3B82F6" : progress >= 33 ? "#F59E0B" : "#CBD5E1"); border-radius: 50px; transition: width 0.4s ease, background-color 0.4s ease;"></div>
+                                        </div>
+                                        <span style="font-size: 0.65rem; font-weight: 600; color: #94A3B8; min-width: 28px; text-align: left;">@progress%</span>
+                                    </div>
+                                </td>
+                                <td style="padding: 0.75rem 1rem; text-align: center; vertical-align: middle;">
+                                    <div style="font-size: 0.8rem; color: #1E1E1E;">@(task.DueDate?.ToString("dd MMM yyyy") ?? "-")</div>
+                                    @if (isOverdue)
+                                    {
+                                        <div style="font-size: 0.6rem; color: #DC2626; font-weight: 700;">⚠ OVERDUE</div>
+                                    }
+                                </td>
+                                <td style="padding: 0.75rem 1rem; text-align: center; vertical-align: middle;">
+                                    <span style="color: #94A3B8; font-size: 0.7rem; display: inline-flex; align-items: center; gap: 0.375rem;">
+                                        <i data-lucide="eye" style="width: 12px; height: 12px;"></i>
+                                        View only
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" style="padding: 2.5rem 1.25rem; text-align: center; color: #94A3B8;">
+                                <i data-lucide="inbox" style="width: 32px; height: 32px; display: block; margin: 0 auto 0.5rem; color: #CBD5E1;"></i>
+                                <p style="margin: 0; font-size: 1rem; color: #64748B;">No tasks found</p>
+                                <a href="@Url.Action("AssignTask", "StaffManager")" style="color: #C1272D; font-weight: 600; text-decoration: none; font-size: 0.875rem; display: inline-block; margin-top: 0.5rem;">
+                                    Assign New Task →
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    lucide.createIcons();
+
+    // Status update - KEEP ORIGINAL LOGIC, only visual
+    $(document).ready(function() {
+        @*$('.status-select').change(function() {
+            var taskId = $(this).data('taskid');
+            var status = $(this).val();
+            if (!status) return;
+            if (confirm('Update task status to ' + status + '?')) {
+                var token = $('input[name="__RequestVerificationToken"]').val();
+                $.ajax({
+                    url: '@Url.Action("UpdateTaskStatus", "StaffManager")',
+                    type: 'POST',
+                    data: { taskId: taskId, status: status, __RequestVerificationToken: token },
+                    success: function(response) {
+                        if (response.success) location.reload();
+                        else alert('Error: ' + response.message);
+                    },
+                    error: function() { alert('Error updating task status'); }
+                });
+            }
+        });*@
+    });
+</script>
+
+<style>
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        50% {
+            opacity: 0.4;
+            transform: scale(0.8);
+        }
+    }
+</style>

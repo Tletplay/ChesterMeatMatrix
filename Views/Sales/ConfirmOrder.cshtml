@@ -1,0 +1,599 @@
+﻿﻿@model ChesterMeatMatrix.Models.Order
+
+@{
+    ViewBag.Title = "Confirm Order - Sales";
+    Layout = "~/Views/Shared/_SalesLayout.cshtml";
+}
+
+<style>
+    /* ============================================
+       CHESTER MEAT MATRIX - CONFIRM ORDER STYLES
+       These extend, not replace, your existing CSS
+       ============================================ */
+
+    .cm-confirm-container {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .cm-page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.75rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .cm-page-title {
+        color: var(--navy-dark, #0A2540);
+        font-size: 1.75rem;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .cm-page-title i {
+        color: var(--red-primary, #C1272D);
+        font-size: 1.5rem;
+    }
+
+    .cm-grid {
+        display: grid;
+        grid-template-columns: 1fr 360px;
+        gap: 1.75rem;
+    }
+
+    @@media (max-width: 900px) {
+        .cm-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    /* Cards */
+    .cm-card {
+        background: var(--white, #FFFFFF);
+        border-radius: var(--radius-lg, 16px);
+        box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(0,0,0,0.1));
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--gray-light, #E8E8E8);
+        transition: box-shadow 0.2s ease;
+    }
+
+    .cm-card:hover {
+        box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0,0,0,0.1));
+    }
+
+    .cm-card-header {
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, var(--navy-dark, #0A2540) 0%, var(--navy-medium, #1A4A7A) 100%);
+        border-bottom: none;
+    }
+
+    .cm-card-header h3 {
+        color: var(--white, #FFFFFF);
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .cm-card-header i {
+        font-size: 1.1rem;
+    }
+
+    .cm-card-body {
+        padding: 1.5rem;
+    }
+
+    /* Info Grid */
+    .cm-info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    @@media (max-width: 500px) {
+        .cm-info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .cm-info-item {
+        padding: 0.5rem 0;
+    }
+
+    .cm-info-label {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-secondary, #6B6B6B);
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+
+    .cm-info-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--navy-dark, #0A2540);
+        word-break: break-word;
+    }
+
+    /* Order Summary Sidebar */
+    .cm-summary-card {
+        background: var(--off-white, #F8FAFE);
+        border-radius: var(--radius-lg, 16px);
+        padding: 1.25rem;
+        border: 1px solid var(--gray-light, #E8E8E8);
+        position: sticky;
+        top: 100px;
+    }
+
+    .cm-summary-title {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--navy-dark, #0A2540);
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 2px solid var(--red-primary, #C1272D);
+        display: inline-block;
+    }
+
+    .cm-summary-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--gray-light, #E8E8E8);
+    }
+
+    .cm-summary-row:last-child {
+        border-bottom: none;
+    }
+
+    .cm-summary-label {
+        color: var(--text-secondary, #6B6B6B);
+        font-size: 0.875rem;
+    }
+
+    .cm-summary-amount {
+        font-weight: 700;
+        color: var(--navy-dark, #0A2540);
+    }
+
+    .cm-summary-total {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: var(--red-primary, #C1272D);
+        margin-top: 0.5rem;
+        padding-top: 0.75rem;
+        border-top: 2px solid var(--gray-light, #E8E8E8);
+    }
+
+    /* Table */
+    .cm-table-wrapper {
+        overflow-x: auto;
+        border-radius: var(--radius-md, 12px);
+    }
+
+    .cm-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+
+    .cm-table thead tr {
+        background: var(--off-white, #F8FAFE);
+        border-bottom: 2px solid var(--gray-light, #E8E8E8);
+    }
+
+    .cm-table th {
+        padding: 0.875rem 1rem;
+        text-align: left;
+        font-weight: 700;
+        color: var(--navy-dark, #0A2540);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .cm-table td {
+        padding: 0.875rem 1rem;
+        border-bottom: 1px solid var(--gray-light, #E8E8E8);
+        color: var(--text-primary, #1E1E1E);
+    }
+
+    .cm-table tbody tr:hover {
+        background: var(--off-white, #F8FAFE);
+    }
+
+    .cm-table .cm-text-right {
+        text-align: right;
+    }
+
+    .cm-table .cm-text-center {
+        text-align: center;
+    }
+
+    /* Info Box */
+    .cm-info-box {
+        background: #FEF3C7;
+        border-left: 4px solid #F59E0B;
+        border-radius: var(--radius-md, 12px);
+        padding: 1rem 1.25rem;
+        margin: 1rem 0;
+    }
+
+    .cm-info-box p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: #92400E;
+    }
+
+    .cm-info-box ul {
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+        padding-left: 1.25rem;
+    }
+
+    .cm-info-box li {
+        font-size: 0.8125rem;
+        color: #92400E;
+    }
+
+    /* Form Section */
+    .cm-form-section {
+        background: var(--off-white, #F8FAFE);
+        border-radius: var(--radius-md, 12px);
+        padding: 1.25rem;
+        margin-top: 1rem;
+    }
+
+    .cm-form-group {
+        margin-bottom: 1rem;
+    }
+
+    .cm-form-label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--navy-dark, #0A2540);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .cm-form-input {
+        width: 100%;
+        max-width: 350px;
+        padding: 0.75rem 1rem;
+        border: 2px solid var(--gray-light, #E8E8E8);
+        border-radius: var(--radius-md, 12px);
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .cm-form-input:focus {
+        outline: none;
+        border-color: var(--red-primary, #C1272D);
+        box-shadow: 0 0 0 3px rgba(193, 39, 45, 0.1);
+    }
+
+    /* Buttons */
+    .cm-btn-group {
+        display: flex;
+        justify-content: flex-end;
+        gap: 1rem;
+        margin-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .cm-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.75rem;
+        border-radius: var(--radius-full, 9999px);
+        font-weight: 600;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        text-decoration: none;
+    }
+
+    .cm-btn-cancel {
+        background: var(--gray-light, #E8E8E8);
+        color: var(--text-primary, #1E1E1E);
+    }
+
+    .cm-btn-cancel:hover {
+        background: var(--gray-medium, #9CA3AF);
+        color: var(--white, #FFFFFF);
+        transform: translateY(-1px);
+        text-decoration: none;
+    }
+
+    .cm-btn-confirm {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: var(--white, #FFFFFF);
+    }
+
+    .cm-btn-confirm:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        color: var(--white, #FFFFFF);
+        text-decoration: none;
+    }
+
+    /* Loading State */
+    .cm-btn-loading {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    .cm-btn-loading::after {
+        content: "";
+        width: 16px;
+        height: 16px;
+        border: 2px solid white;
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: cm-spin 0.8s linear infinite;
+        display: inline-block;
+        margin-left: 0.5rem;
+    }
+
+    @@keyframes cm-spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Responsive Table on Mobile */
+    @@media (max-width: 768px) {
+        .cm-table thead {
+            display: none;
+        }
+
+        .cm-table tbody tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid var(--gray-light, #E8E8E8);
+            border-radius: var(--radius-md, 12px);
+            padding: 0.75rem;
+        }
+
+        .cm-table tbody td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: none;
+            padding: 0.5rem 0;
+        }
+
+        .cm-table tbody td::before {
+            content: attr(data-label);
+            font-weight: 700;
+            width: 40%;
+            color: var(--navy-dark, #0A2540);
+        }
+
+        .cm-table .cm-text-right,
+        .cm-table .cm-text-center {
+            text-align: left;
+        }
+    }
+</style>
+
+<div class="cm-confirm-container">
+    <!-- Page Header -->
+    <div class="cm-page-header">
+        <h1 class="cm-page-title">
+            <i class="fas fa-check-double"></i>
+            Confirm Order
+        </h1>
+        <a href="@Url.Action("PendingOrders", "Sales")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Pending Orders
+        </a>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="cm-grid">
+        <!-- LEFT COLUMN: Customer Info + Items + Form -->
+        <div>
+            <!-- Customer Information Card -->
+            <div class="cm-card">
+                <div class="cm-card-header">
+                    <h3>
+                        <i class="fas fa-user-circle"></i>
+                        Customer Information
+                    </h3>
+                </div>
+                <div class="cm-card-body">
+                    <div class="cm-info-grid">
+                        <div class="cm-info-item">
+                            <div class="cm-info-label">Customer Name</div>
+                            <div class="cm-info-value">@(Model.Customer?.Name ?? "N/A")</div>
+                        </div>
+                        <div class="cm-info-item">
+                            <div class="cm-info-label">Contact Phone</div>
+                            <div class="cm-info-value">@(Model.Customer?.ContactPhone ?? "N/A")</div>
+                        </div>
+                        <div class="cm-info-item">
+                            <div class="cm-info-label">Delivery Address</div>
+                            <div class="cm-info-value">@(Model.Customer?.Address ?? "N/A")</div>
+                        </div>
+                        <div class="cm-info-item">
+                            <div class="cm-info-label">Order Date</div>
+                            <div class="cm-info-value">@Model.CreatedAt.ToString("dd MMM yyyy, HH:mm")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items Card -->
+            <div class="cm-card">
+                <div class="cm-card-header">
+                    <h3>
+                        <i class="fas fa-shopping-bag"></i>
+                        Order Items
+                    </h3>
+                </div>
+                <div class="cm-card-body">
+                    <div class="cm-table-wrapper">
+                        <table class="cm-table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="cm-text-center">Qty</th>
+                                    <th class="cm-text-right">Unit Price</th>
+                                    <th class="cm-text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <tr>
+                                        <td data-label="Product">@(item.Product?.Name ?? "Unknown")</td>
+                                        <td data-label="Qty" class="cm-text-center">@item.Quantity</td>
+                                        <td data-label="Unit Price" class="cm-text-right">R @item.UnitPrice.ToString("N2")</td>
+                                        <td data-label="Subtotal" class="cm-text-right">R @((item.UnitPrice * item.Quantity).ToString("N2"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Info Box - What confirming does -->
+                    <div class="cm-info-box">
+                        <p>
+                            <strong>📋 Confirming this order will:</strong>
+                        </p>
+                        <ul>
+                            <li>Update order status to "Confirmed"</li>
+                            <li>Generate an invoice</li>
+                            <li>Make order available for Checker</li>
+                        </ul>
+                    </div>
+
+                    <!-- Confirmation Form -->
+                    @using (Html.BeginForm("ConfirmOrder", "Sales", FormMethod.Post, new { id = "confirmOrderForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("orderId", Model.Id)
+
+                        <div class="cm-form-section">
+                            <div class="cm-form-group">
+                                <label class="cm-form-label">Confirmed By</label>
+                                <input type="text"
+                                       name="confirmedBy"
+                                       class="cm-form-input"
+                                       value="@Session["FullName"]"
+                                       required />
+                            </div>
+                        </div>
+
+                        <div class="cm-btn-group">
+                            <a href="@Url.Action("PendingOrders", "Sales")" class="cm-btn cm-btn-cancel">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="cm-btn cm-btn-confirm" id="confirmBtn">
+                                <i class="fas fa-check-circle"></i> Confirm Order & Generate Invoice
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Order Summary Sidebar -->
+        <div>
+            <div class="cm-summary-card">
+                <div class="cm-summary-title">
+                    <i class="fas fa-receipt"></i> Order Summary
+                </div>
+
+                @{
+                    var subtotal = Model.Total;
+                    var vat = subtotal * 0.15m;
+                    var totalInclusive = subtotal + vat;
+                }
+
+                <div class="cm-summary-row">
+                    <span class="cm-summary-label">Subtotal</span>
+                    <span class="cm-summary-amount">R @subtotal.ToString("N2")</span>
+                </div>
+                <div class="cm-summary-row">
+                    <span class="cm-summary-label">VAT (15%)</span>
+                    <span class="cm-summary-amount">R @vat.ToString("N2")</span>
+                </div>
+                <div class="cm-summary-row">
+                    <span class="cm-summary-label">Total Items</span>
+                    <span class="cm-summary-amount">@(Model.Items?.Sum(i => i.Quantity) ?? 0) units</span>
+                </div>
+                <div class="cm-summary-total">
+                    <div class="cm-summary-row" style="padding: 0;">
+                        <span>Total Amount</span>
+                        <span>R @totalInclusive.ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Status Card -->
+            <div class="cm-summary-card" style="margin-top: 1rem;">
+                <div class="cm-summary-title">
+                    <i class="fas fa-info-circle"></i> Order Status
+                </div>
+                <div class="cm-summary-row">
+                    <span class="cm-summary-label">Current Status</span>
+                    <span class="cm-summary-amount">
+                        @if (Model.Status == ChesterMeatMatrix.Models.OrderStatusEnum.Pending)
+                        {
+                            <span style="color: #F59E0B;">⏳ Pending</span>
+                        }
+                        else if (Model.Status == ChesterMeatMatrix.Models.OrderStatusEnum.Confirmed)
+                        {
+                            <span style="color: #10B981;">✅ Confirmed</span>
+                        }
+                        else
+                        {
+                            <span>@Model.Status</span>
+                        }
+                    </span>
+                </div>
+                <div class="cm-summary-row">
+                    <span class="cm-summary-label">Payment Method</span>
+                    <span class="cm-summary-amount">@(Model.PaymentMethodString ?? "Not selected")</span>
+                </div>
+                <div class="cm-summary-row">
+                    <span class="cm-summary-label">Order #</span>
+                    <span class="cm-summary-amount">@Model.OrderNumber</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const form = document.getElementById('confirmOrderForm');
+        const confirmBtn = document.getElementById('confirmBtn');
+
+        if (form && confirmBtn) {
+            form.addEventListener('submit', function(e) {
+                // Show loading state
+                confirmBtn.classList.add('cm-btn-loading');
+                confirmBtn.disabled = true;
+                confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+                // Form will submit normally - no need to prevent default
+                // The loading state will show until page redirects
+            });
+        }
+    })();
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

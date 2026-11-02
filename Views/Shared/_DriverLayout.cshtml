@@ -1,0 +1,261 @@
+﻿﻿@{
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+@{
+    // Get driver ID from session for notifications - NO MODEL REQUIRED
+    var driverUser = ChesterMeatMatrix.Data.InMemoryDatabase.Users.FirstOrDefault(u => u.Username == (Session["Username"] as string));
+    var driverId = driverUser?.Id ?? 0;
+    var unreadCount = 0;
+    var recentNotifications = new List<dynamic>();
+
+    if (driverId > 0)
+    {
+        unreadCount = ChesterMeatMatrix.Data.InMemoryDatabase.Notifications.Count(n => n.UserId == driverId && !n.IsRead);
+        recentNotifications = ChesterMeatMatrix.Data.InMemoryDatabase.Notifications
+            .Where(n => n.UserId == driverId)
+            .OrderByDescending(n => n.CreatedAt)
+            .Take(5)
+            .Select(n => new { n.Id, n.Title, n.Message, n.Type, n.ReferenceId, CreatedAt = n.CreatedAt.ToString("dd MMM HH:mm") })
+            .ToList<dynamic>();
+    }
+}
+
+<style>
+    /* Notification Bell Styles */
+    .notification-bell {
+        position: relative;
+        cursor: pointer;
+        margin-right: 15px;
+        display: inline-block;
+    }
+
+    .notification-count {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #C1272D;
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 50%;
+        min-width: 18px;
+        text-align: center;
+    }
+
+    .notification-dropdown {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        width: 350px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        z-index: 1000;
+        margin-top: 10px;
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+        .notification-dropdown.show {
+            display: block;
+        }
+
+    .notification-header {
+        padding: 12px 15px;
+        border-bottom: 1px solid #E0E8F0;
+        font-weight: 700;
+        color: #0A2540;
+        position: sticky;
+        top: 0;
+        background: white;
+    }
+
+    .notification-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #E0E8F0;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+        .notification-item:hover {
+            background: #F8FAFE;
+        }
+
+        .notification-item.unread {
+            background: #FEF3C7;
+        }
+
+    .notification-title {
+        font-weight: 600;
+        font-size: 13px;
+        color: #0A2540;
+    }
+
+    .notification-message {
+        font-size: 11px;
+        color: #64748B;
+        margin-top: 4px;
+    }
+
+    .notification-time {
+        font-size: 10px;
+        color: #9CA3AF;
+        margin-top: 4px;
+    }
+
+    .notification-empty {
+        padding: 20px;
+        text-align: center;
+        color: #64748B;
+    }
+
+    .view-all-link {
+        display: block;
+        text-align: center;
+        padding: 10px;
+        background: #F8FAFE;
+        color: #0A2540;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+        .view-all-link:hover {
+            background: #E0E8F0;
+        }
+
+    .navbar-right {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .user-name {
+        font-size: 13px;
+        font-weight: 500;
+        color: #0A2540;
+    }
+
+    .btn-logout {
+        color: #C1272D;
+        text-decoration: none;
+        font-size: 13px;
+    }
+
+        .btn-logout:hover {
+            text-decoration: underline;
+        }
+</style>
+
+@section SidebarMenu {
+    <a href="@Url.Action("Index", "Driver")" class="@(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")">
+        <i data-lucide="layout-dashboard"></i>
+        Dashboard
+    </a>
+    <a href="@Url.Action("MyRoutes", "Driver")">
+        <i data-lucide="map-pin"></i>
+        My Routes
+    </a>
+    <a href="@Url.Action("CompletedDeliveries", "Driver")">
+        <i data-lucide="check-circle"></i>
+        Completed Deliveries
+    </a>
+}
+
+<div class="navbar-right">
+    <!-- Notification Bell -->
+    <div class="notification-bell" id="notificationBell">
+        <i class="fas fa-bell" style="font-size: 1.2rem; color: #0A2540;"></i>
+        @if (unreadCount > 0)
+        {
+            <span class="notification-count">@unreadCount</span>
+        }
+
+        <div class="notification-dropdown" id="notificationDropdown">
+            <div class="notification-header">
+                <i class="fas fa-bell"></i> Notifications
+            </div>
+            <div id="notificationList">
+                @if (recentNotifications.Any())
+                {
+                    foreach (var n in recentNotifications)
+                    {
+                        <div class="notification-item" data-id="@n.Id" data-ref="@n.ReferenceId" data-type="@n.Type">
+                            <div class="notification-title">@n.Title</div>
+                            <div class="notification-message">@n.Message</div>
+                            <div class="notification-time">@n.CreatedAt</div>
+                        </div>
+                    }
+                    <a href="#" class="view-all-link" id="viewAllNotifications">View All Notifications</a>
+                }
+                else
+                {
+                    <div class="notification-empty">No notifications</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="user-name">
+        <i class="fas fa-user-circle"></i> @Session["FullName"]
+    </div>
+
+    <a href="@Url.Action("Logout", "Account")" class="btn-logout">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    var driverId = @driverId;
+
+    $('#notificationBell').click(function(e) {
+        e.stopPropagation();
+        $('#notificationDropdown').toggleClass('show');
+    });
+
+    $(document).click(function() {
+        $('#notificationDropdown').removeClass('show');
+    });
+
+    $('.notification-item').click(function() {
+        var id = $(this).data('id');
+        var referenceId = $(this).data('ref');
+        var type = $(this).data('type');
+
+        $.post('@Url.Action("MarkNotificationRead", "Router")', { notificationId: id })
+            .done(function() {
+                if (type === 'Route' && referenceId) {
+                    window.location.href = '@Url.Action("RouteStops", "Driver")?routeId=' + referenceId;
+                } else {
+                    location.reload();
+                }
+            });
+    });
+
+    $('#viewAllNotifications').click(function(e) {
+        e.preventDefault();
+        window.location.href = '@Url.Action("MyNotifications", "Driver")';
+    });
+
+    function refreshNotifications() {
+        $.get('@Url.Action("GetNotifications", "Router")', { driverId: driverId })
+            .done(function(data) {
+                var count = data.unreadCount;
+                if (count > 0) {
+                    $('.notification-count').text(count).show();
+                } else {
+                    $('.notification-count').hide();
+                }
+            });
+    }
+
+    setInterval(refreshNotifications, 30000);
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+@RenderBody()

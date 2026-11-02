@@ -1,0 +1,262 @@
+﻿﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>@ViewBag.Title - Chester Meat Matrix</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <link rel="icon" type="image/x-icon" href="~/Content/Images/favicon.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    @RenderSection("styles", required: false)
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="navbar-chester">
+        <div class="nav-container">
+
+            <!-- ZONE 1: Logo -->
+            <div class="logo-area">
+                <a href="@Url.Action("Index", "Home")" class="logo-link">
+                    <img src="@Url.Content("~/Content/Images/chestergrouplogo.png")"
+                         alt="Chester Group Logo"
+                         class="logo-img logo-img-white"
+                         onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'logo-text\'>CHESTER<small>Premium Wholesale Meats</small></span>';" />
+                </a>
+                <button class="mobile-toggle" id="mobileToggle">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- ZONE 2: Center Nav Links -->
+            <div class="nav-links" id="mainNavLinks">
+                <a href="@Url.Action("Index", "Home")">Home</a>
+                <a href="@Url.Action("Products", "Customer")">All Products</a>
+                <a href="@Url.Action("Resources", "Home")">Resources</a>
+                <a href="@Url.Action("Index", "Home")#about">About</a>
+                <a href="@Url.Action("Index", "Home")#contact">Contact</a>
+            </div>
+
+            <!-- ZONE 3: Right Actions (Cart + User) — always visible -->
+            <div class="nav-actions" id="navActions">
+
+                <!-- Cart Button -->
+                <button class="cart-btn" onclick="openCart()" title="View Cart">
+                    <i data-lucide="shopping-cart" class="nav-icon"></i>
+                    <span id="cartCountBadge" class="cart-badge">0</span>
+                </button>
+
+                <!-- Divider -->
+                <span class="nav-divider"></span>
+
+                @if (Session["Username"] != null)
+                {
+                    <!-- User Dropdown -->
+                    <div class="user-dropdown">
+                        <button class="user-btn">
+                            <span class="user-avatar">@(((Session["FullName"] as string) ?? (Session["Username"] as string) ?? "?").Substring(0, 1).ToUpper())</span>
+                            <span class="user-name-text">@((Session["FullName"] as string) ?? Session["Username"])</span>
+                            <i data-lucide="chevron-down" class="nav-icon-sm"></i>
+                        </button>
+                        <div class="user-dropdown-menu">
+                            <a href="@Url.Action("Index", "Dashboard")">
+                                <i data-lucide="layout-dashboard" class="menu-icon"></i>
+                                Dashboard
+                            </a>
+                            <a href="@Url.Action("Index", "Customer")">
+                                <i data-lucide="user" class="menu-icon"></i>
+                                My Account
+                            </a>
+                            <!-- Enterprise Customer Cart Link -->
+                            @{
+                                var fullName = Session["FullName"] as string;
+                                var customer = ChesterMeatMatrix.Data.InMemoryDatabase.Customers.FirstOrDefault(c => c.Name == fullName);
+                                if (customer != null && customer.CustomerType == ChesterMeatMatrix.Models.CustomerTypeEnum.Enterprise)
+                                {
+                                    <a href="@Url.Action("Index", "EnterpriseCart")">
+                                        <i data-lucide="shopping-cart" class="menu-icon"></i>
+                                        Enterprise Cart
+                                    </a>
+                                    <a href="@Url.Action("Products", "Enterprise")">
+                                        <i data-lucide="store" class="menu-icon"></i>
+                                        Shop
+                                    </a>
+                                }
+                            }
+                            <div class="dropdown-divider"></div>
+                            <a href="#" onclick="logout()" class="logout-link">
+                                <i data-lucide="log-out" class="menu-icon"></i>
+                                Sign Out
+                            </a>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a href="@Url.Action("Login", "Account")" class="nav-btn-outline">Sign In</a>
+                    <a href="@Url.Action("SignUp", "Account")" class="nav-btn-primary">Register</a>
+                }
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-container">
+        @RenderBody()
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer-chester">
+        <div class="footer-content">
+            <div class="footer-col">
+                <h4>Contact</h4>
+                <p><strong>Head Office</strong></p>
+                <p>Tel: +27 31 001 9501</p>
+                <p>Fax: +27 31 001 9571</p>
+                <p style="margin-top:12px;"><strong>Address</strong></p>
+                <p>14 – 22 Watford Road<br />Congella, Durban<br />4001</p>
+            </div>
+            <div class="footer-col">
+                <h4>Quick Links</h4>
+                <a href="@Url.Action("Index", "Home")">Home</a>
+                <a href="@Url.Action("Index", "Home")#about">About</a>
+                <a href="@Url.Action("Products", "Customer")">Shop</a>
+                <a href="@Url.Action("Index", "Home")#contact">Contact</a>
+            </div>
+            <div class="footer-col">
+                <h4>Email</h4>
+                <p>info@chestersa.com</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; @DateTime.Now.Year - Chester Group Wholesale Meat. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- LOADING OVERLAY -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- CART SLIDE-OUT PANEL -->
+    <div id="cartOverlay" class="cart-overlay" onclick="closeCart()"></div>
+    <div id="cartPanel" class="cart-side-panel">
+        <div class="cart-side-header">
+            <h3>YOUR CART</h3>
+            <button class="cart-side-close" onclick="closeCart()">✕</button>
+        </div>
+        <div id="cartPanelBody" class="cart-side-body">
+            <p class="cart-loading">Loading cart...</p>
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    <script>
+        // Mobile menu toggle — shows both nav links and actions
+        document.getElementById('mobileToggle')?.addEventListener('click', function () {
+            document.getElementById('mainNavLinks').classList.toggle('show');
+            document.getElementById('navActions').classList.toggle('show-mobile');
+        });
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '@Url.Action("Logout", "Account")';
+            }
+        }
+
+        // Show loading on form submits
+        document.addEventListener('submit', function (e) {
+            if (e.target.tagName === 'FORM') {
+                document.getElementById('loadingOverlay').style.display = 'flex';
+            }
+        });
+
+        // Hide loading after page loads
+        window.addEventListener('load', function () {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        });
+
+        // Update cart count badge
+        function updateCartCount() {
+            $.ajax({
+                url: '@Url.Action("GetCartCount", "Customer")',
+                method: 'GET',
+                success: function (data) {
+                    $('#cartCountBadge').text(data.count || 0);
+                },
+                error: function () {
+                    $('#cartCountBadge').text('0');
+                }
+            });
+        }
+
+        function openCart() {
+            loadCartPanel();
+            document.getElementById('cartPanel').classList.add('open');
+            document.getElementById('cartOverlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCart() {
+            document.getElementById('cartPanel').classList.remove('open');
+            document.getElementById('cartOverlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        function loadCartPanel() {
+            $.ajax({
+                url: '@Url.Action("GetCartPanel", "Customer")',
+                method: 'GET',
+                success: function (html) {
+                    $('#cartPanelBody').html(html);
+                },
+                error: function () {
+                    $('#cartPanelBody').html('<p style="padding:20px;color:red;">Could not load cart.</p>');
+                }
+            });
+        }
+
+        function removeFromCart(productId) {
+            $.ajax({
+                url: '@Url.Action("RemoveFromCart", "Customer")',
+                method: 'POST',
+                data: { productId: productId },
+                success: function (response) {
+                    $('#cartCountBadge').text(response.cartCount || 0);
+                    loadCartPanel();
+                }
+            });
+        }
+
+        function updateCartQty(productId, qty) {
+            $.ajax({
+                url: '@Url.Action("UpdateCartQty", "Customer")',
+                method: 'POST',
+                data: { productId: productId, quantity: qty },
+                success: function (response) {
+                    $('#cartCountBadge').text(response.cartCount || 0);
+                    loadCartPanel();
+                }
+            });
+        }
+
+        // Run on page load
+        $(document).ready(function () {
+            updateCartCount();
+            lucide.createIcons();
+        });
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

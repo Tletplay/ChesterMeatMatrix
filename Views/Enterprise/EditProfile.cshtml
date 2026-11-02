@@ -1,0 +1,103 @@
+﻿@model ChesterMeatMatrix.Models.Customer
+@{
+    ViewBag.Title = "Edit Profile - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .profile-form {
+        max-width: 600px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #0A2540;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid #E0E8F0;
+        border-radius: 12px;
+        transition: all 0.2s;
+    }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #2C6E9E;
+            box-shadow: 0 0 0 3px rgba(44, 110, 158, 0.1);
+        }
+
+    .btn-save {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 40px;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.2s;
+    }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(10, 37, 64, 0.3);
+        }
+
+    .readonly-field {
+        background: #F0F4F8;
+        color: #6B7280;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">Edit Profile</h2>
+        <a href="@Url.Action("Index", "Enterprise")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    <div class="profile-form">
+        @using (Html.BeginForm("EditProfile", "Enterprise", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label class="form-label">Company / Full Name</label>
+                @Html.TextBoxFor(m => m.Name, new { @class = "form-control", required = "required" })
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Contact Phone</label>
+                @Html.TextBoxFor(m => m.ContactPhone, new { @class = "form-control", required = "required" })
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Address</label>
+                @Html.TextAreaFor(m => m.Address, new { @class = "form-control", rows = 3 })
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Account Type</label>
+                <input type="text" class="form-control readonly-field" value="Enterprise Customer (Monthly Billing)" readonly disabled />
+                <small class="text-muted">Enterprise customers receive monthly invoices</small>
+            </div>
+
+            <button type="submit" class="btn-save">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        }
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

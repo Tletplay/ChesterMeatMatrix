@@ -1,0 +1,158 @@
+﻿@{
+    ViewBag.Title = "Low Stock Alerts - Warehouse";
+    Layout = "~/Views/Shared/_WarehouseLayout.cshtml";
+    var lowStockBatches = ViewBag.LowStockBatches as List<ChesterMeatMatrix.Models.StockBatch> ?? new List<ChesterMeatMatrix.Models.StockBatch>();
+    var outOfStock = ViewBag.OutOfStock as List<ChesterMeatMatrix.Models.Product> ?? new List<ChesterMeatMatrix.Models.Product>();
+}
+
+<style>
+    .alert-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border-left: 4px solid;
+    }
+
+    .alert-warning {
+        border-left-color: #F59E0B;
+    }
+
+    .alert-danger {
+        border-left-color: #DC2626;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+        .data-table th {
+            background: #F0F4F8;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E8F0;
+        }
+
+    .badge-low {
+        background: #FEF3C7;
+        color: #D97706;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .badge-out {
+        background: #FEE2E2;
+        color: #DC2626;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">Stock Alerts</h2>
+        <a href="@Url.Action("Index", "Warehouse")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    <!-- Low Stock Section -->
+    <div class="alert-card alert-warning">
+        <h4><i class="fas fa-exclamation-triangle"></i> Low Stock (Less than 10 units)</h4>
+        @if (!lowStockBatches.Any())
+        {
+            <p class="text-muted">No low stock items.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Batch Number</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Location</th>
+                            <th>Received Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var batch in lowStockBatches)
+                        {
+                            <tr>
+                                <td>
+                                    @batch.BatchNumber
+                            </td>
+                            <td>
+                                @batch.Product?.Name
+                        </td>
+                        <td>
+                            <span class="badge-low">@batch.Quantity units</span>
+                        </td>
+                        <td>
+                            @batch.Location
+                    </td>
+                    <td>
+                        @batch.ReceivedDate.ToString("dd MMM yyyy")
+                </td>
+            </tr>
+        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- Out of Stock Section -->
+    <div class="alert-card alert-danger">
+        <h4><i class="fas fa-times-circle"></i> Out of Stock</h4>
+        @if (!outOfStock.Any())
+        {
+            <p class="text-muted">No out of stock items.</p>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Product Code</th>
+                            <th>Product Name</th>
+                            <th>Category</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var product in outOfStock)
+                        {
+                            <tr>
+                                <td>
+                                    @product.ProductCode
+                            </td>
+                            <td>
+                                @product.Name
+                        </td>
+                        <td>@product.Category
+                    </td>
+                    <td>
+                        <a href="@Url.Action("Create", "Receiver")" class="btn btn-sm btn-primary">Receive Stock</a>
+                    </td>
+                </tr>
+            }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

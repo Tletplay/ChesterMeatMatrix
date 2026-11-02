@@ -1,0 +1,629 @@
+﻿﻿@model IEnumerable<ChesterMeatMatrix.Models.Order>
+
+@{
+    ViewBag.Title = "Ready to Pick - Checker";
+    Layout = "~/Views/Shared/_CheckerLayout.cshtml";
+
+    var search = ViewBag.Search as string ?? "";
+    var fromDate = ViewBag.FromDate as string ?? "";
+    var toDate = ViewBag.ToDate as string ?? "";
+}
+
+@Html.AntiForgeryToken()
+
+<style>
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #E0E8F0;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+        .data-table th {
+            background: #F0F4F8;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E8F0;
+        }
+
+    .btn-ready {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+        .btn-ready:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .btn-view {
+        background: #2C6E9E;
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        margin-right: 8px;
+    }
+
+        .btn-view:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .btn-qr {
+        background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+        margin: 0 4px;
+    }
+
+    .order-details {
+        display: none;
+        background: #F8FBFE;
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 12px;
+    }
+
+    .weight-modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .weight-modal {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        max-width: 500px;
+        width: 90%;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+        .weight-modal h3 {
+            color: #0A2540;
+            margin-bottom: 15px;
+        }
+
+        .weight-modal .expected-weight {
+            background: #F0F4F8;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .weight-modal input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #E0E8F0;
+            border-radius: 12px;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+
+        .weight-modal .warning-message {
+            background: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #92400E;
+            display: none;
+        }
+
+        .weight-modal .error-message {
+            background: #FEE2E2;
+            border-left: 4px solid #DC2626;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 13px;
+            color: #991B1B;
+            display: none;
+        }
+
+    .weight-modal-buttons {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .btn-save-weight {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 40px;
+        cursor: pointer;
+        flex: 1;
+    }
+
+    .btn-cancel-weight {
+        background: #64748B;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 40px;
+        cursor: pointer;
+        flex: 1;
+    }
+
+    .weight-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .weight-ok {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .weight-warning {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .weight-missing {
+        background: #FEE2E2;
+        color: #991B1B;
+    }
+
+    .items-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+    }
+
+        .items-table th, .items-table td {
+            padding: 8px;
+            border-bottom: 1px solid #E0E8F0;
+            text-align: left;
+        }
+
+        .items-table th {
+            background: #F0F4F8;
+            font-weight: 700;
+        }
+</style>
+
+<div class="container py-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">Ready to Pick Orders</h2>
+        <div>
+            <a href="@Url.Action("ScanOrder", "Checker")" class="btn btn-primary me-2">
+                <i class="fas fa-qrcode"></i> Scan QR Code
+            </a>
+            <a href="@Url.Action("Index", "Checker")" class="btn btn-outline-secondary">
+                ← Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- FILTER SECTION -->
+    <div class="filter-card">
+        @using (Html.BeginForm("PendingOrders", "Checker", FormMethod.Get))
+        {
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">🔍 Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Order # or Customer" value="@search" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">📅 From Date</label>
+                    <input type="date" name="fromDate" class="form-control" value="@fromDate" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">📅 To Date</label>
+                    <input type="date" name="toDate" class="form-control" value="@toDate" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn-filter w-100">Apply Filter</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-4">
+            <i class="fas fa-check-circle fa-2x mb-2 d-block"></i>
+            <p>No orders ready for picking. Orders will appear here once confirmed by Sales.</p>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Total</th>
+                        <th>Weight Status</th>
+                        <th>Items</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        var isLocked = order.Status == ChesterMeatMatrix.Models.OrderStatusEnum.Processing ||
+                                       order.Status == ChesterMeatMatrix.Models.OrderStatusEnum.OutForDelivery;
+                        var hasWeight = order.TotalWeightKg > 0;
+                        var weightClass = hasWeight ? "weight-ok" : "weight-missing";
+                        var weightText = hasWeight ? order.TotalWeightKg.ToString("F2") + " kg" : "Not weighed";
+
+                        <tr>
+                            <td><strong>@order.OrderNumber</strong></td>
+                            <td>@order.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                            <td>@(order.Customer?.Name ?? "N/A")</td>
+                            <td><strong>R @order.Total.ToString("N2")</strong></td>
+                            <td><span class="weight-badge @weightClass">@weightText</span></td>
+                            <td>@(order.Items?.Count ?? 0) items</td>
+                            <td>
+                                @if (isLocked)
+                                {
+                                    <span class="badge bg-secondary">🔒 Locked</span>
+                                }
+                                else if (!hasWeight)
+                                {
+                                    <span class="badge bg-warning">⚖️ Needs Weighing</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-info">✅ Ready</span>
+                                }
+                            </td>
+                            <td>
+                                <button type="button" class="btn-view" data-order-id="@order.Id" @(isLocked ? "disabled" : "")>
+                                    📋 View Details
+                                </button>
+
+                                @if (!isLocked)
+                                {
+                                    <button type="button" class="btn-qr weigh-order" data-order-id="@order.Id" data-order-number="@order.OrderNumber" data-has-weight="@hasWeight.ToString().ToLower()">
+                                        ⚖️ Weigh Order
+                                    </button>
+                                }
+
+                                <a href="@Url.Action("GenerateQrCode", "Checker", new { orderId = order.Id })" class="btn-qr" target="_blank">
+                                    <i class="fas fa-qrcode"></i> QR
+                                </a>
+
+                                @if (!isLocked)
+                                {
+                                    <button type="button" class="btn-ready mark-ready" data-order-id="@order.Id" data-has-weight="@hasWeight.ToString().ToLower()" data-weight="@order.TotalWeightKg">
+                                        🚚 Mark Ready for Router
+                                    </button>
+                                }
+
+                                <div id="order-details-@order.Id" class="order-details"></div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<!-- Weight Input Modal -->
+<div id="weightModal" class="weight-modal-overlay">
+    <div class="weight-modal">
+        <h3><i class="fas fa-weight-scale"></i> Record Order Weight</h3>
+        <p>Order #: <strong id="modalOrderNumber"></strong></p>
+
+        <div class="expected-weight" id="expectedWeightInfo">
+            <span>Calculating expected weight...</span>
+        </div>
+
+        <label>Actual Weight (kg):</label>
+        <input type="number" id="actualWeight" step="0.01" placeholder="Enter weight in kg" />
+
+        <div id="warningMessage" class="warning-message"></div>
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="weight-modal-buttons">
+            <button class="btn-cancel-weight" onclick="closeWeightModal()">Cancel</button>
+            <button class="btn-save-weight" onclick="saveWeight()">Save Weight</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    var currentOrderId = 0;
+    var currentExpectedWeight = 0;
+
+    // Helper function to get anti-forgery token
+    function getToken() {
+        return $('input[name="__RequestVerificationToken"]').val();
+    }
+
+    // Weight Modal Functions
+    function openWeightModal(orderId, orderNumber) {
+        currentOrderId = orderId;
+        $('#modalOrderNumber').text(orderNumber);
+        $('#actualWeight').val('');
+        $('#warningMessage').hide();
+        $('#errorMessage').hide();
+        $('#expectedWeightInfo').html('<span>Loading expected weight...</span>');
+
+        $.get('@Url.Action("GetOrderDetails", "Checker")', { orderId: orderId })
+            .done(function(data) {
+                currentExpectedWeight = data.expectedWeight;
+                $('#expectedWeightInfo').html(
+                    '<strong>Expected Weight:</strong> ' + data.expectedWeight.toFixed(2) + ' kg<br>' +
+                    '<small>Based on product quantities in order</small>'
+                );
+            })
+            .fail(function() {
+                $('#expectedWeightInfo').html('<span class="text-danger">Could not calculate expected weight</span>');
+            });
+
+        $('#weightModal').fadeIn(200);
+    }
+
+    function closeWeightModal() {
+        $('#weightModal').fadeOut(200);
+        currentOrderId = 0;
+    }
+
+    function saveWeight() {
+        var weight = parseFloat($('#actualWeight').val());
+
+        if (isNaN(weight) || weight <= 0) {
+            $('#errorMessage').text('Please enter a valid weight greater than 0').show();
+            return;
+        }
+
+        var token = getToken();
+        if (!token) {
+            alert('Security token not found. Please refresh the page.');
+            return;
+        }
+
+        $('#errorMessage').hide();
+        $('#warningMessage').hide();
+
+        $.ajax({
+            url: '@Url.Action("UpdateOrderWeight", "Checker")',
+            type: 'POST',
+            data: {
+                orderId: currentOrderId,
+                weight: weight,
+                __RequestVerificationToken: token
+            },
+            success: function(response) {
+                if (response.success) {
+                    if (response.isWithinTolerance) {
+                        // Update the UI without full reload
+                        var row = $('button[data-order-id="' + currentOrderId + '"]').first().closest('tr');
+                        var weightBadge = row.find('.weight-badge');
+                        weightBadge.removeClass('weight-missing').addClass('weight-ok').text(response.actualWeight.toFixed(2) + ' kg');
+
+                        // Update the mark-ready button data
+                        var markReadyBtn = row.find('.mark-ready');
+                        if (markReadyBtn.length) {
+                            markReadyBtn.data('has-weight', 'true');
+                            markReadyBtn.data('weight', response.actualWeight);
+                        }
+
+                        // Update status badge
+                        var statusBadge = row.find('td:nth-child(7) span');
+                        statusBadge.removeClass('bg-warning').addClass('bg-info').text('✅ Ready');
+
+                        alert('Weight recorded: ' + response.actualWeight.toFixed(2) + ' kg\n\nExpected: ' + response.expectedWeight.toFixed(2) + ' kg\nDifference: ' + response.difference.toFixed(2) + ' kg (' + response.percentageDifference + '%)\n\n✓ Within tolerance (≤10%)');
+                        closeWeightModal();
+                    } else {
+                        $('#warningMessage').html(
+                            '⚠ Weight exceeds tolerance!\n\n' +
+                            'Expected: ' + response.expectedWeight.toFixed(2) + ' kg\n' +
+                            'Actual: ' + response.actualWeight.toFixed(2) + ' kg\n' +
+                            'Difference: ' + response.difference.toFixed(2) + ' kg (' + response.percentageDifference + '%)\n\n' +
+                            'Tolerance limit is 10%. Please verify the weight and try again.'
+                        ).show();
+                    }
+                } else {
+                    $('#errorMessage').text(response.message).show();
+                }
+            },
+            error: function() {
+                $('#errorMessage').text('Error updating weight. Please try again.').show();
+            }
+        });
+    }
+
+    // Click handlers
+    $(document).ready(function () {
+        // View Details
+        $('.btn-view').click(function () {
+            var orderId = $(this).data('order-id');
+            var detailsDiv = $('#order-details-' + orderId);
+            if (detailsDiv.is(':visible')) {
+                detailsDiv.hide();
+            } else {
+                detailsDiv.html('<div style="text-align:center; padding:20px;">Loading order details...</div>').show();
+                $.get('@Url.Action("GetOrderDetails", "Checker")', { orderId: orderId })
+                    .done(function (data) {
+                        var itemsHtml = '<h5>Order Items</h5><table class="items-table">' +
+                            '<thead><tr><th>Product</th><th>Unit Weight</th><th>Qty</th><th>Total Weight</th><th>Unit Price</th><th>Subtotal</th></tr></thead><tbody>';
+
+                        for (var i = 0; i < data.items.length; i++) {
+                            var it = data.items[i];
+                            var totalItemWeight = it.unitWeight * it.quantity;
+                            itemsHtml += '<tr>' +
+                                '<td>' + it.productName + '</td>' +
+                                '<td>' + it.unitWeight.toFixed(2) + ' kg</td>' +
+                                '<td>' + it.quantity + '</td>' +
+                                '<td>' + totalItemWeight.toFixed(2) + ' kg</td>' +
+                                '<td>R ' + it.unitPrice.toFixed(2) + '</td>' +
+                                '<td>R ' + it.subtotal.toFixed(2) + '</td>' +
+                                '</tr>';
+                        }
+                        itemsHtml += '</tbody></table>';
+
+                        var weightHtml = '';
+                        if (data.currentWeight > 0) {
+                            var weightColor = data.isWithinTolerance ? '#10B981' : '#DC2626';
+                            weightHtml = '<div style="margin-top: 15px; padding: 12px; background: #F8FAFE; border-radius: 12px;">' +
+                                '<strong>📊 Weight Verification</strong><br/>' +
+                                '<span>Expected Weight: <strong>' + data.expectedWeight.toFixed(2) + ' kg</strong></span><br/>' +
+                                '<span>Actual Weight: <strong style="color: ' + weightColor + ';">' + data.currentWeight.toFixed(2) + ' kg</strong></span><br/>' +
+                                '<span>Difference: <strong>' + Math.abs(data.weightDifference).toFixed(2) + ' kg (' + data.percentageDifference + '%)</strong></span><br/>';
+
+                            if (data.isWithinTolerance) {
+                                weightHtml += '<span style="color: #10B981;">✓ Within tolerance (≤10%)</span>';
+                            } else {
+                                weightHtml += '<span style="color: #DC2626;">⚠ Exceeds tolerance (&gt;10%) - Please re-weigh</span>';
+                            }
+                            weightHtml += '</div>';
+                        } else {
+                            weightHtml = '<div style="margin-top: 15px; padding: 12px; background: #FEF3C7; border-radius: 12px;">' +
+                                '<strong>⚠ No Weight Recorded</strong><br/>' +
+                                '<span>Please click "Weigh Order" to record the actual weight.</span>' +
+                                '</div>';
+                        }
+
+                        var html = itemsHtml + weightHtml;
+                        html += '<p><strong>Delivery Address:</strong> ' + data.deliveryAddress + '</p>';
+                        html += '<p><strong>Phone:</strong> ' + data.phone + '</p>';
+
+                        detailsDiv.html(html);
+                    })
+                    .fail(function () {
+                        detailsDiv.html('<p class="text-danger">Error loading details</p>');
+                    });
+            }
+        });
+
+        // Weigh Order button
+        $('.weigh-order').click(function () {
+            var orderId = $(this).data('order-id');
+            var orderNumber = $(this).data('order-number');
+            openWeightModal(orderId, orderNumber);
+        });
+
+        // Mark Ready for Router
+        $('.mark-ready').click(function () {
+            var btn = $(this);
+            var orderId = btn.data('order-id');
+            var token = getToken();
+
+            if (!token) {
+                alert('Security token not found. Please refresh the page.');
+                return;
+            }
+
+            btn.text('Checking...').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("GetOrderDetails", "Checker")',
+                type: 'GET',
+                data: { orderId: orderId },
+                success: function(orderData) {
+                    btn.text('Mark Ready for Router').prop('disabled', false);
+
+                    if (!orderData.isWeightRecorded) {
+                        alert('⚠ Please record the order weight before marking as ready for Router.\n\nClick the "Weigh Order" button first.');
+                        return;
+                    }
+
+                    if (!orderData.isWithinTolerance) {
+                        alert('⚠ Weight exceeds tolerance limit of 10%!\n\n' +
+                              'Expected: ' + orderData.expectedWeight.toFixed(2) + ' kg\n' +
+                              'Actual: ' + orderData.currentWeight.toFixed(2) + ' kg\n' +
+                              'Difference: ' + orderData.percentageDifference + '%\n\n' +
+                              'Please re-weigh and correct the weight.');
+                        return;
+                    }
+
+                    if (confirm('Verify that the order is correctly packed and weighed.\n\nMark this order as ready for Router?')) {
+                        btn.text('Processing...').prop('disabled', true);
+                        $.ajax({
+                            url: '@Url.Action("MarkAsReady", "Checker")',
+                            type: 'POST',
+                            data: {
+                                orderId: orderId,
+                                __RequestVerificationToken: token
+                            },
+                            success: function (response) {
+                                if (response.success) {
+                                    btn.closest('tr').fadeOut();
+                                    alert(response.message);
+                                } else {
+                                    alert('Error: ' + response.message);
+                                    btn.text('Mark Ready for Router').prop('disabled', false);
+                                }
+                            },
+                            error: function (xhr, status, error) {
+                                alert('Error processing request: ' + error);
+                                btn.text('Mark Ready for Router').prop('disabled', false);
+                            }
+                        });
+                    } else {
+                        btn.text('Mark Ready for Router').prop('disabled', false);
+                    }
+                },
+                error: function() {
+                    alert('Could not verify order status. Please refresh and try again.');
+                    btn.text('Mark Ready for Router').prop('disabled', false);
+                }
+            });
+        });
+
+        // Close modal when clicking outside
+        $(window).click(function(event) {
+            if ($(event.target).is('#weightModal')) {
+                closeWeightModal();
+            }
+        });
+    });
+</script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

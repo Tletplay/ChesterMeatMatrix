@@ -1,0 +1,202 @@
+﻿﻿@{
+    ViewBag.Title = "Scan Item - Receiver";
+    Layout = "~/Views/Shared/_ReceiverLayout.cshtml";
+}
+
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .container-custom {
+        max-width: 800px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .scan-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(10, 76, 140, 0.08);
+        text-align: center;
+    }
+
+    .scan-icon {
+        font-size: 64px;
+        color: #0a4c8c;
+        margin-bottom: 1rem;
+    }
+
+    .scan-input-group {
+        display: flex;
+        gap: 1rem;
+        margin: 1.5rem 0;
+    }
+
+    .scan-input {
+        flex: 1;
+        padding: 1rem;
+        font-size: 1.2rem;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+        .scan-input:focus {
+            outline: none;
+            border-color: #0a4c8c;
+        }
+
+    .btn-scan {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        border: none;
+        padding: 1rem 2rem;
+        border-radius: 12px;
+        color: white;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-scan:hover {
+            transform: translateY(-2px);
+        }
+
+    .result-card {
+        background: #f8fafc;
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-top: 1.5rem;
+        display: none;
+    }
+
+        .result-card.success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            display: block;
+        }
+
+        .result-card.error {
+            background: #fee2e2;
+            border-left: 4px solid #ef4444;
+            display: block;
+        }
+
+    .result-item {
+        margin: 0.5rem 0;
+    }
+
+    .result-label {
+        font-weight: 600;
+        color: #0a4c8c;
+        width: 120px;
+        display: inline-block;
+    }
+
+    .result-value {
+        color: #1e293b;
+    }
+</style>
+
+<div class="container-custom">
+    <div class="scan-card">
+        <div class="scan-icon">
+            📷
+        </div>
+        <h2 style="color: #0a4c8c;">Scan Item QR Code</h2>
+        <p style="color: #64748b;">Scan the QR code on any meat package to verify its details</p>
+
+        <div class="scan-input-group">
+            <input type="text" id="scannedCode" class="scan-input" placeholder="Scan QR code here..." autofocus />
+            <button id="scanBtn" class="btn-scan">Verify</button>
+        </div>
+
+        <div id="result" class="result-card">
+            <div class="result-item">
+                <span class="result-label">Status:</span>
+                <span id="resultStatus" class="result-value"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Item Code:</span>
+                <span id="resultItemCode" class="result-value"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Product:</span>
+                <span id="resultProduct" class="result-value"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Weight:</span>
+                <span id="resultWeight" class="result-value"></span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Batch:</span>
+                <span id="resultBatch" class="result-value"></span>
+            </div>
+        </div>
+
+        <p style="margin-top: 1rem; font-size: 0.85rem; color: #94a3b8;">
+            <i class="fas fa-info-circle"></i> QR codes are generated when stock is received
+        </p>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#scanBtn').click(function() {
+            scanCode();
+        });
+
+        $('#scannedCode').keypress(function(e) {
+            if (e.which === 13) {
+                scanCode();
+            }
+        });
+
+        function scanCode() {
+            var code = $('#scannedCode').val().trim();
+            if (!code) {
+                alert('Please scan or enter a QR code');
+                return;
+            }
+
+            $('#scanBtn').prop('disabled', true).text('Verifying...');
+
+            $.ajax({
+                url: '@Url.Action("ValidateScannedItem", "Receiver")',
+                type: 'POST',
+                data: { scannedCode: code },
+                success: function(response) {
+                    if (response.success) {
+                        $('#result').removeClass('error').addClass('success');
+                        $('#resultStatus').text('✅ Valid').css('color', '#065f46');
+                        $('#resultItemCode').text(response.itemCode);
+                        $('#resultProduct').text(response.productName);
+                        $('#resultWeight').text(response.unitWeight + ' kg');
+                        $('#resultBatch').text(response.batchNumber || 'N/A');
+                    } else {
+                        $('#result').removeClass('success').addClass('error');
+                        $('#resultStatus').text('❌ ' + response.message).css('color', '#991b1b');
+                        $('#resultItemCode').text(response.itemCode || 'N/A');
+                        $('#resultProduct').text('N/A');
+                        $('#resultWeight').text('N/A');
+                        $('#resultBatch').text('N/A');
+                    }
+                    $('#result').show();
+                },
+                error: function() {
+                    $('#result').removeClass('success').addClass('error');
+                    $('#resultStatus').text('❌ Error verifying code');
+                    $('#result').show();
+                },
+                complete: function() {
+                    $('#scanBtn').prop('disabled', false).text('Verify');
+                    $('#scannedCode').val('').focus();
+                }
+            });
+        }
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

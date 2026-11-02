@@ -1,0 +1,423 @@
+﻿@model IEnumerable<ChesterMeatMatrix.Models.Order>
+@{
+    ViewBag.Title = "My Account - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var customerName = Session["FullName"] as string ?? "";
+    var customerEmail = Session["Username"] as string ?? "";
+    var customer = ChesterMeatMatrix.Data.InMemoryDatabase.Customers.FirstOrDefault(c => c.Name == customerName);
+    var totalOrders = Model.Count();
+    var totalItems = Model.Sum(o => o.Items?.Sum(i => i.Quantity) ?? 0);
+    var totalSpent = Model.Sum(o => o.Total);
+    var activeTab = ViewBag.ActiveTab as string ?? "orders";
+}
+
+<style>
+    /* Customer Dashboard Styles */
+    .dashboard-tabs {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid var(--gray-light);
+        margin-bottom: 30px;
+    }
+
+    .tab-btn {
+        padding: 12px 24px;
+        background: none;
+        border: none;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+    }
+
+        .tab-btn:hover {
+            color: var(--red-primary);
+        }
+
+        .tab-btn.active {
+            color: var(--red-primary);
+        }
+
+            .tab-btn.active::after {
+                content: '';
+                position: absolute;
+                bottom: -2px;
+                left: 0;
+                right: 0;
+                height: 2px;
+                background: var(--red-primary);
+            }
+
+    .tab-content {
+        display: none;
+    }
+
+        .tab-content.active {
+            display: block;
+        }
+
+    /* Profile Form */
+    .profile-form {
+        max-width: 500px;
+    }
+
+    .profile-avatar {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+        .profile-avatar span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 100px;
+            height: 100px;
+            background: var(--navy-dark);
+            border-radius: 50%;
+            font-size: 48px;
+        }
+
+    .form-readonly {
+        background: var(--off-white);
+        cursor: not-allowed;
+    }
+
+    /* Stats Cards */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: var(--off-white);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        text-align: center;
+        border: 1px solid var(--gray-light);
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--navy-dark);
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 5px;
+    }
+
+    /* Orders Table */
+    .orders-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .orders-table th {
+            text-align: left;
+            padding: 12px;
+            background: var(--off-white);
+            font-weight: 600;
+            border-bottom: 2px solid var(--gray-light);
+        }
+
+        .orders-table td {
+            padding: 12px;
+            border-bottom: 1px solid var(--gray-light);
+        }
+
+        .orders-table tr:hover {
+            background: var(--off-white);
+        }
+
+    .btn-view {
+        background: var(--navy-medium);
+        color: white;
+        padding: 5px 12px;
+        border-radius: var(--radius-full);
+        font-size: 12px;
+        text-decoration: none;
+    }
+
+        .btn-view:hover {
+            background: var(--navy-dark);
+            color: white;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+    }
+
+        .empty-state span {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 15px;
+        }
+
+    .start-order-btn {
+        display: inline-block;
+        background: var(--red-primary);
+        color: white;
+        padding: 12px 28px;
+        border-radius: var(--radius-full);
+        font-weight: 600;
+        margin-top: 15px;
+        text-decoration: none;
+    }
+
+        .start-order-btn:hover {
+            background: var(--red-dark);
+            color: white;
+        }
+
+    /* Footer Links */
+    .footer-links {
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid var(--gray-light);
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-decoration: none;
+        }
+
+            .footer-links a:hover {
+                color: var(--red-primary);
+            }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 12px 16px;
+        }
+
+        .orders-table {
+            display: block;
+            overflow-x: auto;
+        }
+
+        .profile-form {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Welcome Header -->
+    <div class="mb-4">
+        <h1 style="color: var(--navy-dark);">My Account</h1>
+        <p style="color: var(--text-secondary);">Welcome back, @customerName</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-value">@totalOrders</div>
+            <div class="stat-label">Total Orders</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">@totalItems</div>
+            <div class="stat-label">Items Purchased</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value">R @totalSpent.ToString("N0")</div>
+            <div class="stat-label">Total Spent</div>
+        </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="dashboard-tabs">
+        <button class="tab-btn @(activeTab == "orders" ? "active" : "")" onclick="switchTab('orders')">
+            <i class="fas fa-shopping-bag"></i> Orders
+        </button>
+        <button class="tab-btn @(activeTab == "profile" ? "active" : "")" onclick="switchTab('profile')">
+            <i class="fas fa-user-circle"></i> Profile
+        </button>
+    </div>
+
+    <!-- ORDERS TAB -->
+    <div id="ordersTab" class="tab-content @(activeTab == "orders" ? "active" : "")">
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <span>📦</span>
+                <p>No orders yet</p>
+                <p style="font-size: 13px;">Go to store to place an order.</p>
+                <a href="@Url.Action("Products", "Customer")" class="start-order-btn">
+                    <i class="fas fa-shopping-cart"></i> Start Shopping
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Items</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model.OrderByDescending(o => o.CreatedAt))
+                        {
+                            <tr>
+                                <td><strong>@order.OrderNumber</strong></td>
+                                <td>@order.CreatedAt.ToString("dd MMM yyyy")</td>
+                                <td>@(order.Items?.Sum(i => i.Quantity) ?? 0) items</td>
+                                <td><strong>R @order.Total.ToString("N2")</strong></td>
+                                <td>
+                                    @if (order.Status == ChesterMeatMatrix.Models.OrderStatusEnum.Delivered)
+                                    {
+                                        <span style="color: #10B981;">Delivered</span>
+                                    }
+                                    else if (order.Status == ChesterMeatMatrix.Models.OrderStatusEnum.OutForDelivery)
+                                    {
+                                        <span style="color: #F59E0B;">Out for Delivery</span>
+                                    }
+                                    else if (order.Status == ChesterMeatMatrix.Models.OrderStatusEnum.Confirmed)
+                                    {
+                                        <span style="color: #2C6E9E;">Confirmed</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #6B7280;">@order.Status</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("OrderConfirmation", "Customer", new { id = order.Id })" class="btn-view">View</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- PROFILE TAB -->
+    <div id="profileTab" class="tab-content @(activeTab == "profile" ? "active" : "")">
+        <div class="profile-form">
+            <div class="profile-avatar">
+                <span>👤</span>
+            </div>
+
+            @if (TempData["Message"] != null)
+            {
+                <div class="alert alert-success" style="background: #D1FAE5; padding: 12px; border-radius: 8px; margin-bottom: 20px; color: #065F46;">
+                    ✅ @TempData["Message"]
+                </div>
+            }
+
+            @using (Html.BeginForm("UpdateProfile", "Customer", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> Full Name</label>
+                    <input type="text" name="fullName" class="form-control" value="@customerName" required />
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-envelope"></i> Email Address</label>
+                    <input type="email" name="email" class="form-control" value="@customerEmail" required />
+                    <small style="color: var(--text-secondary);">This is your username for login</small>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-phone"></i> Phone Number</label>
+                    <input type="tel" name="phone" class="form-control" value="@(customer?.ContactPhone ?? "")" />
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-location-dot"></i> Address</label>
+                    <textarea name="address" class="form-control" rows="3" placeholder="Enter your delivery address">@(customer?.Address ?? "")</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-building"></i> Account Type</label>
+                    @{
+                        var customerTypeString = customer != null ? customer.CustomerType.ToString() : "Standard";
+                    }
+                    <input type="text" class="form-control form-readonly" value="@customerTypeString" readonly disabled />
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            }
+
+            <div style="margin-top: 20px;">
+                <a href="@Url.Action("Logout", "Account")" class="btn btn-secondary" style="background: #DC2626; color: white;">
+                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Links -->
+    <div class="footer-links">
+        <a href="@Url.Action("Index", "Home")#contact">Refund policy</a>
+        <a href="@Url.Action("Index", "Home")#contact">Billing Policy</a>
+        <a href="@Url.Action("Index", "Home")#contact">Terms of service</a>
+        <a href="@Url.Action("Index", "Home")#contact">Cancellations</a>
+        <a href="@Url.Action("Index", "Home")#contact">Contact information</a>
+    </div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        // Update URL without reload
+        var url = new URL(window.location.href);
+        url.searchParams.set('tab', tab);
+        window.history.pushState({}, '', url);
+
+        // Update buttons
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // Show selected tab
+        if (tab === 'orders') {
+            document.querySelector('.tab-btn:first-child').classList.add('active');
+            document.getElementById('ordersTab').classList.add('active');
+        } else {
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.getElementById('profileTab').classList.add('active');
+        }
+    }
+
+    // Check URL param for active tab
+    var urlParams = new URLSearchParams(window.location.search);
+    var activeTab = urlParams.get('tab');
+    if (activeTab === 'profile') {
+        switchTab('profile');
+    }
+</script>

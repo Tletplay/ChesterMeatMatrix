@@ -1,0 +1,200 @@
+﻿﻿@model List<ChesterMeatMatrix.Controllers.ProductThresholdViewModel>
+@{
+    ViewBag.Title = "Manage Stock Thresholds";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+}
+
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .container-custom {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+        .header-bar h1 {
+            color: #0a4c8c;
+            font-weight: 700;
+            margin: 0;
+        }
+
+    .btn-back {
+        background: #64748b;
+        padding: 8px 24px;
+        border-radius: 40px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+        .btn-back:hover {
+            background: #475569;
+            color: white;
+            text-decoration: none;
+        }
+
+    .threshold-table {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(10, 76, 140, 0.08);
+    }
+
+        .threshold-table th {
+            background: #0a4c8c;
+            color: white;
+            padding: 1rem;
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .threshold-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .threshold-table tr:hover {
+            background: #f8fafc;
+        }
+
+    .stock-low {
+        color: #ef4444;
+        font-weight: 600;
+    }
+
+    .stock-ok {
+        color: #10b981;
+        font-weight: 600;
+    }
+
+    .form-inline-input {
+        width: 80px;
+        padding: 0.4rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        border: none;
+        padding: 0.4rem 1.2rem;
+        border-radius: 20px;
+        color: white;
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-save:hover {
+            background: linear-gradient(135deg, #0e6cb0 0%, #0a4c8c 100%);
+            transform: translateY(-1px);
+        }
+
+    .info-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(10, 76, 140, 0.08);
+    }
+
+        .info-card p {
+            margin: 0;
+            color: #64748b;
+        }
+</style>
+
+<div class="container-custom">
+    <div class="header-bar">
+        <h1>⚙️ Manage Stock Thresholds</h1>
+        <a href="@Url.Action("Dashboard")" class="btn-back">← Back to Dashboard</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div style="background: #d1fae5; color: #065f46; padding: 1rem 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border-left: 4px solid #10b981;">
+            ✅ @TempData["Success"]
+        </div>
+    }
+
+    <div class="info-card">
+        <p>
+            <strong>📊 Stock Threshold Settings</strong><br />
+            Set minimum stock levels and reorder quantities for each product.
+            The system will automatically create alerts when stock falls below the minimum level.
+        </p>
+    </div>
+
+    <div class="threshold-table">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Current Stock</th>
+                    <th>Status</th>
+                    <th>Min Stock Level</th>
+                    <th>Reorder Quantity</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        string stockClass = item.CurrentStock <= item.MinimumStockLevel ? "stock-low" : "stock-ok";
+                        string statusText = item.CurrentStock <= 0 ? "Out of Stock" :
+                                           (item.CurrentStock <= item.MinimumStockLevel ? "Low Stock" : "OK");
+
+                        <tr>
+                            <td><strong>@item.ProductName</strong></td>
+                            <td class="@stockClass">@item.CurrentStock</td>
+                            <td>
+                                <span style="padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+                                    @(item.CurrentStock <= item.MinimumStockLevel ? "background: #fee2e2; color: #991b1b;" : "background: #d1fae5; color: #065f46;")">
+                                    @statusText
+                                </span>
+                            </td>
+                            <td>
+                                @using (Html.BeginForm("SaveThreshold", "WarehouseManager", FormMethod.Post, new { style = "display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;" }))
+                                {
+                                    @Html.AntiForgeryToken()
+                                    @Html.Hidden("productId", item.ProductId)
+                                    <input type="number" name="minimumStockLevel" value="@item.MinimumStockLevel" min="1" class="form-inline-input" />
+                                    <input type="number" name="reorderQuantity" value="@item.ReorderQuantity" min="1" class="form-inline-input" />
+                                    <input type="hidden" name="autoCreateAlert" value="true" />
+                                    <input type="hidden" name="defaultBatchSize" value="25" />
+                                    <input type="hidden" name="defaultUnitWeightKg" value="1.0" />
+                                    <button type="submit" class="btn-save">Save</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 3rem; color: #64748b;">
+                            No products found. Please add products first.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

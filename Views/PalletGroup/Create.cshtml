@@ -1,0 +1,114 @@
+﻿﻿@{
+    ViewBag.Title = "Create Pallet Group";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var availablePallets = ViewBag.AvailablePallets as List<ChesterMeatMatrix.Models.Pallet>;
+}
+
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 2rem auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #0a4c8c;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+    }
+
+    .checkbox-list {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1rem;
+    }
+
+    .checkbox-item {
+        margin-bottom: 0.5rem;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        width: 100%;
+        cursor: pointer;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-card">
+        <h2 style="color: #0a4c8c; margin-bottom: 1.5rem;"><i class="fas fa-layer-group"></i> Create Pallet Group</h2>
+
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label class="form-label">Group Name *</label>
+                <input type="text" name="groupName" class="form-control" required placeholder="e.g., Beef Products Batch A" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Product Type</label>
+                <input type="text" name="productType" class="form-control" placeholder="e.g., Beef, Chicken, Pork" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Storage Location</label>
+                <input type="text" name="location" class="form-control" placeholder="e.g., Freezer A, Warehouse Bay 5" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Select Pallets to Group</label>
+                <div class="checkbox-list">
+                    @if (availablePallets != null && availablePallets.Any())
+                    {
+                        foreach (var pallet in availablePallets)
+                        {
+                            <div class="checkbox-item">
+                                <input type="checkbox" name="selectedPalletIds" value="@pallet.PalletId" id="pallet_@pallet.PalletId" />
+                                <label for="pallet_@pallet.PalletId">
+                                    <strong>@pallet.PalletNumber</strong> - @pallet.Quantity units
+                                </label>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No available pallets to group. Create pallets first in Bind Pallet.</p>
+                    }
+                </div>
+            </div>
+
+            <button type="submit" class="btn-submit">Create Group</button>
+        }
+
+        <div class="text-center mt-3">
+            <a href="@Url.Action("Index")" class="btn btn-link">← Back to Groups</a>
+        </div>
+    </div>
+</div>

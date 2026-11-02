@@ -1,0 +1,63 @@
+﻿﻿﻿@{
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+@section SidebarMenu {
+    <!-- Staff Section -->
+    <div class="sidebar-section-label">Staff</div>
+
+    <a href="@Url.Action("Index", "Warehouse")" class="@(ViewContext.RouteData.Values["action"].ToString() == "Index" ? "active" : "")">
+        <i data-lucide="layout-dashboard"></i>
+        Dashboard
+    </a>
+    <a href="@Url.Action("MyTasks", "StaffManager")" class="@(ViewContext.RouteData.Values["controller"].ToString() == "StaffManager" && ViewContext.RouteData.Values["action"].ToString() == "MyTasks" ? "active" : "")">
+        <i data-lucide="clipboard-list"></i>
+        My Tasks
+    </a>
+    <a href="@Url.Action("MySchedule", "StaffManager")" class="@(ViewContext.RouteData.Values["controller"].ToString() == "StaffManager" && ViewContext.RouteData.Values["action"].ToString() == "MySchedule" ? "active" : "")">
+        <i data-lucide="calendar"></i>
+        My Schedule
+    </a>
+    <a href="@Url.Action("ClockInOut", "StaffManager")" class="@(ViewContext.RouteData.Values["controller"].ToString() == "StaffManager" && ViewContext.RouteData.Values["action"].ToString() == "ClockInOut" ? "active" : "")">
+        <i data-lucide="clock"></i>
+        Clock In / Out
+    </a>
+    <a href="@Url.Action("MyLeave", "StaffManager")" class="@(ViewContext.RouteData.Values["controller"].ToString() == "StaffManager" && ViewContext.RouteData.Values["action"].ToString() == "MyLeave" ? "active" : "")">
+        <i data-lucide="file-text"></i>
+        My Leave
+    </a>
+
+    <div class="sidebar-divider"></div>
+
+    <a href="@Url.Action("StockLevels", "Warehouse")">
+        <i data-lucide="package"></i>
+        Stock Levels
+    </a>
+    <a href="@Url.Action("LowStock", "Warehouse")">
+        <i data-lucide="alert-triangle"></i>
+        Low Stock
+    </a>
+    <a href="@Url.Action("Movements", "Warehouse")">
+        <i data-lucide="activity"></i>
+        Movements
+    </a>
+}
+
+<style>
+    .sidebar-section-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: rgba(255,255,255,0.35);
+        padding: 16px 16px 8px 16px;
+        font-weight: 600;
+    }
+
+    .sidebar-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+        margin: 8px 16px;
+    }
+</style>
+
+@RenderBody()

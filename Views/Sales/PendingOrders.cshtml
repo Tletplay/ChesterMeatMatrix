@@ -1,0 +1,328 @@
+﻿﻿@using ChesterMeatMatrix.Models
+@model IEnumerable<ChesterMeatMatrix.Models.Order>
+@{
+    ViewBag.Title = "Pending Orders - Sales";
+    Layout = "~/Views/Shared/_SalesLayout.cshtml";
+    var search = ViewBag.Search as string ?? "";
+    var fromDate = ViewBag.FromDate as string ?? "";
+    var toDate = ViewBag.ToDate as string ?? "";
+}
+
+<style>
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #E0E8F0;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+        .data-table th {
+            background: #F0F4F8;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E8F0;
+        }
+
+        .data-table tr:hover {
+            background: #F8FBFE;
+        }
+
+    .btn-confirm {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+        border: none;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-confirm:hover {
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+    .alert-success {
+        background: #D1FAE5;
+        border-left: 4px solid #10B981;
+        padding: 12px 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        color: #065F46;
+    }
+
+    /* Bulk confirmation styles */
+    .bulk-bar {
+        margin-top: 20px;
+        padding: 15px;
+        background: #F8FAFE;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        border: 1px solid #E0E8F0;
+    }
+
+    .selected-count {
+        color: #0A2540;
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .btn-bulk-confirm {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-bulk-confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-bulk-confirm:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+    .checkbox-col {
+        width: 40px;
+        text-align: center;
+    }
+
+    input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #10B981;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">Pending Orders</h2>
+        <a href="@Url.Action("Index", "Sales")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-success">✅ @TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-danger" style="background: #FEE2E2; border-left: 4px solid #DC2626; padding: 12px 15px; border-radius: 8px; margin-bottom: 20px; color: #991B1B;">
+            ❌ @TempData["Error"]
+        </div>
+    }
+
+    <!-- Filter Section -->
+    <div class="filter-card">
+        @using (Html.BeginForm("PendingOrders", "Sales", FormMethod.Get))
+        {
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">🔍 Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Order # or Customer" value="@search" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">📅 From Date</label>
+                    <input type="date" name="fromDate" class="form-control" value="@fromDate" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">📅 To Date</label>
+                    <input type="date" name="toDate" class="form-control" value="@toDate" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn-filter w-100">Apply Filter</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-4">
+            <i class="fas fa-check-circle fa-2x mb-2 d-block"></i>
+            <p>No pending orders found. Orders that need confirmation will appear here.</p>
+        </div>
+    }
+    else
+    {
+        using (Html.BeginForm("PendingOrders", "Sales", FormMethod.Get))
+        {
+            @Html.AntiForgeryToken()
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th class="checkbox-col">
+                                <input type="checkbox" id="selectAll" />
+                            </th>
+                            <th>Order #</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Payment Method</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr>
+                                <td class="checkbox-col">
+                                    <input type="checkbox" class="orderCheckbox" data-order-id="@order.Id" />
+                                </td>
+                                <td><strong>@order.OrderNumber</strong></td>
+                                <td>@order.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                                <td>@(order.Customer?.Name ?? "N/A")</td>
+                                <td><strong>R @order.Total.ToString("N2")</strong></td>
+                                <td>@(order.PaymentMethodString ?? "Pending")</td>
+                                <td>
+                                    @if (order.Status == OrderStatusEnum.Confirmed && !order.IsInvoiced)
+                                    {
+                                        <span class="badge bg-success">Paid - Needs Invoice</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning">@order.Status</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a href="@Url.Action("ConfirmOrder", "Sales", new { id = order.Id })" class="btn-confirm">
+                                        @if (order.Status == OrderStatusEnum.Confirmed && !order.IsInvoiced)
+                                        {
+                                            <text>Generate Invoice →</text>
+                                        }
+                                        else
+                                        {
+                                            <text>Confirm Order →</text>
+                                        }
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
+        <!-- Bulk Confirmation Bar -->
+        <div class="bulk-bar">
+            <div class="selected-count">
+                <i class="fas fa-check-square"></i>
+                <span id="selectedCount">0</span> order(s) selected
+            </div>
+            <button type="button" id="confirmSelectedBtn" class="btn-bulk-confirm">
+                <i class="fas fa-check-double"></i> Confirm Selected Orders
+            </button>
+        </div>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        // Select All functionality
+        $('#selectAll').change(function() {
+            $('.orderCheckbox').prop('checked', $(this).prop('checked'));
+            updateSelectedCount();
+        });
+
+        // Update count when individual checkbox changes
+        $('.orderCheckbox').change(function() {
+            updateSelectedCount();
+            $('#selectAll').prop('checked', $('.orderCheckbox:checked').length === $('.orderCheckbox').length);
+        });
+
+        // Update selected count display
+        function updateSelectedCount() {
+            var count = $('.orderCheckbox:checked').length;
+            $('#selectedCount').text(count);
+        }
+
+        // Bulk confirm button click
+        $('#confirmSelectedBtn').click(function() {
+            var selectedIds = [];
+            $('.orderCheckbox:checked').each(function() {
+                var orderId = $(this).data('order-id');
+                if (orderId) {
+                    selectedIds.push(orderId);
+                }
+            });
+
+            if (selectedIds.length === 0) {
+                alert('Please select at least one order to confirm.');
+                return;
+            }
+
+            if (confirm('Confirm ' + selectedIds.length + ' order(s) and generate invoices?\n\nThis action cannot be undone.')) {
+                var btn = $('#confirmSelectedBtn');
+                btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
+                $.ajax({
+                    url: '@Url.Action("BulkConfirmOrders", "Sales")',
+                    type: 'POST',
+                    data: {
+                        orderIds: selectedIds,
+                        __RequestVerificationToken: token
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            alert(response.message);
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                            btn.prop('disabled', false).html('<i class="fas fa-check-double"></i> Confirm Selected Orders');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Error processing request: ' + error);
+                        btn.prop('disabled', false).html('<i class="fas fa-check-double"></i> Confirm Selected Orders');
+                    }
+                });
+            }
+        });
+
+        // Initialize count
+        updateSelectedCount();
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

@@ -1,0 +1,379 @@
+﻿﻿﻿﻿﻿
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>@ViewBag.Title - Chester Meat Matrix</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <link rel="icon" type="image/x-icon" href="~/Content/Images/favicon.ico" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/Content/Site.css" />
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="staff-wrapper">
+        <!-- Sidebar Overlay -->
+        <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+        <!-- Sidebar -->
+        <div id="staffSidebar" class="staff-sidebar">
+            <!-- Logo Area -->
+            <div class="sidebar-logo-area">
+                <div class="sidebar-logo-icon" id="logoIcon"></div>
+                <div class="sidebar-logo-text">
+                    <span class="logo-main">CHESTER MEAT</span>
+                    <span class="logo-sub">Matrix System</span>
+                </div>
+            </div>
+
+            <!-- User Profile Section -->
+            <div class="sidebar-user-profile">
+                <div class="user-avatar-large" id="userAvatarIcon"></div>
+                <div class="user-details">
+                    <div class="user-name">@(Session["FullName"] ?? Session["Username"])</div>
+                    <div class="user-role">@(Session["Role"] ?? "Staff")</div>
+                </div>
+            </div>
+
+            <!-- Navigation Menu -->
+            <div class="sidebar-nav">
+                @RenderSection("SidebarMenu", required: false)
+            </div>
+
+            <!-- Footer with Sign Out -->
+            <div class="sidebar-footer">
+                <a href="@Url.Action("Logout", "Account")" class="signout-btn">
+                    <i data-lucide="log-out"></i>
+                    <span>Sign Out</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="staff-main">
+            <button class="menu-toggle" id="menuToggle">
+                <i data-lucide="menu"></i>
+            </button>
+            <div class="staff-content">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+
+    <script>
+        // Sidebar functions
+        function toggleSidebar() {
+            document.getElementById('staffSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('open');
+        }
+
+        function closeSidebar() {
+            document.getElementById('staffSidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('open');
+        }
+
+        document.getElementById('menuToggle')?.addEventListener('click', toggleSidebar);
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+            document.getElementById('logoIcon') && lucide.createIcons({ icons: { 'beef': lucide.icons.beef } });
+            document.getElementById('userAvatarIcon') && lucide.createIcons({ icons: { 'user': lucide.icons.user } });
+        }
+    </script>
+
+    <style>
+        /* Staff Layout - Modern Sidebar Design */
+        .staff-wrapper {
+            display: flex;
+            min-height: 100vh;
+            background: #F3F4F6;
+        }
+
+        /* ========== SIDEBAR ========== */
+        .staff-sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0A2540 0%, #0F2F4A 50%, #1A4A7A 100%);
+            color: white;
+            flex-shrink: 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+            transition: transform 0.3s ease;
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Logo Area */
+        .sidebar-logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 28px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-shrink: 0;
+        }
+
+        .sidebar-logo-icon {
+            background: rgba(255, 255, 255, 0.1);
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+        }
+
+            .sidebar-logo-icon svg {
+                width: 28px;
+                height: 28px;
+                stroke: white;
+                stroke-width: 1.5;
+            }
+
+        .sidebar-logo-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .logo-main {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: white;
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            opacity: 0.7;
+            color: white;
+            margin-top: 2px;
+        }
+
+        /* User Profile */
+        .sidebar-user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 15px 20px;
+            margin: 0 15px 20px 15px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            flex-shrink: 0;
+        }
+
+        .user-avatar-large {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #C1272D, #E55353);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+
+            .user-avatar-large svg {
+                width: 24px;
+                height: 24px;
+                stroke: white;
+                stroke-width: 1.5;
+            }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .user-role {
+            font-size: 11px;
+            opacity: 0.7;
+            color: white;
+        }
+
+        /* Navigation - Scrollable */
+        .sidebar-nav {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 12px 20px 12px;
+        }
+
+        .sidebar-section-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: rgba(255, 255, 255, 0.35);
+            padding: 16px 16px 8px 16px;
+            font-weight: 600;
+        }
+
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            margin-bottom: 4px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+            .sidebar-nav a:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+            }
+
+            .sidebar-nav a.active {
+                background: #C1272D;
+                color: white;
+                box-shadow: 0 2px 8px rgba(193, 39, 45, 0.3);
+            }
+
+            .sidebar-nav a i,
+            .sidebar-nav a i svg {
+                width: 20px;
+                height: 20px;
+                stroke-width: 1.5;
+            }
+
+        /* Footer Sign Out - Fixed at bottom */
+        .sidebar-footer {
+            position: static !important;
+            flex-shrink: 0;
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        .signout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+            .signout-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                text-decoration: none;
+            }
+
+            .signout-btn svg {
+                width: 20px;
+                height: 20px;
+            }
+
+        /* ========== MAIN CONTENT ========== */
+        .staff-main {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .menu-toggle {
+            display: none;
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 101;
+            background: #C1272D;
+            border: none;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+            .menu-toggle svg {
+                width: 20px;
+                height: 20px;
+            }
+
+        .staff-content {
+            padding: 24px;
+        }
+
+        /* Sidebar Overlay for Mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+        }
+
+            .sidebar-overlay.open {
+                display: block;
+            }
+
+        /* ========== RESPONSIVE ========== */
+        @@media (max-width: 768px) {
+            .staff-sidebar {
+                transform: translateX(-100%);
+                position: fixed;
+                top: 0;
+                left: 0;
+                z-index: 1000;
+            }
+
+                .staff-sidebar.open {
+                    transform: translateX(0);
+                }
+
+            .staff-main {
+                margin-left: 0;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        /* Scrollbar Styling */
+        .staff-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .staff-sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .staff-sidebar::-webkit-scrollbar-thumb {
+            background: #C1272D;
+            border-radius: 4px;
+        }
+    </style>
+
+    @RenderSection("scripts", required: false)
+</body>
+</html>

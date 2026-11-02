@@ -1,0 +1,111 @@
+﻿﻿@{
+    ViewBag.Title = "Warehouse Manager Dashboard - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var pendingAlerts = ViewBag.PendingAlerts as int? ?? 0;
+    var arrivingToday = ViewBag.ArrivingToday as int? ?? 0;
+    var arrivingThisWeek = ViewBag.ArrivingThisWeek as int? ?? 0;
+    var lowStockCount = ViewBag.LowStockCount as int? ?? 0;
+    var fullName = Session["FullName"] as string ?? "Manager";
+}
+
+<style>
+    .wm-dashboard { max-width: 1400px; margin: 0 auto; }
+    .wm-welcome {
+        background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .wm-welcome::after { content: "📊"; position: absolute; bottom: 0.5rem; right: 1.5rem; font-size: 5rem; opacity: 0.08; pointer-events: none; }
+    .wm-welcome h2 { color: white; margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .wm-welcome h2 i { font-size: 1.75rem; color: #F59E0B; }
+    .wm-welcome p { color: rgba(255,255,255,0.85); margin: 0; font-size: 0.85rem; }
+    .wm-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @@media (min-width: 768px) { .wm-stats { grid-template-columns: repeat(4, 1fr); } }
+    .wm-stat-card { background: white; border-radius: 16px; padding: 1.25rem; text-align: center; border: 1px solid #EDF2F7; transition: all 0.2s; text-decoration: none; display: block; }
+    .wm-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(10,37,64,0.1); text-decoration: none; }
+    .wm-stat-number { font-size: 2rem; font-weight: 800; color: #0A2540; }
+    .wm-stat-label { font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase; }
+    .wm-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; margin-bottom: 2rem; }
+    .wm-action-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: #C1272D; color: white; padding: 0.6rem 1.25rem; border-radius: 40px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+    .wm-action-btn:hover { background: #A11E23; transform: translateY(-2px); color: white; text-decoration: none; }
+    .wm-section { background: white; border-radius: 20px; border: 1px solid #EDF2F7; overflow: hidden; margin-bottom: 2rem; }
+    .wm-section-header { padding: 1rem 1.5rem; border-bottom: 1px solid #EDF2F7; background: #F8FAFE; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+    .wm-section-header h3 { margin: 0; font-size: 1rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem; }
+    .wm-table { width: 100%; border-collapse: collapse; }
+    .wm-table th, .wm-table td { padding: 0.75rem 1rem; text-align: left; border-bottom: 1px solid #EDF2F7; font-size: 0.85rem; }
+    .wm-table th { background: #F8FAFE; font-weight: 600; color: #0A2540; }
+    .wm-table tr:hover { background: #F8FAFE; }
+    .status-pending { background: #FEF3C7; color: #92400E; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+    .status-intransit { background: #E0E7FF; color: #3730A3; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+    .status-received { background: #D1FAE5; color: #065F46; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+</style>
+
+<div class="wm-dashboard">
+    <div class="wm-welcome">
+        <h2><i class="fas fa-chart-line"></i> Welcome, @fullName!</h2>
+        <p>Warehouse Manager Dashboard - Monitor stock levels and manage inventory</p>
+    </div>
+
+    <div class="wm-stats">
+        <a href="@Url.Action("LowStockAlerts", new { status = "Pending" })" class="wm-stat-card">
+            <div class="wm-stat-number">@pendingAlerts</div>
+            <div class="wm-stat-label">Pending Alerts</div>
+        </a>
+        <a href="@Url.Action("ExpectedStock")" class="wm-stat-card">
+            <div class="wm-stat-number">@arrivingToday</div>
+            <div class="wm-stat-label">Arriving Today</div>
+        </a>
+        <a href="@Url.Action("ExpectedStock")" class="wm-stat-card">
+            <div class="wm-stat-number">@arrivingThisWeek</div>
+            <div class="wm-stat-label">Arriving This Week</div>
+        </a>
+        <a href="@Url.Action("StockReport")" class="wm-stat-card">
+            <div class="wm-stat-number">@lowStockCount</div>
+            <div class="wm-stat-label">Low Stock Items</div>
+        </a>
+    </div>
+
+    <div class="wm-actions">
+        <a href="@Url.Action("CheckLowStock")" class="wm-action-btn"><i class="fas fa-search"></i> Check Low Stock</a>
+        <a href="@Url.Action("StockReport")" class="wm-action-btn"><i class="fas fa-chart-bar"></i> Stock Report</a>
+        <a href="@Url.Action("ExpectedStock")" class="wm-action-btn"><i class="fas fa-truck"></i> Expected Stock</a>
+        <a href="@Url.Action("ManageThresholds")" class="wm-action-btn"><i class="fas fa-sliders-h"></i> Manage Thresholds</a>
+    </div>
+
+    <div class="wm-section">
+        <div class="wm-section-header">
+            <h3><i class="fas fa-calendar"></i> Recent Expected Deliveries</h3>
+            <a href="@Url.Action("ExpectedStock")" style="color: #C1272D; font-size: 0.8rem;">View All →</a>
+        </div>
+        <div style="overflow-x: auto;">
+            <table class="wm-table">
+                <thead><tr><th>PO Number</th><th>Product</th><th>Expected Qty</th><th>Delivery Date</th><th>Status</th></tr></thead>
+                <tbody>
+                    @if (ViewBag.RecentExpected != null && ((System.Collections.Generic.List<ChesterMeatMatrix.Models.ExpectedStock>)ViewBag.RecentExpected).Any())
+                    {
+                        foreach (var expected in ViewBag.RecentExpected as System.Collections.Generic.List<ChesterMeatMatrix.Models.ExpectedStock>)
+                        {
+                            <tr>
+                                <td><strong>@expected.PurchaseOrderNumber</strong></td>
+                                <td>@(expected.Product?.Name ?? "Unknown")</td>
+                                <td>@expected.ExpectedQuantity</td>
+                                <td>@expected.ExpectedDeliveryDate.ToString("dd MMM yyyy")</td>
+                                <td><span class="status-@expected.Status.ToString().ToLower()">@expected.Status</span></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" style="text-align: center; padding: 2rem;">No expected deliveries found.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

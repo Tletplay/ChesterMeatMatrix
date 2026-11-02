@@ -1,0 +1,388 @@
+﻿﻿@model ChesterMeatMatrix.Models.LowStockAlert
+@{
+    ViewBag.Title = "Review Low Stock Alert";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+}
+
+<style>
+    * {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .container-custom {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+        .header-bar h1 {
+            color: #0a4c8c;
+            font-weight: 700;
+            margin: 0;
+        }
+
+    .btn-back {
+        background: #64748b;
+        padding: 8px 24px;
+        border-radius: 40px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+
+        .btn-back:hover {
+            background: #475569;
+            color: white;
+            text-decoration: none;
+        }
+
+    .review-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+    }
+
+    .alert-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(10, 76, 140, 0.08);
+    }
+
+    .alert-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .alert-icon {
+        width: 50px;
+        height: 50px;
+        background: #fef3c7;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+        .alert-icon.critical {
+            background: #fee2e2;
+        }
+
+    .alert-title h3 {
+        margin: 0 0 0.25rem 0;
+        color: #0a4c8c;
+    }
+
+    .alert-title p {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f1f5f9;
+    }
+
+    .info-label {
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .info-value {
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .stock-bar {
+        margin: 1.5rem 0;
+    }
+
+    .stock-bar-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+        color: #64748b;
+    }
+
+    .stock-bar-bg {
+        height: 12px;
+        background: #e2e8f0;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .stock-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #ef4444 0%, #f59e0b 50%, #10b981 100%);
+        border-radius: 20px;
+        transition: width 0.3s;
+    }
+
+    .action-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(10, 76, 140, 0.08);
+    }
+
+        .action-card h3 {
+            color: #0a4c8c;
+            margin-bottom: 1.5rem;
+        }
+
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #0a4c8c;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font-size: 1rem;
+        }
+
+            .form-group input:focus,
+            .form-group textarea:focus {
+                outline: none;
+                border-color: #0a4c8c;
+                box-shadow: 0 0 0 3px rgba(10, 76, 140, 0.1);
+            }
+
+    .decision-buttons {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+
+    .btn-approve {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        flex: 1;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-reject {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        color: white;
+        font-weight: 600;
+        flex: 1;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+        .btn-approve:hover, .btn-reject:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+    .history-card {
+        background: white;
+        border-radius: 20px;
+        padding: 1.5rem;
+        margin-top: 2rem;
+        box-shadow: 0 4px 12px rgba(10, 76, 140, 0.08);
+    }
+
+        .history-card h4 {
+            color: #0a4c8c;
+            margin-bottom: 1rem;
+        }
+
+    .history-table {
+        width: 100%;
+    }
+
+        .history-table td {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .history-table tr:last-child td {
+            border-bottom: none;
+        }
+</style>
+
+<div class="container-custom">
+    <div class="header-bar">
+        <h1>📋 Review Low Stock Alert</h1>
+        <a href="@Url.Action("LowStockAlerts")" class="btn-back">← Back to Alerts</a>
+    </div>
+
+    @{
+        string iconClass = Model.CurrentStockQuantity == 0 ? "alert-icon critical" : "alert-icon";
+        string iconEmoji = Model.CurrentStockQuantity == 0 ? "🚨" : "⚠️";
+        string productName = Model.Product != null ? Model.Product.Name : "Unknown Product";
+        var percentage = Model.ThresholdLevel > 0 ? Math.Min(100, (double)Model.CurrentStockQuantity / Model.ThresholdLevel * 100) : 0;
+    }
+
+    <div class="review-grid">
+        <!-- Alert Details -->
+        <div class="alert-card">
+            <div class="alert-header">
+                <div class="@iconClass">
+                    @iconEmoji
+                </div>
+                <div class="alert-title">
+                    <h3>@productName</h3>
+                    <p>Alert #@Model.LowStockAlertId • @Model.AlertDate.ToString("dd MMM yyyy")</p>
+                </div>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Current Stock</span>
+                <span class="info-value">@Model.CurrentStockQuantity units</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Threshold Level</span>
+                <span class="info-value">@Model.ThresholdLevel units</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Shortfall</span>
+                <span class="info-value">@(Model.ThresholdLevel - Model.CurrentStockQuantity) units</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Suggested Order</span>
+                <span class="info-value">@Model.SuggestedOrderQuantity units</span>
+            </div>
+
+            <div class="stock-bar">
+                <div class="stock-bar-label">
+                    <span>Stock Level</span>
+                    <span>@Model.CurrentStockQuantity / @Model.ThresholdLevel</span>
+                </div>
+                <div class="stock-bar-bg">
+                    <div class="stock-bar-fill" style="width: @percentage%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Decision Form -->
+        <div>
+            @using (Html.BeginForm("ProcessAlertDecision", "WarehouseManager", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                @Html.Hidden("alertId", Model.LowStockAlertId)
+
+                <div class="action-card">
+                    <h3>Decision</h3>
+
+                    <div class="form-group">
+                        <label>Action</label>
+                        <select name="decision" id="decision" required style="width: 100%; padding: 0.75rem 1rem; border: 1px solid #cbd5e1; border-radius: 12px;">
+                            <option value="">-- Select Action --</option>
+                            <option value="Approve">✅ Approve Order</option>
+                            <option value="Reject">❌ Reject Order</option>
+                        </select>
+                    </div>
+
+                    <div id="approvalFields" style="display: none;">
+                        <div class="form-group">
+                            <label>Order Quantity</label>
+                            <input type="number" name="orderQuantity" id="orderQuantity" value="@Model.SuggestedOrderQuantity" min="1" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Unit Weight (kg)</label>
+                            <input type="number" name="expectedUnitWeightKg" id="expectedUnitWeightKg" value="1.0" min="0.01" step="0.01" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Expected Delivery Date</label>
+                            <input type="date" name="expectedDeliveryDate" id="expectedDeliveryDate" value="@DateTime.Now.AddDays(7).ToString("yyyy-MM-dd")" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Supplier Reference</label>
+                            <input type="text" name="supplierReference" id="supplierReference" placeholder="e.g., Supplier PO-123" />
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Reviewer Notes</label>
+                        <textarea name="reviewerNotes" rows="3" placeholder="Add any notes about this decision..."></textarea>
+                    </div>
+
+                    <div class="decision-buttons">
+                        <button type="submit" name="submitDecision" value="Approve" class="btn-approve">Approve Order</button>
+                        <button type="submit" name="submitDecision" value="Reject" class="btn-reject">Reject Order</button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Recent History -->
+    @{
+        var recentMovements = ViewBag.RecentMovements as List<ChesterMeatMatrix.Models.StockMovement>;
+        if (recentMovements != null && recentMovements.Any())
+        {
+            <div class="history-card">
+                <h4>📊 Recent Stock Movements</h4>
+                <table class="history-table">
+                    <tbody>
+                        @foreach (var movement in recentMovements)
+                        {
+                            string badgeStyle = movement.MovementType == "IN"
+                                ? "background: #d1fae5; color: #065f46;"
+                                : "background: #fef3c7; color: #b45309;";
+
+                            <tr>
+                                <td style="color: #64748b; width: 150px;">@movement.MovementDate.ToString("dd MMM yyyy HH:mm")</td>
+                                <td><span style="padding: 0.2rem 0.5rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600; @badgeStyle">@movement.MovementType</span></td>
+                                <td>@movement.Quantity units</td>
+                                <td style="color: #64748b;">@movement.Reference</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    }
+</div>
+
+<script>
+    document.getElementById('decision').addEventListener('change', function () {
+        var approvalFields = document.getElementById('approvalFields');
+        if (this.value === 'Approve') {
+            approvalFields.style.display = 'block';
+        } else {
+            approvalFields.style.display = 'none';
+        }
+    });
+</script>

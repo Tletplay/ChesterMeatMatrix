@@ -1,0 +1,259 @@
+﻿﻿@model ChesterMeatMatrix.Models.Route
+@{
+    ViewBag.Title = "Customer Signature - Driver";
+    Layout = "~/Views/Shared/_DriverLayout.cshtml";
+    var orders = ViewBag.Orders as List<ChesterMeatMatrix.Models.Order> ?? new List<ChesterMeatMatrix.Models.Order>();
+}
+
+<style>
+    .signature-pad {
+        border: 2px dashed #0A2540;
+        border-radius: 12px;
+        background: white;
+        width: 100%;
+        height: 200px;
+        margin-bottom: 1rem;
+    }
+
+    canvas {
+        width: 100%;
+        height: 100%;
+        border-radius: 8px;
+        background: white;
+        cursor: crosshair;
+    }
+
+    .btn-submit {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 40px;
+        font-weight: 700;
+        cursor: pointer;
+        width: 100%;
+    }
+
+    .btn-clear {
+        background: #6B7280;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 40px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .order-summary {
+        background: #F8FBFE;
+        border-radius: 12px;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #E0E8F0;
+    }
+
+    .delivery-photo-section {
+        margin-bottom: 1.5rem;
+    }
+
+        .delivery-photo-section label {
+            font-weight: 600;
+            color: #0A2540;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #E0E8F0;
+        border-radius: 12px;
+        font-size: 1rem;
+    }
+
+    .photo-preview {
+        max-width: 200px;
+        max-height: 150px;
+        border-radius: 8px;
+        margin-top: 10px;
+        border: 1px solid #E0E8F0;
+        display: none;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">Customer Signature</h2>
+        <a href="@Url.Action("MyRoutes", "Driver")" class="btn btn-outline-secondary">← Back to Routes</a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-5">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h4>Route @Model.Name - Orders</h4>
+                </div>
+                <div class="card-body">
+                    @foreach (var order in orders)
+                    {
+                        <div class="order-summary">
+                            <strong>Order #@order.OrderNumber</strong><br />
+                            <span>Customer: @(order.Customer?.Name ?? "N/A")</span><br />
+                            <span>Total: R @order.Total.ToString("N2")</span><br />
+                            <span>Items: @(order.Items?.Count ?? 0)</span>
+                        </div>
+                    }
+                    <div class="alert alert-success mt-3">
+                        <i class="fas fa-check-circle"></i> All @orders.Count orders have been delivered successfully.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h4>Customer Signature & Delivery Proof</h4>
+                    <p>Please have the customer sign below and upload a delivery photo</p>
+                </div>
+                <div class="card-body">
+                    @using (Html.BeginForm("SaveSignature", "Driver", FormMethod.Post, new { enctype = "multipart/form-data", id = "signatureForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("routeId", Model.Id)
+
+                        <div class="delivery-photo-section">
+                            <label><i class="fas fa-camera"></i> Delivery Photo (required)</label>
+                            <input type="file" id="deliveryPhoto" name="deliveryPhoto" class="form-control" accept="image/jpeg,image/png,image/webp" required />
+                            <img id="photoPreview" class="photo-preview" />
+                            <small class="text-muted">Maximum file size: 5MB. Accepted formats: JPG, PNG, WEBP</small>
+                        </div>
+
+                        <div class="delivery-photo-section">
+                            <label><i class="fas fa-signature"></i> Customer Signature (required)</label>
+                            <div class="signature-pad">
+                                <canvas id="signatureCanvas" width="600" height="200" style="width:100%; height:200px;"></canvas>
+                            </div>
+                            <button type="button" class="btn-clear" onclick="clearCanvas()">Clear Signature</button>
+                        </div>
+
+                        <input type="hidden" id="signatureData" name="signatureData" />
+
+                        <div class="mt-3">
+                            <button type="submit" class="btn-submit" onclick="prepareSignature(event)">
+                                <i class="fas fa-check-circle"></i> Complete Delivery
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Signature Pad Logic
+    var canvas = document.getElementById('signatureCanvas');
+    var ctx = canvas.getContext('2d');
+    var drawing = false;
+
+    function resizeCanvas() {
+        var container = canvas.parentElement;
+        canvas.width = container.clientWidth;
+        canvas.height = 200;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#0A2540';
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function getCoordinates(e) {
+        var rect = canvas.getBoundingClientRect();
+        var scaleX = canvas.width / rect.width;
+        var scaleY = canvas.height / rect.height;
+        var x, y;
+        if (e.touches) {
+            x = (e.touches[0].clientX - rect.left) * scaleX;
+            y = (e.touches[0].clientY - rect.top) * scaleY;
+        } else {
+            x = (e.clientX - rect.left) * scaleX;
+            y = (e.clientY - rect.top) * scaleY;
+        }
+        return { x: x, y: y };
+    }
+
+    function startDrawing(e) {
+        drawing = true;
+        var pos = getCoordinates(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        e.preventDefault();
+    }
+
+    function draw(e) {
+        if (!drawing) return;
+        var pos = getCoordinates(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        e.preventDefault();
+    }
+
+    function stopDrawing() { drawing = false; }
+
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('touchstart', startDrawing);
+    canvas.addEventListener('touchmove', draw);
+    canvas.addEventListener('touchend', stopDrawing);
+
+    function clearCanvas() {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#0A2540';
+        ctx.lineWidth = 2;
+    }
+
+    // Photo preview
+    document.getElementById('deliveryPhoto')?.addEventListener('change', function (e) {
+        var file = e.target.files[0];
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function (e) {
+                var preview = document.getElementById('photoPreview');
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Prepare signature data before form submission
+    function prepareSignature(event) {
+        var signatureData = canvas.toDataURL('image/png');
+        if (!signatureData || signatureData === 'data:,') {
+            event.preventDefault();
+            alert('Please draw a signature before submitting.');
+            return false;
+        }
+
+        var photoInput = document.getElementById('deliveryPhoto');
+        if (!photoInput.files || photoInput.files.length === 0) {
+            event.preventDefault();
+            alert('Please upload a delivery photo before submitting.');
+            return false;
+        }
+
+        document.getElementById('signatureData').value = signatureData;
+        return true;
+    }
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

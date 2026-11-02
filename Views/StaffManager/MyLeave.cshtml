@@ -1,0 +1,149 @@
+﻿﻿@using ChesterMeatMatrix.Models
+@model IEnumerable<LeaveRequest>
+@{
+    ViewBag.Title = "My Leave";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+@section SidebarMenu {
+    <!-- Empty sidebar for staff views -->
+}
+
+<style>
+    .leave-container { max-width: 1100px; margin: 0 auto; }
+    .leave-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
+    .leave-title { font-size: 1.25rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem; margin: 0; }
+    .leave-title i { color: #C1272D; }
+    .leave-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .leave-btn-primary { padding: 0.5rem 1.25rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; border: none; cursor: pointer; transition: all 0.15s; background: #C1272D; color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .leave-btn-primary:hover { background: #A11E23; color: white; text-decoration: none; }
+    .leave-btn-secondary { padding: 0.5rem 1.25rem; border-radius: 40px; font-weight: 600; font-size: 0.8rem; border: none; cursor: pointer; transition: all 0.15s; background: #F3F4F6; color: #6B7280; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .leave-btn-secondary:hover { background: #E5E7EB; color: #4B5563; text-decoration: none; }
+
+    /* Stats */
+    .leave-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    @@media (max-width: 600px) { .leave-stats { grid-template-columns: 1fr; } }
+    .leave-stat { background: white; padding: 0.75rem 1rem; border-radius: 10px; border: 1px solid #EDF2F7; }
+    .leave-stat-number { font-size: 1.5rem; font-weight: 700; }
+    .leave-stat-number-green { color: #10B981; }
+    .leave-stat-number-amber { color: #F59E0B; }
+    .leave-stat-number-blue { color: #3B82F6; }
+    .leave-stat-label { font-size: 0.65rem; font-weight: 600; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.3px; margin-top: 0.1rem; }
+
+    /* Table */
+    .leave-table-wrap { background: white; border-radius: 12px; border: 1px solid #EDF2F7; overflow: hidden; }
+    .leave-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .leave-table th { text-align: left; padding: 0.6rem 0.75rem; background: #F9FAFB; font-weight: 600; color: #6B7280; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid #EDF2F7; }
+    .leave-table td { padding: 0.6rem 0.75rem; border-bottom: 1px solid #F3F4F6; vertical-align: middle; }
+    .leave-table tr:hover td { background: #FAFBFC; }
+
+    .leave-badge { display: inline-block; padding: 0.15rem 0.6rem; border-radius: 12px; font-size: 0.6rem; font-weight: 600; }
+    .leave-badge-pending { background: #FEF3C7; color: #92400E; }
+    .leave-badge-approved { background: #D1FAE5; color: #065F46; }
+    .leave-badge-rejected { background: #FEE2E2; color: #991B1B; }
+    .leave-badge-cancelled { background: #F3F4F6; color: #6B7280; }
+
+    .leave-notes { font-size: 0.7rem; color: #9CA3AF; cursor: help; }
+    .leave-notes-danger { color: #EF4444; }
+
+    .leave-empty { text-align: center; padding: 2rem; color: #9CA3AF; }
+    .leave-empty i { font-size: 1.5rem; display: block; margin-bottom: 0.5rem; color: #D1D5DB; }
+
+    @@media (max-width: 768px) {
+        .leave-table-wrap { overflow-x: auto; }
+        .leave-table { font-size: 0.75rem; }
+        .leave-table th, .leave-table td { padding: 0.4rem 0.5rem; white-space: nowrap; }
+    }
+</style>
+
+<div class="leave-container">
+    <div class="leave-header">
+        <h2 class="leave-title"><i class="fas fa-calendar-alt"></i> My Leave</h2>
+        <div class="leave-actions">
+            <a href="@Url.Action("RequestLeave")" class="leave-btn-primary"><i class="fas fa-plus"></i> Request Leave</a>
+            <a href="@Url.Action("Index", "Dashboard")" class="leave-btn-secondary"><i class="fas fa-arrow-left"></i> Back</a>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="leave-stats">
+        <div class="leave-stat">
+            <div class="leave-stat-number leave-stat-number-green">@ViewBag.LeaveBalance</div>
+            <div class="leave-stat-label">Available Days</div>
+        </div>
+        <div class="leave-stat">
+            <div class="leave-stat-number leave-stat-number-amber">@ViewBag.TotalTaken</div>
+            <div class="leave-stat-label">Days Taken</div>
+        </div>
+        <div class="leave-stat">
+            <div class="leave-stat-number leave-stat-number-blue">@ViewBag.PendingCount</div>
+            <div class="leave-stat-label">Pending Requests</div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="leave-table-wrap">
+        <table class="leave-table">
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Days</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var leave in Model.OrderByDescending(l => l.RequestDate))
+                    {
+                        string badgeClass = leave.Status == LeaveStatus.Pending ? "leave-badge-pending" :
+                                            leave.Status == LeaveStatus.Approved ? "leave-badge-approved" :
+                                            leave.Status == LeaveStatus.Rejected ? "leave-badge-rejected" :
+                                            "leave-badge-cancelled";
+
+                        <tr>
+                            <td><strong>@leave.Type</strong></td>
+                            <td>@leave.StartDate.ToString("dd MMM yyyy")</td>
+                            <td>@leave.EndDate.ToString("dd MMM yyyy")</td>
+                            <td>@leave.TotalDays</td>
+                            <td><span class="leave-badge @badgeClass">@leave.Status</span></td>
+                            <td>
+                                @if (leave.Status == LeaveStatus.Pending)
+                                {
+                                    <span class="leave-notes">⏳ Waiting...</span>
+                                }
+                                else if (leave.Status == LeaveStatus.Approved && !string.IsNullOrEmpty(leave.ManagerNotes))
+                                {
+                                    <span class="leave-notes" title="@leave.ManagerNotes"><i class="fas fa-comment"></i> Notes</span>
+                                }
+                                else if (leave.Status == LeaveStatus.Rejected && !string.IsNullOrEmpty(leave.ManagerNotes))
+                                {
+                                    <span class="leave-notes leave-notes-danger" title="@leave.ManagerNotes"><i class="fas fa-exclamation-circle"></i> @leave.ManagerNotes</span>
+                                }
+                                else
+                                {
+                                    <span class="leave-notes">—</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="leave-empty">
+                            <i class="fas fa-calendar-alt"></i>
+                            <p>No leave requests found.</p>
+                            <a href="@Url.Action("RequestLeave")" class="leave-btn-primary" style="margin-top:0.5rem; display:inline-block;">Request Leave</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

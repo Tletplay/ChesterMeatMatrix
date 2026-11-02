@@ -1,0 +1,172 @@
+﻿@model IEnumerable<ChesterMeatMatrix.Models.Order>
+@{
+    ViewBag.Title = "Account Balance - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var totalBalance = ViewBag.TotalBalance as decimal? ?? 0M;
+}
+
+<style>
+    .balance-header {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        border-radius: 20px;
+        padding: 25px;
+        margin-bottom: 25px;
+        color: white;
+    }
+
+    .balance-amount {
+        font-size: 48px;
+        font-weight: 800;
+    }
+
+    .btn-pay-all {
+        background: linear-gradient(135deg, #10B981, #059669);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 40px;
+        font-weight: 700;
+        transition: all 0.2s;
+    }
+
+        .btn-pay-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            color: white;
+        }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+        .data-table th {
+            background: #F0F4F8;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E8F0;
+        }
+
+    .btn-view {
+        background: #2C6E9E;
+        color: white;
+        border: none;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        cursor: pointer;
+    }
+
+    .order-details {
+        display: none;
+        background: #F8FBFE;
+        padding: 15px;
+        margin-top: 10px;
+        border-radius: 12px;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">Account Balance</h2>
+        <a href="@Url.Action("Index", "Enterprise")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    <!-- Balance Summary -->
+    <div class="balance-header d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h4>Total Outstanding Balance</h4>
+            <div class="balance-amount">R @totalBalance.ToString("N2")</div>
+        </div>
+        @if (totalBalance > 0)
+        {
+            using (Html.BeginForm("ProcessPayAll", "Enterprise", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn-pay-all">
+                    <i class="fas fa-credit-card"></i> Pay All R @totalBalance.ToString("N2")
+                </button>
+            }
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-4">
+            <i class="fas fa-check-circle fa-2x mb-2 d-block"></i>
+            <p>No unpaid orders found. Your account is up to date!</p>
+            <a href="@Url.Action("Products", "Customer")" class="btn btn-primary mt-2">Place New Order →</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td><strong>@order.OrderNumber</strong></td>
+                            <td>@order.CreatedAt.ToString("dd MMM yyyy")</td>
+                            <td>@(order.Items?.Count ?? 0) items</td>
+                            <td><strong>R @order.Total:N2</strong></td>
+                            <td>
+                                @if (order.IsPaid)
+                                {
+                                    <span class="badge bg-success">Paid</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning">Unpaid</span>
+                                }
+                            </td>
+                            <td>
+                                <button type="button" class="btn-view" data-order-id="@order.Id">View Items</button>
+                                <div id="order-details-@order.Id" class="order-details"></div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.btn-view').click(function() {
+            var orderId = $(this).data('order-id');
+            var detailsDiv = $('#order-details-' + orderId);
+
+            if (detailsDiv.is(':visible')) {
+                detailsDiv.hide();
+            } else {
+                detailsDiv.html('<em>Loading...</em>').show();
+                $.get('@Url.Action("GetOrderDetails", "Enterprise")', { orderId: orderId }, function(data) {
+                    detailsDiv.html(data);
+                });
+            }
+        });
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

@@ -1,0 +1,91 @@
+﻿﻿﻿@{
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+@section SidebarMenu {
+    <!-- Warehouse Manager Section -->
+    <div class="sidebar-section-label">Warehouse Manager</div>
+
+    <a href="@Url.Action("Dashboard", "WarehouseManager")" class="@(ViewContext.RouteData.Values["controller"].ToString() == "WarehouseManager" && ViewContext.RouteData.Values["action"].ToString() == "Dashboard" ? "active" : "")">
+        <i data-lucide="layout-dashboard"></i>
+        Dashboard
+    </a>
+    <a href="@Url.Action("LowStockAlerts", "WarehouseManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "LowStockAlerts" ? "active" : "")">
+        <i data-lucide="alert-triangle"></i>
+        Low Stock Alerts
+    </a>
+    <a href="@Url.Action("ExpectedStock", "WarehouseManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "ExpectedStock" ? "active" : "")">
+        <i data-lucide="truck"></i>
+        Expected Stock
+    </a>
+    <a href="@Url.Action("StockReport", "WarehouseManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "StockReport" ? "active" : "")">
+        <i data-lucide="file-text"></i>
+        Stock Report
+    </a>
+    <a href="@Url.Action("ManageThresholds", "WarehouseManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "ManageThresholds" ? "active" : "")">
+        <i data-lucide="settings"></i>
+        Manage Thresholds
+    </a>
+
+    <!-- Staff Manager Section -->
+    <div class="sidebar-section-label">Staff Manager</div>
+
+    <a href="@Url.Action("Dashboard", "StaffManager")" class="@(ViewContext.RouteData.Values["controller"].ToString() == "StaffManager" && ViewContext.RouteData.Values["action"].ToString() == "Dashboard" ? "active" : "")">
+        <i data-lucide="users"></i>
+        Dashboard
+    </a>
+    <a href="@Url.Action("AssignTask", "StaffManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "AssignTask" ? "active" : "")">
+        <i data-lucide="plus-circle"></i>
+        Assign Task
+    </a>
+    <a href="@Url.Action("Tasks", "StaffManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "Tasks" ? "active" : "")">
+        <i data-lucide="list-checks"></i>
+        All Tasks
+    </a>
+    <a href="@Url.Action("MyTasks", "StaffManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "MyTasks" ? "active" : "")">
+        <i data-lucide="clipboard-list"></i>
+        My Tasks
+    </a>
+    <a href="@Url.Action("Schedule", "StaffManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "Schedule" ? "active" : "")">
+        <i data-lucide="calendar"></i>
+        Schedule
+    </a>
+    <a href="@Url.Action("Attendance", "StaffManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "Attendance" ? "active" : "")">
+        <i data-lucide="clock"></i>
+        Attendance
+    </a>
+    <a href="@Url.Action("PerformanceDashboard", "StaffManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "PerformanceDashboard" ? "active" : "")">
+        <i data-lucide="bar-chart"></i>
+        Performance
+    </a>
+    <a href="@Url.Action("ManageLeave", "StaffManager")" class="@(ViewContext.RouteData.Values["action"].ToString() == "ManageLeave" ? "active" : "")">
+        <i data-lucide="file-text"></i>
+        Leave Requests
+    </a>
+
+    <div class="sidebar-divider"></div>
+
+    <a href="@Url.Action("Index", "StockTake")">
+        <i data-lucide="package"></i>
+        Stock Take
+    </a>
+}
+
+<style>
+    .sidebar-section-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: rgba(255,255,255,0.35);
+        padding: 16px 16px 8px 16px;
+        font-weight: 600;
+    }
+
+    .sidebar-divider {
+        height: 1px;
+        background: rgba(255,255,255,0.08);
+        margin: 8px 16px;
+    }
+</style>
+
+@RenderBody()

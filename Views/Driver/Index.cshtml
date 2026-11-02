@@ -1,0 +1,72 @@
+﻿﻿@{
+    ViewBag.Title = "Driver Dashboard - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_DriverLayout.cshtml";
+    var pendingCount = ViewBag.PendingCount as int? ?? 0;
+    var inProgressCount = ViewBag.InProgressCount as int? ?? 0;
+    var completedCount = ViewBag.CompletedCount as int? ?? 0;
+    var fullName = ViewBag.FullName as string ?? Session["FullName"] as string ?? "Driver";
+}
+
+<style>
+    .driver-dashboard { max-width: 1400px; margin: 0 auto; }
+    .driver-welcome {
+        background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .driver-welcome::after { content: "🚚"; position: absolute; bottom: 0.5rem; right: 1.5rem; font-size: 5rem; opacity: 0.08; pointer-events: none; }
+    .driver-welcome h2 { color: white; margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .driver-welcome h2 i { font-size: 1.75rem; color: #F59E0B; }
+    .driver-welcome p { color: rgba(255,255,255,0.85); margin: 0; font-size: 0.85rem; }
+    .driver-stats { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+    @@media (min-width: 768px) { .driver-stats { grid-template-columns: repeat(3, 1fr); } }
+    .driver-stat-card { background: white; border-radius: 20px; padding: 1.5rem; text-align: center; border: 1px solid #EDF2F7; transition: all 0.2s; }
+    .driver-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(10,37,64,0.1); }
+    .driver-stat-icon { width: 60px; height: 60px; background: #FEF2F2; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem auto; }
+    .driver-stat-icon i { font-size: 1.8rem; color: #C1272D; }
+    .driver-stat-number { font-size: 2.5rem; font-weight: 800; color: #0A2540; }
+    .driver-stat-label { font-size: 0.85rem; font-weight: 600; color: #718096; text-transform: uppercase; }
+    .driver-stat-sub { font-size: 0.7rem; color: #9CA3AF; margin-top: 0.5rem; }
+    .driver-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+    .driver-action-btn { display: inline-flex; align-items: center; gap: 0.5rem; background: #C1272D; color: white; padding: 0.75rem 1.5rem; border-radius: 40px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+    .driver-action-btn:hover { background: #A11E23; transform: translateY(-2px); color: white; text-decoration: none; }
+</style>
+
+<div class="driver-dashboard">
+    <div class="driver-welcome">
+        <h2><i class="fas fa-truck"></i> Welcome, @fullName!</h2>
+        <p>Driver Dashboard - Manage your deliveries</p>
+    </div>
+
+    <div class="driver-stats">
+        <div class="driver-stat-card">
+            <div class="driver-stat-icon"><i class="fas fa-clock"></i></div>
+            <div class="driver-stat-number">@pendingCount</div>
+            <div class="driver-stat-label">Pending Deliveries</div>
+            <div class="driver-stat-sub">Routes ready to start</div>
+        </div>
+        <div class="driver-stat-card">
+            <div class="driver-stat-icon"><i class="fas fa-play-circle"></i></div>
+            <div class="driver-stat-number">@inProgressCount</div>
+            <div class="driver-stat-label">In Progress</div>
+            <div class="driver-stat-sub">Active deliveries</div>
+        </div>
+        <div class="driver-stat-card">
+            <div class="driver-stat-icon"><i class="fas fa-check-circle"></i></div>
+            <div class="driver-stat-number">@completedCount</div>
+            <div class="driver-stat-label">Completed</div>
+            <div class="driver-stat-sub">Deliveries done</div>
+        </div>
+    </div>
+
+    <div class="driver-actions">
+        <a href="@Url.Action("MyRoutes", "Driver")" class="driver-action-btn"><i class="fas fa-list"></i> My Routes</a>
+        <a href="@Url.Action("CompletedDeliveries", "Driver")" class="driver-action-btn"><i class="fas fa-history"></i> Delivery History</a>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

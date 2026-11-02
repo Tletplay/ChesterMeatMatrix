@@ -1,0 +1,155 @@
+﻿﻿@model IEnumerable<ChesterMeatMatrix.Models.SupplierReturn>
+@{
+    ViewBag.Title = "Supplier Returns";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var currentStatus = ViewBag.Status as string ?? "Pending";
+    var statusOptions = ViewBag.StatusOptions as string[] ?? new[] { "Pending", "Approved", "Completed", "Rejected" };
+}
+
+<style>
+    .container-custom {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+
+    .header-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+        .header-bar h2 {
+            color: #0a4c8c;
+            font-weight: 700;
+        }
+
+    .filter-tabs {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.5rem;
+    }
+
+    .filter-tab {
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        text-decoration: none;
+        background: #f1f5f9;
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+        .filter-tab.active {
+            background: #0a4c8c;
+            color: white;
+        }
+
+    .returns-table {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+        .returns-table th {
+            background: #0a4c8c;
+            color: white;
+            padding: 1rem;
+        }
+
+        .returns-table td {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+    }
+
+    .status-approved {
+        background: #dbeafe;
+        color: #1e40af;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+    }
+
+    .btn-create {
+        background: linear-gradient(135deg, #0a4c8c 0%, #0e6cb0 100%);
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        color: white;
+        text-decoration: none;
+    }
+</style>
+
+<div class="container-custom">
+    <div class="header-bar">
+        <h2><i class="fas fa-undo-alt"></i> Supplier Returns</h2>
+        <a href="@Url.Action("Create")" class="btn-create">+ New Supplier Return</a>
+    </div>
+
+    <div class="filter-tabs">
+        @foreach (var status in statusOptions)
+        {
+            <a href="@Url.Action("Index", new { status = status })"
+               class="filter-tab @(status == currentStatus ? "active" : "")">
+                @status
+            </a>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-4">No supplier returns found.</div>
+    }
+    else
+    {
+        <div class="returns-table">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Return #</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Reason</th>
+                        <th>Date</th>
+                        <th>Supplier</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>@item.ReturnNumber</td>
+                            <td>@item.Product?.Name
+                            <td>
+                            <td>@item.Quantity</td>
+                            <td>@item.ReturnReason</td>
+                            <td>@item.ReturnDate.ToString("dd MMM yyyy")</td>
+                            <td>@(item.SupplierName ?? "-")</td>
+                            <td><span class="status-@item.Status.ToLower()">@item.Status</span></td>
+                            <td>
+                                @if (item.Status == "Pending")
+                                {
+                                    <a href="@Url.Action("Approve", new { id = item.SupplierReturnId })" class="btn btn-sm btn-primary">Review</a>
+                                }
+                                else
+                                {
+                                    <a href="@Url.Action("Details", new { id = item.SupplierReturnId })" class="btn btn-sm btn-secondary">View</a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

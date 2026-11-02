@@ -1,0 +1,329 @@
+﻿@{
+    ViewBag.Title = "Chester Group - Premium Wholesale Meat Suppliers";
+}
+
+<!-- HERO SECTION -->
+<section class="hero-split">
+    <div class="hero-split-container">
+        <div class="hero-split-text">
+            <h2>Professional and Reliable Meat Suppliers</h2>
+            <p>Premium quality meats, delivered fresh from our family to yours. Supplying businesses and households across South Africa since 1985.</p>
+            <div class="hero-buttons">
+                <a href="@Url.Action("Products", "Customer")" class="btn btn-primary">SHOP NOW</a>
+                <a href="#contact" class="btn btn-outline">CONTACT US</a>
+            </div>
+        </div>
+        <div class="hero-split-image">
+            <img src="@Url.Content("~/Content/Images/hero-butcher.jpg")" alt="Butcher preparing premium cuts of meat" />
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- PRODUCTS SECTION - PRODUCT CAROUSEL -->
+<section id="products" class="products-section">
+    <div class="container">
+        <div class="products-header">
+            <span class="featured-label">CATEGORIES</span>
+            <h2 class="products-title">SHOP BY MEAT</h2>
+        </div>
+
+        <!-- Product Carousel Container -->
+        <div class="carousel-container">
+            <button class="carousel-arrow prev-arrow" id="prevArrow">&#10094;</button>
+
+            <div class="carousel-track-container">
+                <div class="carousel-track" id="carouselTrack">
+
+                    <!-- PRODUCT 1 - BEEF MINCE -->
+                    <div class="carousel-slide">
+                        <div class="product-slide-card">
+                            <div class="product-slide-image">
+                                <img src="@Url.Content("~/Content/Images/Products/beef-mince.jpg")" alt="Beef Mince" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                <span class="product-emoji" style="display:none;">🥩</span>
+                            </div>
+                            <h3 class="product-slide-title">Beef Mince</h3>
+                            <p class="product-slide-description">
+                                Versatile and budget-friendly, used daily in households. Perfect for burgers, meatballs, pasta sauces, and more.
+                            </p>
+                            <div class="product-slide-more" id="more-beef-mince" style="display:none;">
+                                <p>Try it in a classic <strong>Bobotie</strong> — spiced mince baked with a golden egg custard topping, served with yellow rice, chutney and sambals. A true South African favourite.</p>
+                                <a href="@Url.Action("Products", "Customer", new { category = "Beef" })" class="shop-now-link">Shop Now →</a>
+                            </div>
+                            <button class="read-more-btn" onclick="toggleMore('more-beef-mince', this)">Read More →</button>
+                        </div>
+                    </div>
+
+                    <!-- PRODUCT 2 - CHICKEN WINGS -->
+                    <div class="carousel-slide">
+                        <div class="product-slide-card">
+                            <div class="product-slide-image">
+                                <img src="@Url.Content("~/Content/Images/Products/chicken-wings.jpg")" alt="Chicken Wings" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                <span class="product-emoji" style="display:none;">🍗</span>
+                            </div>
+                            <h3 class="product-slide-title">Chicken Wings</h3>
+                            <p class="product-slide-description">
+                                Affordable and always a crowd-pleaser. Great for the braai, the oven, or the air fryer.
+                            </p>
+                            <div class="product-slide-more" id="more-chicken-wings" style="display:none;">
+                                <p>Baste in a spicy <strong>Peri-Peri sauce</strong> and grill over hot coals until charred and sticky — a proudly South African braai classic.</p>
+                                <a href="@Url.Action("Products", "Customer", new { category = "Chicken" })" class="shop-now-link">Shop Now →</a>
+                            </div>
+                            <button class="read-more-btn" onclick="toggleMore('more-chicken-wings', this)">Read More →</button>
+                        </div>
+                    </div>
+
+                    <!-- PRODUCT 3 - BRAAI WORS -->
+                    <div class="carousel-slide">
+                        <div class="product-slide-card">
+                            <div class="product-slide-image">
+                                <img src="@Url.Content("~/Content/Images/Products/braai-wors.jpg")" alt="Braai Wors / Boerewors" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                <span class="product-emoji" style="display:none;">🌭</span>
+                            </div>
+                            <h3 class="product-slide-title">Braai Wors</h3>
+                            <p class="product-slide-description">
+                                The heart of every South African braai. Coiled, smoky, and full of flavour.
+                            </p>
+                            <div class="product-slide-more" id="more-braai-wors" style="display:none;">
+                                <p>Serve it the classic way — a <strong>boerewors roll</strong> with tomato and onion relish, or alongside pap and chakalaka for the full braai spread.</p>
+                                <a href="@Url.Action("Products", "Customer", new { category = "Wors & Sausages" })" class="shop-now-link">Shop Now →</a>
+                            </div>
+                            <button class="read-more-btn" onclick="toggleMore('more-braai-wors', this)">Read More →</button>
+                        </div>
+                    </div>
+
+                    <!-- PRODUCT 4 - BILTONG -->
+                    <div class="carousel-slide">
+                        <div class="product-slide-card">
+                            <div class="product-slide-image">
+                                <img src="@Url.Content("~/Content/Images/Products/biltong.jpg")" alt="Biltong" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                <span class="product-emoji" style="display:none;">🥩</span>
+                            </div>
+                            <h3 class="product-slide-title">Biltong</h3>
+                            <p class="product-slide-description">
+                                Air-dried and perfectly spiced. South Africa's favourite snack, on the go or on the couch.
+                            </p>
+                            <div class="product-slide-more" id="more-biltong" style="display:none;">
+                                <p>Enjoy it shaved over a salad, paired with matured cheddar on a snack board, or simply on its own — a true South African tradition.</p>
+                                <a href="@Url.Action("Products", "Customer", new { category = "Beef" })" class="shop-now-link">Shop Now →</a>
+                            </div>
+                            <button class="read-more-btn" onclick="toggleMore('more-biltong', this)">Read More →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="carousel-arrow next-arrow" id="nextArrow">&#10095;</button>
+        </div>
+
+        <!-- Dot Indicators -->
+        <div class="carousel-dots" id="carouselDots"></div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ABOUT US SECTION -->
+<section id="about" class="about-section">
+    <div class="container">
+        <h2 class="section-title">About Us</h2>
+        <p class="text-center" style="max-width: 800px; margin: 0 auto 40px auto; color: var(--text-secondary);">
+            The Chester Group is a group of companies that specialise in wholesale meat manufacturing and distribution throughout South Africa, importing and exporting of meat, and providing quality meat to South African families through its own chain of butcheries.
+        </p>
+
+        <div class="about-grid">
+            <div class="about-card">
+                <div class="about-icon">🏭</div>
+                <h3>Chester Wholesale Meat</h3>
+                <p>Chester Wholesale Meat specialises in wholesale meat importing, manufacturing and distribution. Supplying major South African retailers, its own Chester Butcheries, and other trades, Chester Wholesale Meat consistently provides quality product to all its customers.</p>
+                <p class="mt-2">Our commitment to going the extra mile has helped us build a reputation as a reliable and reputable supplier of good quality meat.</p>
+                <a href="#" class="read-more">Read More →</a>
+            </div>
+
+            <div class="about-card">
+                <div class="about-icon">🥩</div>
+                <h3>Chester Butcheries</h3>
+                <p>Chester Butcheries proudly provide quality meat through its growing retail footprint in Kwa-Zulu Natal, Gauteng and the Eastern Cape.</p>
+                <p class="mt-2">By building upon the founding principles of Trusted Quality and Passionate Service, Chester Butcheries is a popular household name among its customers. As the business continues to expand, we remain committed to serving South African families with good quality meat.</p>
+                <a href="#" class="read-more">Read More →</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- CONTACT US SECTION -->
+<section id="contact" class="contact-section">
+    <div class="container">
+        <h2 class="section-title">Contact Us</h2>
+        <p class="text-center" style="max-width: 600px; margin: 0 auto 40px auto; color: var(--text-secondary);">
+            We believe in open and honest conversations. Please use the details below to contact us and we will respond to your query as soon as possible.
+        </p>
+
+        <div class="contact-grid">
+            <div class="contact-details">
+                <div class="contact-info-item">
+                    <div class="contact-icon">📍</div>
+                    <div>
+                        <h4>Find Us</h4>
+                        <p>14 – 22 Watford Road<br />Congella, Durban<br />4001</p>
+                    </div>
+                </div>
+                <div class="contact-info-item">
+                    <div class="contact-icon">📞</div>
+                    <div>
+                        <h4>Phone</h4>
+                        <p>Tel: +27 31 001 9501<br />Fax: +27 31 001 9571</p>
+                    </div>
+                </div>
+                <div class="contact-info-item">
+                    <div class="contact-icon">✉️</div>
+                    <div>
+                        <h4>Email</h4>
+                        <p>info@chestersa.com</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="contact-form">
+                <h3>Drop us a mail</h3>
+                <p>At Chester we value your input and feedback. Please feel free to contact us by completing the enquiry box below. A member of our team will be in contact with you as soon as possible.</p>
+
+                <form action="@Url.Action("SubmitEnquiry", "Home")" method="post" id="contactForm">
+                    @Html.AntiForgeryToken()
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>First Name *</label>
+                            <input type="text" name="firstName" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name</label>
+                            <input type="text" name="lastName" class="form-control" />
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Contact Number *</label>
+                            <input type="tel" name="phone" class="form-control" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" name="email" class="form-control" required />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Subject *</label>
+                        <select name="subject" class="form-control" required>
+                            <option value="">Select a subject</option>
+                            <option value="Complaint">Complaint</option>
+                            <option value="Compliment">Compliment</option>
+                            <option value="Wholesale Enquiry">Wholesale Enquiry</option>
+                            <option value="Butchery Enquiry">Butchery Enquiry</option>
+                            <option value="HR Enquiry">HR Enquiry</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Comment or Message *</label>
+                        <textarea name="message" class="form-control" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit Enquiry</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
+        anchor.addEventListener('click', function (e) {
+            var targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            var target = document.querySelector(targetId);
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    });
+
+    // Toggle Read More / Read Less
+    function toggleMore(elementId, btn) {
+        var moreDiv = document.getElementById(elementId);
+
+        if (moreDiv.style.display === 'none' || moreDiv.style.display === '') {
+            moreDiv.style.display = 'block';
+            btn.innerHTML = 'Read Less ↑';
+        } else {
+            moreDiv.style.display = 'none';
+            btn.innerHTML = 'Read More →';
+        }
+    }
+
+    window.toggleMore = toggleMore;
+
+    // ========== CAROUSEL/SLIDER FUNCTIONALITY ==========
+    const track = document.getElementById('carouselTrack');
+    const prevBtn = document.getElementById('prevArrow');
+    const nextBtn = document.getElementById('nextArrow');
+    const dotsContainer = document.getElementById('carouselDots');
+
+    if (track && prevBtn && nextBtn) {
+        const slides = Array.from(track.children);
+        let currentIndex = 0;
+        const totalSlides = slides.length;
+
+        function createDots() {
+            if (!dotsContainer) return;
+            dotsContainer.innerHTML = '';
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('button');
+                dot.classList.add('carousel-dot');
+                if (i === currentIndex) dot.classList.add('active');
+                dot.addEventListener('click', () => goToSlide(i));
+                dotsContainer.appendChild(dot);
+            }
+        }
+
+        function goToSlide(index) {
+            if (index < 0) index = totalSlides - 1;
+            if (index >= totalSlides) index = 0;
+            currentIndex = index;
+            track.style.transform = 'translateX(-' + (currentIndex * 100) + '%)';
+
+            if (dotsContainer) {
+                const dots = dotsContainer.querySelectorAll('.carousel-dot');
+                dots.forEach((dot, i) => {
+                    dot.classList.toggle('active', i === currentIndex);
+                });
+            }
+        }
+
+        function nextSlide() {
+            goToSlide(currentIndex + 1);
+        }
+
+        function prevSlide() {
+            goToSlide(currentIndex - 1);
+        }
+
+        nextBtn.addEventListener('click', nextSlide);
+        prevBtn.addEventListener('click', prevSlide);
+
+        createDots();
+
+        let autoPlayInterval = setInterval(nextSlide, 5000);
+
+        const carouselContainer = document.querySelector('.carousel-container');
+        if (carouselContainer) {
+            carouselContainer.addEventListener('mouseenter', () => {
+                clearInterval(autoPlayInterval);
+            });
+            carouselContainer.addEventListener('mouseleave', () => {
+                autoPlayInterval = setInterval(nextSlide, 5000);
+            });
+        }
+    }
+</script>

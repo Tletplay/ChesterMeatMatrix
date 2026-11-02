@@ -1,0 +1,106 @@
+﻿﻿@{
+    ViewBag.Title = "Receiver Dashboard - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_ReceiverLayout.cshtml";
+    var totalPallets = ViewBag.TotalPallets as int? ?? 0;
+    var totalItems = ViewBag.TotalItems as int? ?? 0;
+    var uniqueLocations = ViewBag.UniqueLocations as int? ?? 0;
+    var pendingReturns = ViewBag.PendingReturns as int? ?? 0;
+    var fullName = ViewBag.FullName as string ?? "Receiver";
+}
+
+<style>
+    .receiver-dashboard { max-width: 1400px; margin: 0 auto; }
+    .receiver-welcome {
+        background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+    .receiver-welcome::after { content: "📦"; position: absolute; bottom: 0.5rem; right: 1.5rem; font-size: 5rem; opacity: 0.08; pointer-events: none; }
+    .receiver-welcome h2 { color: white; margin: 0 0 0.25rem 0; font-size: 1.5rem; font-weight: 700; display: flex; align-items: center; gap: 0.75rem; }
+    .receiver-welcome h2 i { font-size: 1.75rem; color: #F59E0B; }
+    .receiver-welcome p { color: rgba(255,255,255,0.85); margin: 0; font-size: 0.85rem; }
+    .receiver-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem; }
+    @@media (min-width: 768px) { .receiver-stats { grid-template-columns: repeat(4, 1fr); } }
+    .receiver-stat-card { background: white; border-radius: 16px; padding: 1.25rem; text-align: center; border: 1px solid #EDF2F7; transition: all 0.2s; }
+    .receiver-stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(10,37,64,0.1); }
+    .receiver-stat-number { font-size: 2rem; font-weight: 800; color: #0A2540; }
+    .receiver-stat-label { font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase; }
+    .receiver-actions { display: grid; grid-template-columns: 1fr; gap: 1.5rem; margin-top: 1rem; }
+    @@media (min-width: 768px) { .receiver-actions { grid-template-columns: repeat(3, 1fr); } }
+    .receiver-action-card { background: white; border-radius: 20px; border: 1px solid #EDF2F7; overflow: hidden; transition: all 0.2s; text-align: center; }
+    .receiver-action-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(10,37,64,0.1); }
+    .receiver-action-icon { font-size: 2.5rem; padding: 1.25rem 1.5rem 0; color: #C1272D; }
+    .receiver-action-card h3 { margin: 0.5rem 0; font-size: 1.1rem; font-weight: 700; color: #0A2540; }
+    .receiver-action-card p { padding: 0 1.5rem; font-size: 0.8rem; color: #718096; }
+    .receiver-action-btn { display: inline-block; margin: 1rem 0 1.5rem; background: #C1272D; color: white; padding: 0.5rem 1.25rem; border-radius: 40px; font-size: 0.8rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
+    .receiver-action-btn:hover { background: #A11E23; transform: translateY(-2px); color: white; text-decoration: none; }
+</style>
+
+<div class="receiver-dashboard">
+    <div class="receiver-welcome">
+        <h2><i class="fas fa-warehouse"></i> Welcome, @fullName!</h2>
+        <p>Receiver Dashboard - Manage incoming stock, pallets, and returned goods</p>
+    </div>
+
+    <div class="receiver-stats">
+        <div class="receiver-stat-card">
+            <div class="receiver-stat-number">@totalPallets</div>
+            <div class="receiver-stat-label">Total Pallets</div>
+        </div>
+        <div class="receiver-stat-card">
+            <div class="receiver-stat-number">@totalItems</div>
+            <div class="receiver-stat-label">Total Items</div>
+        </div>
+        <div class="receiver-stat-card">
+            <div class="receiver-stat-number">@uniqueLocations</div>
+            <div class="receiver-stat-label">Storage Locations</div>
+        </div>
+        <div class="receiver-stat-card">
+            <div class="receiver-stat-number">@pendingReturns</div>
+            <div class="receiver-stat-label">Pending Returns</div>
+        </div>
+    </div>
+
+    <div class="receiver-actions">
+        <div class="receiver-action-card">
+            <div class="receiver-action-icon"><i class="fas fa-plus-circle"></i></div>
+            <h3>Receive New Stock</h3>
+            <p>Add new meat products to warehouse inventory. Creates pallets and serial numbers automatically.</p>
+            <a href="@Url.Action("Create", "Receiver")" class="receiver-action-btn">Receive Items →</a>
+        </div>
+
+        <div class="receiver-action-card">
+            <div class="receiver-action-icon"><i class="fas fa-pallet"></i></div>
+            <h3>Manage Pallets</h3>
+            <p>View all pallets in warehouse, check quantities, and see individual items on each pallet.</p>
+            <a href="@Url.Action("Pallets", "Receiver")" class="receiver-action-btn">View Pallets →</a>
+        </div>
+
+        <div class="receiver-action-card">
+            <div class="receiver-action-icon"><i class="fas fa-undo-alt"></i></div>
+            <h3>Returns Inspection</h3>
+            <p>Inspect returned goods, determine if they can be restocked or need disposal.</p>
+            <a href="@Url.Action("Returns", "Receiver")" class="receiver-action-btn">Manage Returns →</a>
+        </div>
+
+        <div class="receiver-action-card">
+            <div class="receiver-action-icon"><i class="fas fa-qrcode"></i></div>
+            <h3>Scan Item</h3>
+            <p>Scan QR codes on meat packages to verify product details and batch information.</p>
+            <a href="@Url.Action("ScanItem", "Receiver")" class="receiver-action-btn">Scan Items →</a>
+        </div>
+
+        <div class="receiver-action-card">
+            <div class="receiver-action-icon"><i class="fas fa-boxes"></i></div>
+            <h3>Warehouse Stock</h3>
+            <p>View detailed inventory by location, search by product code or serial number.</p>
+            <a href="@Url.Action("Stock", "Receiver")" class="receiver-action-btn">Manage Stock →</a>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

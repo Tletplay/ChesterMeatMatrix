@@ -1,0 +1,433 @@
+﻿﻿@using ChesterMeatMatrix.Models
+@model StockTake
+@{
+    ViewBag.Title = "Stock Take Details";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+}
+
+<div class="container-fluid px-4 py-4">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-start mb-4">
+        <div>
+            <h1 class="h2 fw-bold" style="color: #0A2540; display: flex; align-items: center; gap: 0.75rem;">
+                <i data-lucide="clipboard-check" style="color: #C1272D; width: 28px; height: 28px;"></i>
+                @Model.Name
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">@Model.SessionNumber · @Model.Location</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="@Url.Action("CountSheet", new { id = Model.StockTakeId })" class="btn" style="background: #F1F5F9; color: #0A2540; padding: 0.5rem 1.25rem; border-radius: 50px; font-weight: 600; font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.375rem;">
+                <i data-lucide="printer" style="width: 16px; height: 16px;"></i>
+                Count Sheet
+            </a>
+            <a href="@Url.Action("Report", new { id = Model.StockTakeId })" target="_blank" class="btn" style="background: #C1272D; color: white; padding: 0.5rem 1.25rem; border-radius: 50px; font-weight: 600; font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.375rem;">
+                <i data-lucide="file-text" style="width: 16px; height: 16px;"></i>
+                Generate Report
+            </a>
+            @if (Model.Status == StockTakeStatus.Draft)
+            {
+                <form method="post" action="@Url.Action("StartCounting", new { id = Model.StockTakeId })" style="display: inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn" style="background: #10B981; color: white; padding: 0.5rem 1.25rem; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.375rem;">
+                        <i data-lucide="play" style="width: 16px; height: 16px;"></i>
+                        Start Counting
+                    </button>
+                </form>
+            }
+            <a href="@Url.Action("Index")" class="btn" style="background: #0A2540; color: white; padding: 0.5rem 1.25rem; border-radius: 50px; font-weight: 600; font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.375rem;">
+                <i data-lucide="arrow-left" style="width: 16px; height: 16px;"></i>
+                Back
+            </a>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success d-flex align-items-center gap-2" style="background: #D1FAE5; border: none; border-left: 4px solid #10B981; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+            <i data-lucide="check-circle" style="color: #10B981; width: 20px; height: 20px;"></i>
+            <span style="color: #065F46; font-weight: 500;">@TempData["Success"]</span>
+        </div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger d-flex align-items-center gap-2" style="background: #FEE2E2; border: none; border-left: 4px solid #DC2626; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+            <i data-lucide="alert-circle" style="color: #DC2626; width: 20px; height: 20px;"></i>
+            <span style="color: #991B1B; font-weight: 500;">@TempData["Error"]</span>
+        </div>
+    }
+
+    <!-- Info & Stats -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-lg-8">
+            <div class="card border-0 rounded-4 p-3" style="border: 1px solid #E8E8E8;">
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Session Number</div>
+                        <div style="font-weight: 700; color: #0A2540;">@Model.SessionNumber</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Location</div>
+                        <div style="font-weight: 700; color: #0A2540;">@Model.Location</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Start Date</div>
+                        <div style="font-weight: 700; color: #0A2540;">@Model.StartDate.ToString("dd MMM yyyy")</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Created By</div>
+                        <div style="font-weight: 700; color: #0A2540;">@Model.CreatedBy</div>
+                    </div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    <div class="mt-2 pt-2" style="border-top: 1px solid #E8E8E8;">
+                        <div style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Notes</div>
+                        <div style="color: #1E1E1E; margin-top: 0.25rem; font-size: 0.875rem;">@Model.Notes</div>
+                    </div>
+                }
+            </div>
+        </div>
+        <div class="col-12 col-lg-4">
+            <div class="card border-0 rounded-4 p-3" style="border: 1px solid #E8E8E8;">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span style="font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94A3B8; font-weight: 600;">Status</span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.75rem; font-weight: 600;
+                        @(Model.Status == StockTakeStatus.Draft ? "background:#FEF3C7; color:#92400E;" :
+                          Model.Status == StockTakeStatus.Counting ? "background:#DBEAFE; color:#1E40AF;" :
+                          Model.Status == StockTakeStatus.VariancesIdentified ? "background:#FEF3C7; color:#92400E;" :
+                          Model.Status == StockTakeStatus.Approved ? "background:#D1FAE5; color:#065F46;" :
+                          "background:#F3F4F6; color:#6B7280;")">
+                        <i data-lucide="@(Model.Status == StockTakeStatus.Draft ? "file-text" :
+                                    Model.Status == StockTakeStatus.Counting ? "loader-2" :
+                                    Model.Status == StockTakeStatus.VariancesIdentified ? "alert-triangle" :
+                                    Model.Status == StockTakeStatus.Approved ? "check-circle" : "circle")" style="width: 12px; height: 12px;"></i>
+                        @Model.Status
+                    </span>
+                </div>
+                <div class="row g-2 pt-2" style="border-top: 1px solid #E8E8E8;">
+                    <div class="col-4 text-center">
+                        <div style="font-size: 1.25rem; font-weight: 800; color: #0A2540;">@(Model.CountItems?.Count() ?? 0)</div>
+                        <div style="font-size: 0.6rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Total</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div style="font-size: 1.25rem; font-weight: 800; color: #3B82F6;">@Model.TotalItemsCounted</div>
+                        <div style="font-size: 0.6rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Counted</div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div style="font-size: 1.25rem; font-weight: 800; color: @(Model.TotalVariancesFound > 0 ? "#DC2626" : "#10B981");">@Model.TotalVariancesFound</div>
+                        <div style="font-size: 0.6rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Variances</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assigned Counters -->
+    <div class="card border-0 rounded-4 mb-4" style="border: 1px solid #E8E8E8; overflow: hidden;">
+        <div class="p-3" style="background: #F8FAFE; border-bottom: 1px solid #E8E8E8;">
+            <h4 class="mb-0" style="font-size: 0.875rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="users" style="width: 18px; height: 18px; color: #C1272D;"></i>
+                Assigned Counters
+            </h4>
+        </div>
+        <div class="table-responsive">
+            <table class="table mb-0" style="font-size: 0.875rem;">
+                <thead style="background: #FAFBFC; border-bottom: 1px solid #E8E8E8;">
+                    <tr>
+                        <th style="padding: 0.75rem 1.25rem; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Staff</th>
+                        <th style="padding: 0.75rem 1.25rem; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Role</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Items Counted</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Assignments != null && Model.Assignments.Any())
+                    {
+                        foreach (var assignment in Model.Assignments)
+                        {
+                            <tr>
+                                <td style="padding: 0.75rem 1.25rem; font-weight: 600; color: #0A2540;">@(assignment.Staff?.FullName ?? "Unknown")</td>
+                                <td style="padding: 0.75rem 1.25rem; color: #1E1E1E;">@(assignment.Staff?.Role ?? "-")</td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center;">
+                                    <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600;
+                                        @(assignment.Status == StockTakeAssignmentStatus.Pending ? "background:#FEF3C7; color:#92400E;" :
+                                          assignment.Status == StockTakeAssignmentStatus.InProgress ? "background:#DBEAFE; color:#1E40AF;" :
+                                          "background:#D1FAE5; color:#065F46;")">
+                                        <i data-lucide="@(assignment.Status == StockTakeAssignmentStatus.Pending ? "clock" :
+                                                   assignment.Status == StockTakeAssignmentStatus.InProgress ? "loader-2" : "check-circle")" style="width: 12px; height: 12px;"></i>
+                                        @assignment.Status
+                                    </span>
+                                </td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 600; color: #0A2540;">@assignment.ItemsCounted</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="4" class="text-center py-4" style="color: #94A3B8;">
+                                <i data-lucide="user-x" style="width: 24px; height: 24px; display: block; margin: 0 auto 0.5rem; color: #CBD5E1;"></i>
+                                No counters assigned
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Count Items -->
+    <div class="card border-0 rounded-4" style="border: 1px solid #E8E8E8; overflow: hidden;">
+        <div class="p-3 d-flex flex-wrap justify-content-between align-items-center" style="background: #F8FAFE; border-bottom: 1px solid #E8E8E8;">
+            <h4 class="mb-0" style="font-size: 0.875rem; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="list-checks" style="width: 18px; height: 18px; color: #C1272D;"></i>
+                Count Items
+            </h4>
+            <span style="font-size: 0.75rem; color: #64748B;">@(Model.CountItems?.Count(i => i.PhysicalCount.HasValue) ?? 0) / @(Model.CountItems?.Count() ?? 0) counted</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table mb-0" style="font-size: 0.875rem;">
+                <thead style="background: #FAFBFC; border-bottom: 2px solid #E8E8E8;">
+                    <tr>
+                        <th style="padding: 0.75rem 1.25rem; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Product</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">System Qty</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Physical Count</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Variance</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Status</th>
+                        <th style="padding: 0.75rem 1.25rem; text-align: center; font-weight: 700; color: #0A2540; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.CountItems != null && Model.CountItems.Any())
+                    {
+                        foreach (var item in Model.CountItems)
+                        {
+                            string statusBg = item.Status == StockCountStatus.Pending ? "#FEF3C7" :
+                                              item.Status == StockCountStatus.Counted ? "#DBEAFE" :
+                                              item.Status == StockCountStatus.Variance ? "#FEE2E2" :
+                                              item.Status == StockCountStatus.Verified ? "#D1FAE5" :
+                                              "#D1FAE5";
+
+                            string statusColor = item.Status == StockCountStatus.Pending ? "#92400E" :
+                                                 item.Status == StockCountStatus.Counted ? "#1E40AF" :
+                                                 item.Status == StockCountStatus.Variance ? "#991B1B" :
+                                                 item.Status == StockCountStatus.Verified ? "#065F46" :
+                                                 "#065F46";
+
+                            string statusIcon = item.Status == StockCountStatus.Pending ? "clock" :
+                                                item.Status == StockCountStatus.Counted ? "check-circle" :
+                                                item.Status == StockCountStatus.Variance ? "alert-triangle" :
+                                                item.Status == StockCountStatus.Verified ? "check-circle" :
+                                                "check-circle";
+
+                            <tr>
+                                <td style="padding: 0.75rem 1.25rem; vertical-align: middle;">
+                                    <div style="font-weight: 600; color: #0A2540;">@(item.Product?.Name ?? "Unknown Product")</div>
+                                    <div style="font-size: 0.75rem; color: #94A3B8; margin-top: 0.125rem;">@(item.Product?.ProductCode ?? "N/A")</div>
+                                </td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center; vertical-align: middle; font-weight: 600; color: #0A2540;">@item.SystemQuantity</td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center; vertical-align: middle; font-weight: 600; color: @(item.PhysicalCount.HasValue ? "#0A2540" : "#94A3B8");">
+                                    @(item.PhysicalCount.HasValue ? item.PhysicalCount.Value.ToString() : "-")
+                                </td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center; vertical-align: middle; font-weight: 700;">
+                                    @if (item.Variance != 0)
+                                    {
+                                        <span style="color: @(item.Variance > 0 ? "#10B981" : "#DC2626");">
+                                            @(item.Variance > 0 ? "+" : "")@item.Variance
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #94A3B8;">0</span>
+                                    }
+                                </td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center; vertical-align: middle;">
+                                    <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; background: @statusBg; color: @statusColor;">
+                                        <i data-lucide="@statusIcon" style="width: 12px; height: 12px;"></i>
+                                        @item.Status
+                                    </span>
+                                </td>
+                                <td style="padding: 0.75rem 1.25rem; text-align: center; vertical-align: middle;">
+                                    @if (item.Status == StockCountStatus.Pending)
+                                    {
+                                        <button class="btn-enter-count btn btn-sm" data-itemid="@item.StockCountItemId" style="background: #0A2540; color: white; padding: 0.25rem 1rem; border: none; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.375rem;">
+                                            <i data-lucide="pencil" style="width: 14px; height: 14px;"></i>
+                                            Enter Count
+                                        </button>
+                                    }
+                                    else if (item.Status == StockCountStatus.Counted && item.Variance != 0)
+                                    {
+                                        <button class="btn-approve btn btn-sm" data-itemid="@item.StockCountItemId" style="background: #10B981; color: white; padding: 0.25rem 1rem; border: none; border-radius: 50px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.375rem;">
+                                            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
+                                            Approve
+                                        </button>
+                                    }
+                                    else if (item.Status == StockCountStatus.Verified || item.Status == StockCountStatus.Variance)
+                                    {
+                                        <span style="color: #10B981; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.375rem;">
+                                            <i data-lucide="check-circle" style="width: 14px; height: 14px;"></i>
+                                            @(item.Variance == 0 ? "Accurate" : "Approved")
+                                        </span>
+                                    }
+                                    else if (item.Status == StockCountStatus.Counted && item.Variance == 0)
+                                    {
+                                        <span style="color: #10B981; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.375rem;">
+                                            <i data-lucide="check" style="width: 14px; height: 14px;"></i>
+                                            Accurate
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #94A3B8; font-size: 0.75rem; display: inline-flex; align-items: center; gap: 0.375rem;">
+                                            <i data-lucide="check" style="width: 14px; height: 14px; color: #10B981;"></i>
+                                            Done
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-4" style="color: #94A3B8;">
+                                <i data-lucide="package-x" style="width: 32px; height: 32px; display: block; margin: 0 auto 0.5rem; color: #CBD5E1;"></i>
+                                No count items found
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Enter Count Modal -->
+<div id="countModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: white; border-radius: 16px; padding: 2rem; max-width: 420px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 style="margin: 0; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="pencil" style="color: #C1272D; width: 22px; height: 22px;"></i>
+                Enter Physical Count
+            </h4>
+            <button type="button" onclick="closeModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94A3B8; padding: 0; line-height: 1;">
+                <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+            </button>
+        </div>
+        <p style="color: #64748B; margin-bottom: 1.25rem; font-size: 0.875rem;">Enter the physical count for this product</p>
+
+        <form id="countForm" method="post" action="@Url.Action("EnterPhysicalCount")">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="itemId" id="countItemId" />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold" style="font-size: 0.75rem; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+                    Physical Count <span style="color: #C1272D;">*</span>
+                </label>
+                <input type="number" name="physicalCount" id="physicalCount" class="form-control" required min="0" placeholder="Enter count..." style="padding: 0.75rem 1rem; border: 2px solid #E8E8E8; border-radius: 12px; font-size: 1rem; font-weight: 600; transition: all 0.2s ease; font-family: inherit; background: white;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)';" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none';" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold" style="font-size: 0.75rem; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Notes (Optional)</label>
+                <textarea name="notes" class="form-control" rows="2" placeholder="Any notes about this count..." style="padding: 0.75rem 1rem; border: 2px solid #E8E8E8; border-radius: 12px; font-size: 0.875rem; transition: all 0.2s ease; font-family: inherit; background: white; resize: vertical; min-height: 60px;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)';" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none';"></textarea>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+                <button type="button" onclick="closeModal()" class="btn" style="background: #F1F5F9; color: #0A2540; padding: 0.625rem 1.5rem; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem;">
+                    Cancel
+                </button>
+                <button type="submit" class="btn" style="background: #C1272D; color: white; padding: 0.625rem 1.75rem; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="save" style="width: 18px; height: 18px;"></i>
+                    Save Count
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Approve Modal -->
+<div id="approveModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div style="background: white; border-radius: 16px; padding: 2rem; max-width: 420px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 style="margin: 0; font-weight: 700; color: #0A2540; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="check-circle" style="color: #10B981; width: 22px; height: 22px;"></i>
+                Approve Correction
+            </h4>
+            <button type="button" onclick="closeApproveModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #94A3B8; padding: 0; line-height: 1;">
+                <i data-lucide="x" style="width: 24px; height: 24px;"></i>
+            </button>
+        </div>
+        <p style="color: #64748B; margin-bottom: 1.25rem; font-size: 0.875rem;">Approve this inventory correction</p>
+
+        <form id="approveForm" method="post" action="@Url.Action("ApproveCorrection")">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="itemId" id="approveItemId" />
+
+            <div class="mb-3">
+                <label class="form-label fw-bold" style="font-size: 0.75rem; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+                    Investigation Notes <span style="color: #C1272D;">*</span>
+                </label>
+                <textarea name="investigationNotes" class="form-control" rows="3" required placeholder="Explain the cause of this variance..." style="padding: 0.75rem 1rem; border: 2px solid #E8E8E8; border-radius: 12px; font-size: 0.875rem; transition: all 0.2s ease; font-family: inherit; background: white; resize: vertical; min-height: 80px;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)';" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none';"></textarea>
+            </div>
+
+            <div class="d-flex gap-2 justify-content-end">
+                <button type="button" onclick="closeApproveModal()" class="btn" style="background: #F1F5F9; color: #0A2540; padding: 0.625rem 1.5rem; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem;">
+                    Cancel
+                </button>
+                <button type="submit" class="btn" style="background: #10B981; color: white; padding: 0.625rem 1.75rem; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+                    Approve
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+
+    // Enter Count Modal
+    document.querySelectorAll('.btn-enter-count').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.getElementById('countItemId').value = this.dataset.itemid;
+            document.getElementById('countModal').style.display = 'flex';
+            document.getElementById('physicalCount').focus();
+            setTimeout(() => lucide.createIcons(), 50);
+        });
+    });
+
+    function closeModal() {
+        document.getElementById('countModal').style.display = 'none';
+    }
+
+    document.getElementById('countModal').addEventListener('click', function (e) {
+        if (e.target === this) closeModal();
+    });
+
+    // Approve Modal
+    document.querySelectorAll('.btn-approve').forEach(btn => {
+        btn.addEventListener('click', function () {
+            document.getElementById('approveItemId').value = this.dataset.itemid;
+            document.getElementById('approveModal').style.display = 'flex';
+            setTimeout(() => lucide.createIcons(), 50);
+        });
+    });
+
+    function closeApproveModal() {
+        document.getElementById('approveModal').style.display = 'none';
+    }
+
+    document.getElementById('approveModal').addEventListener('click', function (e) {
+        if (e.target === this) closeApproveModal();
+    });
+
+    // Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            closeModal();
+            closeApproveModal();
+        }
+    });
+</script>

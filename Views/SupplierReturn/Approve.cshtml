@@ -1,0 +1,118 @@
+﻿﻿@model ChesterMeatMatrix.Models.SupplierReturn
+@{
+    ViewBag.Title = "Approve Supplier Return";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .form-container {
+        max-width: 700px;
+        margin: 2rem auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .info-row {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-label {
+        font-weight: 600;
+        color: #0a4c8c;
+        width: 150px;
+        display: inline-block;
+    }
+
+    .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+        font-weight: 600;
+        color: #0a4c8c;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+    }
+
+    .btn-approve {
+        background: #10b981;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .btn-reject {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 40px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-left: 1rem;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-card">
+        <h2 style="color: #0a4c8c;">Review Supplier Return #@Model.ReturnNumber</h2>
+
+        <div class="info-row">
+            <span class="info-label">Product:</span>
+            <span>@Model.Product?.Name</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Quantity:</span>
+            <span>@Model.Quantity units</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Reason:</span>
+            <span>@Model.ReturnReason</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Supplier:</span>
+            <span>@(Model.SupplierName ?? "Not specified")</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Notes:</span>
+            <span>@(Model.Notes ?? "-")</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">Return Date:</span>
+            <span>@Model.ReturnDate.ToString("dd MMM yyyy HH:mm")</span>
+        </div>
+
+        @using (Html.BeginForm("ProcessApproval", "SupplierReturn", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.Hidden("id", Model.SupplierReturnId)
+
+            <div class="form-group">
+                <label class="form-label">Supplier Reference #</label>
+                <input type="text" name="supplierReference" class="form-control" placeholder="Supplier's return authorization number" />
+            </div>
+
+            <div class="text-center mt-4">
+                <button type="submit" name="decision" value="Approve" class="btn-approve">✓ Approve Return</button>
+                <button type="submit" name="decision" value="Reject" class="btn-reject">✗ Reject Return</button>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,388 @@
+﻿@using ChesterMeatMatrix.Models
+@model IEnumerable<Shift>
+@{
+    ViewBag.Title = "My Schedule";
+    Layout = "~/Views/Shared/_StaffLayout.cshtml";
+}
+
+@section SidebarMenu {
+    <!-- Empty sidebar for staff views -->
+}
+
+<!-- Anti-Forgery Form for AJAX Operations -->
+@using (Html.BeginForm(null, null, FormMethod.Post, new { id = "antiForgeryForm", style = "display:none;" }))
+{
+    @Html.AntiForgeryToken()
+}
+
+<div class="container-fluid px-4 py-4" style="max-width: 900px; margin: 0 auto;">
+    <!-- Toast Container -->
+    <div id="toastContainer" style="position: fixed; top: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 12px; max-width: 380px; width: 100%; pointer-events: none;"></div>
+
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 fw-bold" style="color: #0A2540; display: flex; align-items: center; gap: 0.75rem;">
+                <i data-lucide="calendar" style="color: #C1272D; width: 28px; height: 28px;"></i>
+                My Schedule
+            </h1>
+            <p class="text-muted mb-0" style="font-size: 0.9rem;">Manage your upcoming shifts and time punches</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <button style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 1rem; background: #F1F5F9; color: #0A2540; border: none; border-radius: 50px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#E2E8F0'" onmouseout="this.style.background='#F1F5F9'">
+                <i data-lucide="chevron-left" style="width: 16px; height: 16px;"></i>
+                Prev Week
+            </button>
+            <span style="font-weight: 700; color: #0A2540; font-size: 0.875rem; min-width: 120px; text-align: center;">
+                @DateTime.Now.ToString("dd MMM yyyy")
+            </span>
+            <button style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 1rem; background: #F1F5F9; color: #0A2540; border: none; border-radius: 50px; font-size: 0.875rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#E2E8F0'" onmouseout="this.style.background='#F1F5F9'">
+                Next Week
+                <i data-lucide="chevron-right" style="width: 16px; height: 16px;"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Today's Shift (Hero) -->
+    @{
+        var today = DateTime.Today;
+        var todayShifts = Model.Where(s => s.ShiftDate.Date == today.Date).ToList();
+        var upcomingShifts = Model.Where(s => s.ShiftDate.Date > today.Date).OrderBy(s => s.ShiftDate).ToList();
+        var hasTodayShift = todayShifts.Any();
+    }
+
+    @if (hasTodayShift)
+    {
+        foreach (var shift in todayShifts)
+        {
+            var timeRange = shift.Type == ShiftType.Morning ? "06:00 – 14:00" :
+                            shift.Type == ShiftType.Afternoon ? "14:00 – 22:00" : "22:00 – 06:00";
+
+            <div style="background: white; border-radius: 16px; border: 1px solid #E8E8E8; padding: 1.5rem; margin-bottom: 1.5rem; border-left: 4px solid #10B981; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                    <div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: #10B981; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.25rem;">
+                            <i data-lucide="check-circle" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem;"></i>
+                            TODAY · @shift.ShiftDate.ToString("dd MMM")
+                        </div>
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: #0A2540; margin: 0;">@shift.Name</h2>
+                        <div style="display: flex; align-items: center; gap: 0.75rem; margin-top: 0.25rem;">
+                            <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; background: #DBEAFE; color: #1E40AF;">
+                                <i data-lucide="loader-2" style="width: 12px; height: 12px; animation: spin 1s linear infinite;"></i>
+                                IN PROGRESS
+                            </span>
+                            <span style="font-size: 0.8rem; color: #64748B;">
+                                <i data-lucide="clock" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem;"></i>
+                                @timeRange
+                            </span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 0.7rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Punched In</div>
+                        <div style="font-size: 1.5rem; font-weight: 800; color: #0A2540;">@DateTime.Now.ToString("HH:mm")</div>
+                        <button onclick="handleClockOut()" style="margin-top: 0.5rem; padding: 0.375rem 1.25rem; background: #DC2626; color: white; border: none; border-radius: 50px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#B91C1C'" onmouseout="this.style.background='#DC2626'">
+                            <i data-lucide="clock" style="width: 14px; height: 14px; display: inline; margin-right: 0.25rem;"></i>
+                            Clock Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+    <!-- Upcoming Shifts -->
+    @if (upcomingShifts.Any())
+    {
+        <h3 style="font-size: 0.875rem; font-weight: 700; color: #0A2540; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="calendar-days" style="width: 18px; height: 18px; color: #C1272D;"></i>
+            Upcoming Shifts
+        </h3>
+
+        foreach (var shift in upcomingShifts.Take(5))
+        {
+            var timeRange = shift.Type == ShiftType.Morning ? "06:00 – 14:00" :
+                            shift.Type == ShiftType.Afternoon ? "14:00 – 22:00" : "22:00 – 06:00";
+
+            var isTomorrow = shift.ShiftDate.Date == DateTime.Today.AddDays(1).Date;
+            var dayLabel = isTomorrow ? "Tomorrow" : shift.ShiftDate.ToString("dddd");
+
+            <div style="background: white; border-radius: 12px; border: 1px solid #E8E8E8; padding: 1rem 1.25rem; margin-bottom: 0.75rem; transition: all 0.2s;" onmouseover="this.style.borderColor='#C1272D'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.05)'" onmouseout="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none'">
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                    <div>
+                        <div style="font-size: 0.7rem; font-weight: 700; color: #94A3B8; text-transform: uppercase; letter-spacing: 0.5px;">
+                            @dayLabel · @shift.ShiftDate.ToString("dd MMM")
+                        </div>
+                        <div style="font-weight: 600; color: #0A2540; font-size: 1rem;">@shift.Name</div>
+                        <div style="font-size: 0.8rem; color: #64748B; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.125rem;">
+                            <i data-lucide="clock" style="width: 14px; height: 14px;"></i>
+                            @timeRange
+                        </div>
+                    </div>
+                    <div>
+                        <span style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; border-radius: 50px; font-size: 0.7rem; font-weight: 600; background: #DBEAFE; color: #1E40AF;">
+                            <i data-lucide="check-circle" style="width: 12px; height: 12px;"></i>
+                            @shift.Status
+                        </span>
+                    </div>
+                </div>
+            </div>
+        }
+
+        if (upcomingShifts.Count() > 5)
+        {
+            <div style="text-align: center; padding: 0.5rem 0;">
+                <a href="#" style="color: #C1272D; font-weight: 600; font-size: 0.875rem; text-decoration: none;">View all @upcomingShifts.Count() shifts →</a>
+            </div>
+        }
+    }
+    else if (!hasTodayShift)
+    {
+        <div style="background: white; border-radius: 16px; border: 1px solid #E8E8E8; padding: 3rem 1.5rem; text-align: center;">
+            <i data-lucide="calendar" style="width: 48px; height: 48px; color: #CBD5E1; display: block; margin: 0 auto 0.75rem;"></i>
+            <p style="margin: 0; font-size: 1rem; color: #64748B;">You have no shifts scheduled for this week.</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #94A3B8;">Check back later for your schedule.</p>
+        </div>
+    }
+
+    <!-- Weekly Summary -->
+    @if (Model.Any())
+    {
+        var totalScheduledHours = Model.Count() * 8;
+        var totalWorkedHours = Model.Count(s => s.ShiftDate.Date <= DateTime.Today.Date) * 8;
+        var progressPercentage = totalScheduledHours > 0 ? (double)totalWorkedHours / totalScheduledHours * 100 : 0;
+
+        <div style="background: white; border-radius: 16px; border: 1px solid #E8E8E8; padding: 1.25rem; margin-top: 1.5rem;">
+            <h4 style="font-size: 0.875rem; font-weight: 700; color: #0A2540; margin: 0 0 1rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                <i data-lucide="bar-chart-2" style="width: 18px; height: 18px; color: #C1272D;"></i>
+                Weekly Summary
+            </h4>
+            <div class="row g-3">
+                <div class="col-6">
+                    <div style="font-size: 0.7rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Scheduled Hours</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #0A2540;">@totalScheduledHours</div>
+                </div>
+                <div class="col-6">
+                    <div style="font-size: 0.7rem; color: #94A3B8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Hours Worked</div>
+                    <div style="font-size: 1.5rem; font-weight: 800; color: #3B82F6;">@totalWorkedHours</div>
+                </div>
+            </div>
+            <div style="margin-top: 0.75rem;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #64748B; margin-bottom: 0.25rem;">
+                    <span>Progress</span>
+                    <span>@Math.Min(100, (int)progressPercentage)%</span>
+                </div>
+                <div style="height: 6px; background: #E8E8E8; border-radius: 50px; overflow: hidden;">
+                    <div style="height: 100%; width: @Math.Min(100, progressPercentage)%; background: #10B981; border-radius: 50px; transition: width 0.6s ease;"></div>
+                </div>
+                <div style="font-size: 0.7rem; color: #94A3B8; margin-top: 0.25rem;">
+                    @(Math.Min(100, (int)progressPercentage))% of scheduled week completed
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Confirmation Modal for Clock Out -->
+<div id="confirmModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 10000; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+    <div style="background: white; border-radius: 16px; padding: 1.75rem; max-width: 420px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: modalIn 0.2s ease;">
+        <div style="display: flex; align-items: flex-start; gap: 0.75rem; margin-bottom: 1rem;">
+            <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #FEF3C7; border-radius: 50%; flex-shrink: 0;">
+                <i data-lucide="clock" style="width: 20px; height: 20px; color: #F59E0B;"></i>
+            </div>
+            <div>
+                <h4 style="margin: 0; font-size: 1rem; font-weight: 700; color: #0A2540;">Clock Out?</h4>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #64748B;">Are you sure you want to clock out?</p>
+            </div>
+        </div>
+        <div style="background: #F8FAFE; border-radius: 12px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; border-left: 3px solid #C1272D;">
+            <div style="font-weight: 600; color: #0A2540; font-size: 0.875rem;">Current Shift</div>
+            <div style="font-size: 0.8rem; color: #64748B; margin-top: 0.125rem;">You are currently clocked in</div>
+        </div>
+        <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <button onclick="closeClockOutModal()" style="padding: 0.5rem 1.5rem; background: #F1F5F9; color: #0A2540; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#E2E8F0'" onmouseout="this.style.background='#F1F5F9'">
+                Cancel
+            </button>
+            <button id="confirmClockOutBtn" style="padding: 0.5rem 1.5rem; background: #DC2626; color: white; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='#B91C1C'" onmouseout="this.style.background='#DC2626'">
+                <i data-lucide="clock" style="width: 16px; height: 16px; display: inline; margin-right: 0.375rem;"></i>
+                Yes, Clock Out
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    lucide.createIcons();
+
+    // ========================================
+    // TOAST SYSTEM (SIMPLE INTERVAL)
+    // ========================================
+    function showToast(message, type = 'success', title = '', duration = 6000) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+
+        const icons = {
+            success: 'check-circle',
+            error: 'alert-circle',
+            warning: 'alert-triangle',
+            info: 'info'
+        };
+
+        const colors = {
+            success: { accent: '#10B981', badgeBg: '#ECFDF5', text: '#065F46' },
+            error: { accent: '#C1272D', badgeBg: '#FEF2F2', text: '#991B1B' },
+            warning: { accent: '#D97706', badgeBg: '#FFFBEB', text: '#92400E' },
+            info: { accent: '#1A4A7A', badgeBg: '#EFF6FF', text: '#1E40AF' }
+        };
+
+        const c = colors[type] || colors.success;
+        const finalDuration = Math.min(8000, Math.max(4000, duration));
+
+        toast.style.cssText = `
+            background: #FFFFFF;
+            border: 1px solid #E8E8E8;
+            border-left: 4px solid ${c.accent};
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            animation: toastIn 0.3s ease;
+            box-shadow: 0 8px 24px rgba(10,37,64,0.12);
+            pointer-events: auto;
+            max-width: 380px;
+            width: 100%;
+        `;
+
+        toast.innerHTML = `
+            <span style="display:flex; align-items:center; justify-content:center; width: 32px; height: 32px; border-radius: 50%; background: ${c.badgeBg}; flex-shrink: 0;">
+                <i data-lucide="${icons[type] || 'check-circle'}" style="color: ${c.accent}; width: 18px; height: 18px;"></i>
+            </span>
+            <div style="flex: 1; min-width: 0;">
+                ${title ? `<div style="font-weight: 700; color: #0A2540; font-size: 0.875rem;">${title}</div>` : ''}
+                <div style="color: ${c.text}; font-size: 0.8rem; line-height: 1.4; ${title ? 'margin-top: 0.15rem;' : ''}">${message}</div>
+                <div style="margin-top: 0.5rem; height: 3px; background: #F1F5F9; border-radius: 4px; width: 100%; overflow: hidden;">
+                    <div class="toast-progress-bar" style="height: 100%; background: ${c.accent}; border-radius: 4px; width: 100%;"></div>
+                </div>
+            </div>
+            <button onclick="this.closest('[data-toast]').remove()" style="background: none; border: none; color: #94A3B8; cursor: pointer; opacity: 0.7; padding: 0; font-size: 1.2rem; line-height: 1; flex-shrink: 0;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.7'">
+                <i data-lucide="x" style="width: 16px; height: 16px;"></i>
+            </button>
+        `;
+
+        toast.setAttribute('data-toast', '');
+        container.appendChild(toast);
+        lucide.createIcons();
+
+        const progressBar = toast.querySelector('.toast-progress-bar');
+        let startTime = Date.now();
+        let elapsed = 0;
+        let paused = false;
+        let remaining = finalDuration;
+        let intervalId = null;
+
+        function updateProgress() {
+            if (paused) return;
+            const now = Date.now();
+            elapsed += now - startTime;
+            startTime = now;
+
+            const progress = Math.min(1, elapsed / remaining);
+            const width = (1 - progress) * 100;
+            progressBar.style.width = width + '%';
+
+            if (progress >= 1) {
+                clearInterval(intervalId);
+                dismissToast();
+            }
+        }
+
+        function dismissToast() {
+            toast.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(20px)';
+            setTimeout(() => toast.remove(), 300);
+        }
+
+        intervalId = setInterval(updateProgress, 50);
+
+        toast.addEventListener('mouseenter', () => {
+            paused = true;
+            if (intervalId) clearInterval(intervalId);
+        });
+
+        toast.addEventListener('mouseleave', () => {
+            paused = false;
+            startTime = Date.now();
+            remaining = remaining - elapsed;
+            elapsed = 0;
+            if (remaining <= 0) {
+                dismissToast();
+            } else {
+                intervalId = setInterval(updateProgress, 50);
+            }
+        });
+    }
+
+    // ========================================
+    // CLOCK OUT MODAL & AJAX
+    // ========================================
+    function handleClockOut() {
+        document.getElementById('confirmModal').style.display = 'flex';
+        lucide.createIcons();
+    }
+
+    function closeClockOutModal() {
+        document.getElementById('confirmModal').style.display = 'none';
+    }
+
+    document.getElementById('confirmClockOutBtn').addEventListener('click', function() {
+        closeClockOutModal();
+        executeClockOut();
+    });
+
+    document.getElementById('confirmModal').addEventListener('click', function(e) {
+        if (e.target === this) closeClockOutModal();
+    });
+
+    function executeClockOut() {
+        const token = $('#antiForgeryForm input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+            url: '@Url.Action("ClockOut", "StaffManager")',
+            type: 'POST',
+            data: { __RequestVerificationToken: token },
+            success: function(response) {
+                if (response.success) {
+                    showToast(response.message, 'success', 'Clocked Out');
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    showToast(response.message, 'error', 'Clock Out Failed');
+                }
+            },
+            error: function() {
+                showToast('An error occurred while clocking out.', 'error', 'System Error');
+            }
+        });
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeClockOutModal();
+    });
+</script>
+
+<style>
+    @@keyframes toastIn {
+        from { opacity: 0; transform: translateX(20px) scale(0.96); }
+        to { opacity: 1; transform: translateX(0) scale(1); }
+    }
+    @@keyframes modalIn {
+        from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>

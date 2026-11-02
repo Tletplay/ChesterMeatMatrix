@@ -1,0 +1,85 @@
+﻿@model IEnumerable<ChesterMeatMatrix.Controllers.CartItem>
+@{
+    var cartItems = Model ?? new List<ChesterMeatMatrix.Controllers.CartItem>();
+    var subtotal = cartItems.Sum(i => i.Price * i.Quantity);
+    var freeShippingThreshold = 500m;
+    var remaining = freeShippingThreshold - subtotal;
+}
+
+@if (!cartItems.Any())
+{
+    <div class="cart-empty-state">
+        <span>🛒</span>
+        <p>Your cart is empty</p>
+        <a href="@Url.Action("Products", "Customer")" onclick="closeCart()">Continue Shopping</a>
+    </div>
+}
+else
+{
+    if (remaining > 0)
+    {
+        <div class="cart-free-shipping">
+            <p>Spend another <strong>R @remaining.ToString("F2")</strong> and get free shipping</p>
+            <div class="shipping-bar">
+                <div class="shipping-progress" style="width: @Math.Min(100, (int)((subtotal / freeShippingThreshold) * 100))%"></div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="cart-free-shipping achieved">
+            <p>🎉 You qualify for <strong>free shipping!</strong></p>
+        </div>
+    }
+
+    <div class="cart-items-list">
+        @foreach (var item in cartItems)
+        {
+            <div class="cart-panel-item">
+                <div class="cart-item-emoji">
+                    @if (item.ProductName.ToLower().Contains("chicken"))
+                    {<text>🐔</text> }
+                else if (item.ProductName.ToLower().Contains("beef") || item.ProductName.ToLower().Contains("steak"))
+                { <text>🥩</text> }
+            else if (item.ProductName.ToLower().Contains("lamb") || item.ProductName.ToLower().Contains("mutton"))
+            { <text>🐑</text> }
+        else if (item.ProductName.ToLower().Contains("pork") || item.ProductName.ToLower().Contains("bacon"))
+        { <text>🥓</text> }
+    else
+    { <text>🍖</text>}
+                </div>
+                <div class="cart-item-info">
+                    <div class="cart-item-name">@item.ProductName</div>
+                    <div class="cart-item-price">R @item.Price.ToString("F2")</div>
+                    <button class="cart-item-remove" onclick="removeFromCart(@item.ProductId)">Remove</button>
+                </div>
+                <div class="cart-item-right">
+                    <div class="cart-item-total">R @((item.Price * item.Quantity).ToString("F2"))</div>
+                    <div class="cart-qty-controls">
+                        <button onclick="updateCartQty(@item.ProductId, @(item.Quantity - 1))">&#8722;</button>
+                        <span>@item.Quantity</span>
+                        <button onclick="updateCartQty(@item.ProductId, @(item.Quantity + 1))">&#43;</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="cart-note-section">
+        <label>Add a note to your order</label>
+        <textarea class="cart-note-input" placeholder="Special instructions..."></textarea>
+    </div>
+
+    <div class="cart-side-footer">
+        <div class="cart-subtotal-row">
+            <span>Subtotal</span>
+            <span>R @subtotal.ToString("F2")</span>
+        </div>
+        <p class="cart-shipping-note">Shipping &amp; taxes calculated at checkout</p>
+        @using (Html.BeginForm("PlaceOrder", "Customer", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <button type="submit" class="cart-checkout-btn">CHECK OUT</button>
+        }
+    </div>
+}

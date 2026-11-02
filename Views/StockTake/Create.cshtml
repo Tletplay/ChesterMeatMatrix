@@ -1,0 +1,141 @@
+﻿﻿@{
+    ViewBag.Title = "Create Stock Take Session";
+    Layout = "~/Views/Shared/_WarehouseManagerLayout.cshtml";
+    var staff = ViewBag.Staff as List<ChesterMeatMatrix.Models.User>;
+    var products = ViewBag.Products as List<ChesterMeatMatrix.Models.Product>;
+}
+
+<div class="container-fluid px-4 py-4" style="max-width: 900px; margin: 0 auto;">
+    <!-- Header -->
+    <div class="mb-4">
+        <h1 class="h2 fw-bold" style="color: #0A2540; display: flex; align-items: center; gap: 0.75rem;">
+            <i data-lucide="package" style="color: #C1272D; width: 28px; height: 28px;"></i>
+            Create Stock Take Session
+        </h1>
+        <p class="text-muted mb-0" style="font-size: 0.9rem;">Set up a new inventory counting session</p>
+    </div>
+
+    <!-- Error Alert -->
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger d-flex align-items-center gap-2" style="background: #FEE2E2; border: none; border-left: 4px solid #DC2626; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+            <i data-lucide="alert-circle" style="color: #DC2626; width: 20px; height: 20px;"></i>
+            <span style="color: #991B1B; font-weight: 500;">@TempData["Error"]</span>
+        </div>
+    }
+
+    <!-- Form -->
+    <form method="post" action="@Url.Action("Create")" class="card border-0 shadow-sm rounded-4" style="border: 1px solid #E8E8E8; overflow: hidden;">
+        @Html.AntiForgeryToken()
+
+        <div style="padding: 1.75rem;">
+            <!-- Section 1 -->
+            <div class="mb-4">
+                <h3 style="font-size: 0.875rem; font-weight: 700; color: #0A2540; margin: 0 0 1.25rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid #E8E8E8; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: #C1272D; color: white; border-radius: 50%; font-size: 0.75rem; font-weight: 700;">1</span>
+                    Session Details
+                </h3>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-bold" style="font-size: 0.75rem; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+                            Session Name <span style="color: #C1272D;">*</span>
+                        </label>
+                        <input type="text" name="name" class="form-control" placeholder="e.g., August Monthly Stock Take" required style="padding: 0.75rem 1rem; border: 2px solid #E8E8E8; border-radius: 12px; font-size: 0.875rem; transition: all 0.2s ease; font-family: inherit; background: white;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)';" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none';" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" style="font-size: 0.75rem; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+                            Location <span style="color: #C1272D;">*</span>
+                        </label>
+                        <input type="text" name="location" class="form-control" placeholder="e.g., Warehouse Floor 175" required style="padding: 0.75rem 1rem; border: 2px solid #E8E8E8; border-radius: 12px; font-size: 0.875rem; transition: all 0.2s ease; font-family: inherit; background: white;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)';" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none';" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold" style="font-size: 0.75rem; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+                            Start Date <span style="color: #C1272D;">*</span>
+                        </label>
+                        <input type="date" name="startDate" class="form-control" required style="padding: 0.75rem 1rem; border: 2px solid #E8E8E8; border-radius: 12px; font-size: 0.875rem; transition: all 0.2s ease; font-family: inherit; background: white;" value="@DateTime.Now.ToString("yyyy-MM-dd")" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)';" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none';" />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-bold" style="font-size: 0.75rem; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Notes</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Add any additional notes or instructions..." style="padding: 0.75rem 1rem; border: 2px solid #E8E8E8; border-radius: 12px; font-size: 0.875rem; transition: all 0.2s ease; font-family: inherit; background: white; resize: vertical; min-height: 80px;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)';" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none';"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2 -->
+            <div class="mb-4">
+                <h3 style="font-size: 0.875rem; font-weight: 700; color: #0A2540; margin: 0 0 1.25rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid #E8E8E8; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: #C1272D; color: white; border-radius: 50%; font-size: 0.75rem; font-weight: 700;">2</span>
+                    Assign Counters
+                </h3>
+
+                <div>
+                    <label class="form-label fw-bold" style="font-size: 0.75rem; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">
+                        Select Staff <span style="color: #C1272D;">*</span>
+                    </label>
+                    <select name="selectedStaffIds" class="form-control" multiple style="padding: 0.75rem 1rem; border: 2px solid #E8E8E8; border-radius: 12px; font-size: 0.875rem; transition: all 0.2s ease; font-family: inherit; background: white; min-height: 120px;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)';" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none';">
+                        @if (staff != null)
+                        {
+                            foreach (var s in staff)
+                            {
+                                <option value="@s.Id" style="padding: 0.5rem;">@s.FullName - @s.Role</option>
+                            }
+                        }
+                    </select>
+                    <div class="mt-2 d-flex align-items-center gap-2">
+                        <i data-lucide="info" style="width: 14px; height: 14px; color: #94A3B8;"></i>
+                        <small style="color: #64748B; font-size: 0.75rem;">Hold <kbd style="background: #F1F5F9; padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.7rem; border: 1px solid #E2E8F0;">Ctrl</kbd> to select multiple staff members</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3 -->
+            <div class="mb-4">
+                <h3 style="font-size: 0.875rem; font-weight: 700; color: #0A2540; margin: 0 0 1.25rem 0; padding-bottom: 0.75rem; border-bottom: 2px solid #E8E8E8; display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; background: #C1272D; color: white; border-radius: 50%; font-size: 0.75rem; font-weight: 700;">3</span>
+                    Select Products to Count
+                </h3>
+
+                <div>
+                    <label class="form-label fw-bold" style="font-size: 0.75rem; color: #0A2540; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Select Products</label>
+                    <select name="selectedProductIds" class="form-control" multiple style="padding: 0.75rem 1rem; border: 2px solid #E8E8E8; border-radius: 12px; font-size: 0.875rem; transition: all 0.2s ease; font-family: inherit; background: white; min-height: 160px;" onfocus="this.style.borderColor='#C1272D'; this.style.boxShadow='0 0 0 3px rgba(193,39,45,0.1)';" onblur="this.style.borderColor='#E8E8E8'; this.style.boxShadow='none';">
+                        @if (products != null)
+                        {
+                            foreach (var p in products)
+                            {
+                                var stock = ChesterMeatMatrix.Data.InMemoryDatabase.StockBatches
+                                    .Where(b => b.ProductId == p.Id)
+                                    .Sum(b => b.Quantity);
+                                <option value="@p.Id" style="padding: 0.5rem;">@p.Name - Stock: @stock</option>
+                            }
+                        }
+                    </select>
+                    <div class="mt-2 d-flex align-items-center gap-2">
+                        <i data-lucide="info" style="width: 14px; height: 14px; color: #94A3B8;"></i>
+                        <small style="color: #64748B; font-size: 0.75rem;">Hold <kbd style="background: #F1F5F9; padding: 0.125rem 0.5rem; border-radius: 4px; font-size: 0.7rem; border: 1px solid #E2E8F0;">Ctrl</kbd> to select multiple products. Leave empty to count all products.</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-end gap-3 pt-3" style="border-top: 2px solid #F1F5F9;">
+                <a href="@Url.Action("Index")" class="btn" style="background: #F1F5F9; color: #0A2540; padding: 0.625rem 1.75rem; border-radius: 50px; font-weight: 600; font-size: 0.875rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
+                    <i data-lucide="x" style="width: 18px; height: 18px;"></i>
+                    Cancel
+                </a>
+                <button type="submit" class="btn" style="background: #C1272D; color: white; padding: 0.625rem 2rem; border: none; border-radius: 50px; font-weight: 600; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: all 0.2s;">
+                    <i data-lucide="check" style="width: 18px; height: 18px;"></i>
+                    Create Session
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>

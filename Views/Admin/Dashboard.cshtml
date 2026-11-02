@@ -1,0 +1,283 @@
+﻿﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewBag.Title = "Dashboard";
+}
+
+<style>
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        border: 1px solid var(--gray-light);
+        transition: all 0.3s ease;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+
+    .stat-icon {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--navy-dark);
+    }
+
+    .stat-label {
+        font-size: 13px;
+        color: var(--text-secondary);
+        margin-top: 5px;
+    }
+
+    .stat-sub {
+        font-size: 11px;
+        color: var(--navy-light);
+        margin-top: 8px;
+    }
+
+    .two-columns {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-bottom: 30px;
+    }
+
+    .welcome-section {
+        background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy-medium) 100%);
+        border-radius: var(--radius-lg);
+        padding: 25px 30px;
+        margin-bottom: 30px;
+        color: white;
+    }
+
+        .welcome-section h1 {
+            color: white;
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .welcome-section p {
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 0;
+        }
+
+    .order-link {
+        color: var(--navy-dark);
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+        .order-link:hover {
+            color: var(--red-primary);
+            text-decoration: underline;
+        }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .status-pending {
+        background: #FEF3C7;
+        color: #D97706;
+    }
+
+    .status-completed {
+        background: #D1FAE5;
+        color: #059669;
+    }
+
+    .alert-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+        .alert-list li {
+            padding: 12px 0;
+            border-bottom: 1px solid var(--gray-light);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+            .alert-list li:last-child {
+                border-bottom: none;
+            }
+
+    .quick-actions {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    @@media (max-width: 900px) {
+        .two-columns {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+        }
+    }
+
+    @@media (max-width: 480px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .action-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        border: 2px solid #E0E8F0;
+        border-radius: 40px;
+        padding: 10px 20px;
+        text-decoration: none;
+        color: #0A2540;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+        .action-btn:hover {
+            border-color: #2C6E9E;
+            background: #F0F4F8;
+            transform: translateY(-2px);
+            text-decoration: none;
+            color: #0A2540;
+        }
+</style>
+
+<div class="welcome-section">
+    <h1>Welcome back, @Session["FullName"] 👋</h1>
+    <p>Here's what's happening with Chester Meat Matrix today.</p>
+</div>
+
+<!-- STATS GRID - ALL REAL DATA -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📋</div>
+        <div class="stat-value">@ViewBag.TotalOrders</div>
+        <div class="stat-label">Total Orders</div>
+        <div class="stat-sub">@ViewBag.PendingOrders pending · @ViewBag.CompletedOrders completed</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-value">@ViewBag.PendingOrders</div>
+        <div class="stat-label">Pending Orders</div>
+        <div class="stat-sub">Awaiting picking/invoicing</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">🏭</div>
+        <div class="stat-value">@ViewBag.TotalProducts</div>
+        <div class="stat-label">Products in Stock</div>
+        <div class="stat-sub">@ViewBag.TotalStockQuantity total units · @ViewBag.TotalPallets pallets</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value">@ViewBag.TotalStaff</div>
+        <div class="stat-label">Staff Members</div>
+        <div class="stat-sub">
+            @if (ViewBag.StaffByRole != null)
+            {
+                var roles = ViewBag.StaffByRole as System.Collections.Generic.Dictionary<string, int>;
+                if (roles != null)
+                {
+                    string.Join(" · ", roles.Select(r => $"{r.Key}: {r.Value}"));
+                }
+            }
+        </div>
+    </div>
+</div>
+
+<!-- SINGLE COLUMN LAYOUT (removed Ready to Pick) -->
+<div class="card">
+    <div class="card-header">
+        <h3 style="margin: 0;">📋 Recent Orders</h3>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        @{
+            var recentOrders = ViewBag.RecentOrders as System.Collections.Generic.List<ChesterMeatMatrix.Controllers.RecentOrderItem>;
+        }
+        @if (recentOrders != null && recentOrders.Any())
+        {
+            <table class="data-table" style="width: 100%;">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in recentOrders)
+                    {
+                        <tr>
+                            <td><a href="#" class="order-link">@order.OrderNumber</a></td>
+                            <td>@order.CustomerName</td>
+                            <td>
+                                @if (order.IsInvoiced)
+                                {
+                                    <span class="status-badge status-completed">✓ Invoiced</span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge status-pending">⏳ Pending</span>
+                                }
+                            </td>
+                            <td>@order.CreatedAt.ToString("dd MMM yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div style="text-align: center; padding: 40px; color: var(--text-secondary);">
+                <span>📭</span>
+                <p>No orders found</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card">
+    <div class="card-header">
+        <h3 style="margin: 0;">⚡ Quick Actions</h3>
+    </div>
+    <div class="card-body">
+        <div class="quick-actions">
+            <a href="@Url.Action("CreateUser", "Admin")" class="btn btn-primary">➕ Add Staff Member</a>
+            <a href="@Url.Action("Index", "Admin")" class="btn btn-secondary">👥 Manage Staff</a>
+            <a href="@Url.Action("EftPendingOrders", "Admin")" class="action-btn">🏦 EFT Pending Orders</a>
+            <a href="@Url.Action("Index", "Reports")" class="action-btn">📊 System Reports</a>
+        </div>
+    </div>
+</div>

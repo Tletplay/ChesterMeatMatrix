@@ -1,0 +1,33 @@
+﻿﻿@model IEnumerable<ChesterMeatMatrix.Models.Product>
+@{
+    ViewBag.Title = "Manage Pallets";
+    Layout = "~/Views/Shared/_ReceiverLayout.cshtml";
+}
+
+<h2>Manage Pallets</h2>
+
+@if (!Model.Any())
+{
+    <p>No pallets found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr><th>Pallet Code</th><th>Name</th><th>Quantity</th><th>Location</th><th>Created</th><th></th></tr>
+        </thead>
+        <tbody>
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td><strong>@p.PalletCode</strong></td>
+                    <td>@p.Name</td>
+                    <td>@p.Quantity units</td>
+                    <td>@p.Location</td>
+                    <td>@p.CreatedAt.ToString("dd MMM yyyy")</td>
+                    <td><a href="@Url.Action("PalletDetails", new { palletCode = p.PalletCode })">View Items</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

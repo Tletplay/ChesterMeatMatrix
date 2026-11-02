@@ -1,0 +1,183 @@
+﻿@model IEnumerable<ChesterMeatMatrix.Models.Order>
+@{
+    ViewBag.Title = "Track Order - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var search = ViewBag.Search as string ?? "";
+    var fromDate = ViewBag.FromDate as string ?? "";
+    var toDate = ViewBag.ToDate as string ?? "";
+}
+
+<style>
+    .filter-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #E0E8F0;
+    }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-Pending {
+        background: #FEF3C7;
+        color: #D97706;
+    }
+
+    .status-Confirmed {
+        background: #D1FAE5;
+        color: #059669;
+    }
+
+    .status-Processing {
+        background: #DBEAFE;
+        color: #2563EB;
+    }
+
+    .status-OutForDelivery {
+        background: #FEF3C7;
+        color: #D97706;
+    }
+
+    .status-Delivered {
+        background: #D1FAE5;
+        color: #059669;
+    }
+
+    .btn-filter {
+        background: linear-gradient(135deg, #0A2540, #1A4A7A);
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 40px;
+        font-weight: 600;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+    }
+
+        .data-table th {
+            background: #F0F4F8;
+            padding: 12px;
+            text-align: left;
+            font-weight: 700;
+        }
+
+        .data-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E8F0;
+        }
+</style>
+
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 style="color: #0A2540;">Track Orders</h2>
+        <a href="@Url.Action("Index", "Enterprise")" class="btn btn-outline-secondary">← Back to Dashboard</a>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="filter-card">
+        @using (Html.BeginForm("TrackOrder", "Enterprise", FormMethod.Get))
+        {
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">🔍 Order Number</label>
+                    <input type="text" name="search" class="form-control" placeholder="Search by order number" value="@search" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">📅 From Date</label>
+                    <input type="date" name="fromDate" class="form-control" value="@fromDate" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">📅 To Date</label>
+                    <input type="date" name="toDate" class="form-control" value="@toDate" />
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn-filter w-100">Apply Filter</button>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info text-center py-4">
+            <i class="fas fa-box-open fa-2x mb-2 d-block"></i>
+            <p>No orders found.</p>
+            <a href="@Url.Action("Products", "Customer")" class="btn btn-primary mt-2">Place Your First Order →</a>
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Order #</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Payment</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td><strong>@order.OrderNumber</strong></td>
+                            <td>@order.CreatedAt.ToString("dd MMM yyyy HH:mm")</td>
+                            <td>R @order.Total:N2</td>
+                            <td><span class="status-badge status-@order.Status">@order.Status</span></td>
+                            <td>
+                                @if (order.IsPaid)
+                                {
+                                    <span class="badge bg-success">Paid</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@order.PaymentMethodString</span>
+                                }
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-sm btn-outline-info view-details" data-order-id="@order.Id">View Items</button>
+                                <div id="order-items-@order.Id" class="order-items" style="display:none; margin-top:10px;"></div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('.view-details').click(function() {
+            var orderId = $(this).data('order-id');
+            var detailsDiv = $('#order-items-' + orderId);
+
+            if (detailsDiv.is(':visible')) {
+                detailsDiv.hide();
+            } else {
+                detailsDiv.html('<em>Loading...</em>').show();
+                $.get('@Url.Action("GetOrderDetails", "Enterprise")', { orderId: orderId }, function(data) {
+                    detailsDiv.html(data);
+                });
+            }
+        });
+    });
+</script>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">

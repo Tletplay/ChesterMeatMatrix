@@ -1,0 +1,448 @@
+﻿﻿@{
+    ViewBag.Title = "Sales Dashboard - Chester Meat Matrix";
+    Layout = "~/Views/Shared/_SalesLayout.cshtml";
+    var pendingCount = ViewBag.PendingCount as int? ?? 0;
+    var fullName = ViewBag.FullName as string ?? Session["FullName"] as string ?? "Sales Rep";
+
+    // Get real data from database - using ONLY existing properties
+    var today = DateTime.Today;
+
+    // Confirmed today - orders with status Confirmed that were created today
+    var confirmedToday = ChesterMeatMatrix.Data.InMemoryDatabase.Orders
+        .Count(o => o.Status == ChesterMeatMatrix.Models.OrderStatusEnum.Confirmed
+            && o.CreatedAt.Date == today);
+
+    // Invoices this month - orders that are invoiced and invoice date is this month
+    var invoicesThisMonth = ChesterMeatMatrix.Data.InMemoryDatabase.Orders
+        .Count(o => o.IsInvoiced && o.InvoiceDate.HasValue && o.InvoiceDate.Value.Month == DateTime.Now.Month);
+
+    // Active customers this month - customers who placed orders this month
+    var activeCustomersThisMonth = ChesterMeatMatrix.Data.InMemoryDatabase.Orders
+        .Where(o => o.CreatedAt.Month == DateTime.Now.Month)
+        .Select(o => o.CustomerId)
+        .Distinct()
+        .Count();
+}
+
+<style>
+    /* Sales Dashboard - Isolated Styles */
+    .sales-dashboard-wrapper {
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    .sales-welcome-card {
+        background: linear-gradient(135deg, #0A2540 0%, #1A4A7A 100%);
+        border-radius: 20px;
+        padding: 1.75rem 2rem;
+        margin-bottom: 2rem;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .sales-welcome-card::after {
+        content: "💰";
+        position: absolute;
+        bottom: 0.5rem;
+        right: 1.5rem;
+        font-size: 5rem;
+        opacity: 0.08;
+        pointer-events: none;
+    }
+
+    .sales-welcome-title {
+        color: white;
+        margin: 0 0 0.25rem 0;
+        font-size: 1.5rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .sales-welcome-title i {
+        font-size: 1.75rem;
+        color: #F59E0B;
+    }
+
+    .sales-welcome-text {
+        color: rgba(255,255,255,0.85);
+        margin: 0;
+        font-size: 0.85rem;
+    }
+
+    /* Stats Grid */
+    .sales-stats-container {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    @@media (min-width: 768px) {
+        .sales-stats-container {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    .sales-stat-item {
+        background: #FFFFFF;
+        border-radius: 20px;
+        padding: 1.25rem 1.5rem;
+        border: 1px solid #EDF2F7;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .sales-stat-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(10, 37, 64, 0.1);
+    }
+
+    .sales-stat-icon {
+        width: 48px;
+        height: 48px;
+        background: #FEF2F2;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 1rem;
+    }
+
+    .sales-stat-icon i {
+        font-size: 1.5rem;
+        color: #C1272D;
+    }
+
+    .sales-stat-number {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #0A2540;
+        line-height: 1.2;
+        margin-bottom: 0.25rem;
+    }
+
+    .sales-stat-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .sales-stat-subtext {
+        font-size: 0.7rem;
+        color: #9CA3AF;
+        margin-top: 0.5rem;
+    }
+
+    /* Action Cards */
+    .sales-actions-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    @@media (min-width: 768px) {
+        .sales-actions-container {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .sales-action-item {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px solid #EDF2F7;
+        overflow: hidden;
+        transition: all 0.2s ease;
+    }
+
+    .sales-action-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(10, 37, 64, 0.1);
+    }
+
+    .sales-action-head {
+        padding: 1.25rem 1.5rem;
+        background: #F8FAFE;
+        border-bottom: 1px solid #EDF2F7;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .sales-action-head i {
+        font-size: 1.5rem;
+        color: #C1272D;
+    }
+
+    .sales-action-head h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0A2540;
+    }
+
+    .sales-action-content {
+        padding: 1.25rem 1.5rem;
+    }
+
+    .sales-action-content p {
+        margin: 0 0 1rem 0;
+        font-size: 0.85rem;
+        color: #718096;
+    }
+
+    .sales-action-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #C1272D;
+        color: white;
+        padding: 0.6rem 1.25rem;
+        border-radius: 40px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .sales-action-button:hover {
+        background: #A11E23;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(193, 39, 45, 0.25);
+        color: white;
+        text-decoration: none;
+    }
+
+    /* Recent Orders */
+    .sales-recent-container {
+        background: #FFFFFF;
+        border-radius: 20px;
+        border: 1px solid #EDF2F7;
+        overflow: hidden;
+    }
+
+    .sales-recent-head {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid #EDF2F7;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .sales-recent-head h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #0A2540;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .sales-recent-head h3 i {
+        color: #C1272D;
+    }
+
+    .sales-view-link {
+        font-size: 0.8rem;
+        color: #C1272D;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .sales-view-link:hover {
+        text-decoration: underline;
+    }
+
+    .sales-empty-message {
+        text-align: center;
+        padding: 3rem 2rem;
+        color: #A0AEC0;
+    }
+
+    .sales-empty-message i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        display: block;
+    }
+
+    .sales-empty-message p {
+        margin: 0;
+        font-size: 0.85rem;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .sales-welcome-card {
+            padding: 1.25rem;
+        }
+        .sales-welcome-title {
+            font-size: 1.25rem;
+        }
+        .sales-stat-number {
+            font-size: 1.5rem;
+        }
+        .sales-stat-icon {
+            width: 40px;
+            height: 40px;
+        }
+        .sales-stat-icon i {
+            font-size: 1.2rem;
+        }
+    }
+</style>
+
+<div class="sales-dashboard-wrapper">
+    <!-- Welcome Section -->
+    <div class="sales-welcome-card">
+        <div class="sales-welcome-title">
+            <i class="fas fa-chart-line"></i>
+            Welcome, @fullName!
+        </div>
+        <p class="sales-welcome-text">Sales Dashboard - Manage and confirm customer orders</p>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="sales-stats-container">
+        <div class="sales-stat-item">
+            <div class="sales-stat-icon">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="sales-stat-number">@pendingCount</div>
+            <div class="sales-stat-label">Pending Confirmation</div>
+            <div class="sales-stat-subtext">Orders waiting for you</div>
+        </div>
+
+        <div class="sales-stat-item">
+            <div class="sales-stat-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="sales-stat-number">@confirmedToday</div>
+            <div class="sales-stat-label">Confirmed Today</div>
+            <div class="sales-stat-subtext">Orders confirmed</div>
+        </div>
+
+        <div class="sales-stat-item">
+            <div class="sales-stat-icon">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <div class="sales-stat-number">@invoicesThisMonth</div>
+            <div class="sales-stat-label">Invoices Generated</div>
+            <div class="sales-stat-subtext">This month</div>
+        </div>
+
+        <div class="sales-stat-item">
+            <div class="sales-stat-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="sales-stat-number">@activeCustomersThisMonth</div>
+            <div class="sales-stat-label">Active Customers</div>
+            <div class="sales-stat-subtext">With orders this month</div>
+        </div>
+    </div>
+
+    <!-- Action Cards -->
+    <div class="sales-actions-container">
+        <div class="sales-action-item">
+            <div class="sales-action-head">
+                <i class="fas fa-clock"></i>
+                <h3>Pending Orders</h3>
+            </div>
+            <div class="sales-action-content">
+                <p>Review and confirm orders that are awaiting your approval.</p>
+                <a href="@Url.Action("PendingOrders", "Sales")" class="sales-action-button">
+                    View Pending Orders
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="sales-action-item">
+            <div class="sales-action-head">
+                <i class="fas fa-file-invoice"></i>
+                <h3>Invoices</h3>
+            </div>
+            <div class="sales-action-content">
+                <p>View all generated invoices and payment status.</p>
+                <a href="@Url.Action("Invoices", "Sales")" class="sales-action-button">
+                    View Invoices
+                    <i class="fas fa-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders Section -->
+    <div class="sales-recent-container">
+        <div class="sales-recent-head">
+            <h3>
+                <i class="fas fa-history"></i>
+                Recent Orders
+            </h3>
+            <a href="@Url.Action("PendingOrders", "Sales")" class="sales-view-link">
+                View All Orders →
+            </a>
+        </div>
+
+        @{
+            var recentOrders = ChesterMeatMatrix.Data.InMemoryDatabase.Orders
+                .OrderByDescending(o => o.CreatedAt)
+                .Take(5)
+                .ToList();
+        }
+
+        @if (recentOrders.Any())
+        {
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #F8FAFE; border-bottom: 1px solid #EDF2F7;">
+                            <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase;">Order #</th>
+                            <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase;">Date</th>
+                            <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase;">Customer</th>
+                            <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase;">Total</th>
+                            <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase;">Status</th>
+                            <th style="padding: 0.75rem 1rem; text-align: left; font-size: 0.7rem; font-weight: 600; color: #718096; text-transform: uppercase;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in recentOrders)
+                        {
+                            <tr style="border-bottom: 1px solid #EDF2F7;">
+                                <td style="padding: 0.75rem 1rem; font-size: 0.85rem; font-weight: 600; color: #0A2540;">@order.OrderNumber</td>
+                                <td style="padding: 0.75rem 1rem; font-size: 0.85rem; color: #4A5568;">@order.CreatedAt.ToString("dd MMM yyyy")</td>
+                                <td style="padding: 0.75rem 1rem; font-size: 0.85rem; color: #4A5568;">@(order.Customer?.Name ?? "N/A")</td>
+                                <td style="padding: 0.75rem 1rem; font-size: 0.85rem; font-weight: 600; color: #0A2540;">R @order.Total.ToString("N2")</td>
+                                <td style="padding: 0.75rem 1rem;">
+                                    <span style="display: inline-block; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; font-weight: 600; @(order.Status == ChesterMeatMatrix.Models.OrderStatusEnum.Confirmed ? "background: #D1FAE5; color: #065F46;" : "background: #FEF3C7; color: #92400E;")">
+                                        @order.Status
+                                    </span>
+                                </td>
+                                <td style="padding: 0.75rem 1rem;">
+                                    <a href="@Url.Action("ConfirmOrder", "Sales", new { id = order.Id })" style="color: #C1272D; font-size: 0.75rem; font-weight: 600; text-decoration: none;">Confirm →</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="sales-empty-message">
+                <i class="fas fa-shopping-cart"></i>
+                <p>No recent orders to display</p>
+                <p style="font-size: 0.75rem; margin-top: 0.5rem;">Orders will appear here once customers place them</p>
+            </div>
+        }
+    </div>
+</div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
