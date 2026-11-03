@@ -128,6 +128,12 @@ Each type of user sees only their own pages. Log in as a role to see its part of
 3. Replace the `YOUR_...` values with your own details.
 4. Press **F5** to run the app.
 
+## Deployment
+
+The application is deployment-ready and can be hosted on **Azure App Service** with an **Azure SQL Database**. It was configured and tested for Azure deployment.
+
+It is not currently hosted online. I am a student running on limited Azure credits, and keeping the app and database running would use them up. The full source code and setup instructions are available here, and I can deploy a live version on request.
+
 ## Security Note
 
 The two `.secret.config` files are listed in `.gitignore`, so they are never uploaded to GitHub. Never commit real passwords or API keys.
